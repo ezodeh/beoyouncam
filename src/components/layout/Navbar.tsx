@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-
+import ThemeToggle from "@/components/theme/ThemeToggle";
 interface NavbarProps { compact?: boolean; fullBleed?: boolean }
 const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -37,7 +37,8 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
         <div>
           {userName ? (
             <div className="flex items-center gap-2">
-              <Link to="/account" className="hidden sm:inline-flex rounded-full px-3 py-1.5 bg-secondary text-secondary-foreground hover-scale" aria-label="حسابي">
+              <ThemeToggle />
+              <Link to="/settings" className="hidden sm:inline-flex rounded-full px-3 py-1.5 bg-secondary text-secondary-foreground hover-scale" aria-label="حسابي">
                 حسابي
               </Link>
               <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signOut} aria-label="تسجيل الخروج">
@@ -45,9 +46,12 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
               </Button>
             </div>
           ) : (
-            <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
-              تسجيل الدخول
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
+                تسجيل الدخول
+              </Button>
+            </div>
           )}
         </div>
       </nav>

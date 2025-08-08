@@ -295,6 +295,39 @@ export default function CreateEvent() {
         coverUrl = pub.publicUrl;
       }
 
+      const isPrivate = privacy === "private";
+      const publicationAt = (() => {
+        if (timing === "during") return startAt ? startAt.toISOString() : null;
+        if (timing === "after12") return startAt ? new Date(startAt.getTime() + 12 * 3600 * 1000).toISOString() : null;
+        if (timing === "after24") return startAt ? new Date(startAt.getTime() + 24 * 3600 * 1000).toISOString() : null;
+        if (timing === "custom") return customPublishAt ? customPublishAt.toISOString() : null;
+        return null; // manual
+      })();
+      const organizerCountry = (() => {
+        try {
+          const lang = navigator.language || "";
+          if (lang.includes("MA")) return "+212";
+          if (lang.includes("DZ")) return "+213";
+          if (lang.includes("LY")) return "+218";
+          if (lang.includes("TN")) return "+216";
+          if (lang.includes("EG")) return "+20";
+          if (lang.includes("SD")) return "+249";
+          if (lang.includes("YE")) return "+967";
+          if (lang.includes("SY")) return "+963";
+          if (lang.includes("PS")) return "+970";
+          if (lang.includes("LB")) return "+961";
+          if (lang.includes("JO")) return "+962";
+          if (lang.includes("SA")) return "+966";
+          if (lang.includes("AE")) return "+971";
+          if (lang.includes("QA")) return "+974";
+          if (lang.includes("BH")) return "+973";
+          if (lang.includes("OM")) return "+968";
+          if (lang.includes("KW")) return "+965";
+          if (lang.includes("IQ")) return "+964";
+          return "+962";
+        } catch { return "+962"; }
+      })();
+
       const { error: insErr } = await supabase.from("events").insert({
         token,
         title: title.trim(),
@@ -305,6 +338,9 @@ export default function CreateEvent() {
         cover_url: coverUrl,
         max_shots: shotsPerGuest,
         owner_id: userId,
+        is_private: isPrivate,
+        published_at: publicationAt,
+        country_code: organizerCountry,
       });
       if (insErr) throw insErr;
 

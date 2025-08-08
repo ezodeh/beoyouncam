@@ -16,36 +16,45 @@ export type Database = {
     Tables: {
       events: {
         Row: {
+          country_code: string | null
           cover_url: string | null
           created_at: string
           description: string | null
           end_at: string | null
+          is_private: boolean
           max_shots: number
           owner_id: string | null
+          published_at: string | null
           sign_in_method: string
           start_at: string | null
           title: string
           token: string
         }
         Insert: {
+          country_code?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           end_at?: string | null
+          is_private?: boolean
           max_shots?: number
           owner_id?: string | null
+          published_at?: string | null
           sign_in_method: string
           start_at?: string | null
           title: string
           token: string
         }
         Update: {
+          country_code?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           end_at?: string | null
+          is_private?: boolean
           max_shots?: number
           owner_id?: string | null
+          published_at?: string | null
           sign_in_method?: string
           start_at?: string | null
           title?: string
