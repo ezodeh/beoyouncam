@@ -1,6 +1,6 @@
 import React from "react";
 
-export type LogoVariant = "icon" | "wordmark" | "stacked" | "horizontal";
+export type LogoVariant = "icon" | "wordmark" | "stacked" | "horizontal" | "brand";
 
 interface LogoProps {
   variant?: LogoVariant; // which composition to render
@@ -17,6 +17,7 @@ const srcMap: Record<LogoVariant, string> = {
   wordmark: "/lovable-uploads/e635fc05-a945-415e-9dae-80f972c792cf.png",
   stacked: "/lovable-uploads/3abf2523-09b8-4264-b731-d9f044049749.png",
   horizontal: "/lovable-uploads/feffbd15-6f18-425a-baed-b8539b349521.png",
+  brand: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png",
 };
 
 // Approximate aspect ratios based on source images
@@ -25,6 +26,7 @@ const ratioMap: Record<LogoVariant, number> = {
   wordmark: 1.86, // ~372x200
   stacked: 0.9, // ~384x427
   horizontal: 3.76, // ~771x205
+  brand: 3.0,
 };
 
 const Logo: React.FC<LogoProps> = ({
@@ -37,6 +39,18 @@ const Logo: React.FC<LogoProps> = ({
 }) => {
   const src = srcMap[variant];
   const aria = title || "شعار من عيونكم";
+
+  // Brand composition: icon (right) + text (left) for RTL
+  if (variant === "brand") {
+    const height = typeof size === "number" ? `${size}px` : size;
+    const iconSrc = srcMap.brand;
+    return (
+      <span role="img" aria-label={aria} className={(className ? className + " " : "") + "inline-flex items-center gap-2 leading-none"}>
+        <img src={iconSrc} alt="" aria-hidden="true" loading="lazy" style={{ height, width: "auto" }} />
+        <span className="font-extrabold font-nastaliq text-xl md:text-2xl">من عيونكم</span>
+      </span>
+    );
+  }
 
   if (colored) {
     return (

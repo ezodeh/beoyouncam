@@ -267,12 +267,12 @@ export default function CreateEvent() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-almarai">
       <Navbar />
       <main className="flex-1 container mx-auto py-10">
         <div dir="rtl" className="mx-auto max-w-2xl px-4">
           <header className="mb-6">
-            <h1 className="text-3xl font-extrabold">إنشاء مناسبة</h1>
+            <h1 className="text-3xl font-extrabold font-nastaliq">إنشاء مناسبة</h1>
             <p className="text-sm text-muted-foreground mt-1">ابدأ بتعريف المناسبة، ثم اضبط الألبوم والمشاركين وخيارات العرض.</p>
             <link rel="canonical" href={window.location.origin + "/create-event"} />
           </header>
@@ -298,9 +298,9 @@ export default function CreateEvent() {
             ))}
           </div>
 
-          <Card className="shadow-elevated">
+          <Card className="shadow-elevated bg-card/50 backdrop-blur-xl supports-[backdrop-filter]:bg-card/40 border border-border/60">
             <CardHeader>
-              <CardTitle className="text-2xl">{stepTitles[step - 1]}</CardTitle>
+              <CardTitle className="text-2xl font-nastaliq">{stepTitles[step - 1]}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6">
               {step === 1 && (

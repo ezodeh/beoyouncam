@@ -9,7 +9,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-almarai">
       <Navbar />
       <main className="flex-1">
         <Hero />
