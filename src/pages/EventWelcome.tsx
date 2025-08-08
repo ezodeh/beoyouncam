@@ -71,11 +71,15 @@ export default function EventWelcome() {
         // redirect based on timing if configured
         const now = new Date();
         if (row.start_at && now < new Date(row.start_at)) {
-          navigate(`/event/${token}/soon${location.search}`);
+          const qs = new URLSearchParams(location.search);
+          qs.set("start_at", row.start_at);
+          navigate(`/event/${token}/soon?${qs.toString()}`);
           return;
         }
         if (row.end_at && now > new Date(row.end_at)) {
-          navigate(`/event/${token}/ended${location.search}`);
+          const qs = new URLSearchParams(location.search);
+          qs.set("end_at", row.end_at);
+          navigate(`/event/${token}/ended?${qs.toString()}`);
           return;
         }
         setEventDetails({

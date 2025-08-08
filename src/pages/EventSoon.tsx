@@ -35,7 +35,7 @@ export default function EventSoon() {
   }, [target, now]);
 
   useEffect(() => {
-    // read from URL for now
+    // read from URL for now, EventWelcome/Camera add it when redirecting
     const s = new URLSearchParams(location.search).get("start_at");
     if (s) setStartAt(s);
   }, [location.search]);

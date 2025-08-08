@@ -1,8 +1,9 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export default function Invites() {
   const { token } = useParams();
@@ -19,15 +20,9 @@ export default function Invites() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative flex flex-col" dir="rtl">
-      <Link
-        to={`/event/${token}`}
-        aria-label="عودة"
-        className="absolute top-4 left-4 z-10 inline-flex items-center justify-center rounded-full border border-border bg-background p-2"
-      >
-        <X className="h-6 w-6" />
-      </Link>
-      <main className="flex-1 container mx-auto px-4 py-10 grid place-items-center">
+    <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
+      <Navbar compact fullBleed />
+      <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="text-center w-full max-w-sm">
           <h1 className="text-3xl font-bold font-nastaliq mb-6">دعوة الضيوف</h1>
           <div className="flex justify-center mb-6">
@@ -35,19 +30,14 @@ export default function Invites() {
               <QRCode value={url} size={192} />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground break-all mb-4">{url}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground break-all mb-4">{url}</p>
           <div className="flex items-center justify-center gap-3">
             <Button onClick={copy} className="rounded-full">نسخ الرابط</Button>
             <Button variant="outline" onClick={share} className="rounded-full">مشاركة</Button>
           </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 inset-x-0 bg-background/80 backdrop-blur border-t">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-center gap-3">
-          <Button onClick={share} className="rounded-full">مشاركة الباركود</Button>
-          <Button variant="outline" onClick={copy} className="rounded-full">نسخ الرابط</Button>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
