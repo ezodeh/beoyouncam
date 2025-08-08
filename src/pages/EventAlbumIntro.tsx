@@ -25,9 +25,9 @@ export default function EventAlbumIntro() {
               loading="lazy"
             />
           </figure>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
 
-          <div className="container mx-auto px-4 -mt-10 sm:-mt-14">
+          <div className="container relative z-20 mx-auto px-4 -mt-10 sm:-mt-14">
             <div className="mx-auto max-w-2xl rounded-xl border bg-card text-card-foreground shadow-lg p-6 sm:p-8">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-center mb-2">أهلًا وسهلًا في الألبوم</h1>
               <p className="text-center text-muted-foreground mb-6">
