@@ -67,21 +67,22 @@ export default function EventWelcome() {
         .maybeSingle();
       const data: any = row;
       if (!error && data) {
+        const row = data as any;
         // redirect based on timing if configured
         const now = new Date();
-        if (data.start_at && now < new Date(data.start_at)) {
+        if (row.start_at && now < new Date(row.start_at)) {
           navigate(`/event/${token}/soon${location.search}`);
           return;
         }
-        if (data.end_at && now > new Date(data.end_at)) {
+        if (row.end_at && now > new Date(row.end_at)) {
           navigate(`/event/${token}/ended${location.search}`);
           return;
         }
         setEventDetails({
-          ...data,
-          sign_in_method: (data.sign_in_method as "phone" | "email" | null),
+          ...(row as any),
+          sign_in_method: (row.sign_in_method as "phone" | "email" | null),
         });
-        if (data.sign_in_method) setTab(data.sign_in_method as any);
+        if (row.sign_in_method) setTab(row.sign_in_method as any);
       }
     })();
   }, [token]);

@@ -32,19 +32,20 @@ export default function EventCamera() {
         .maybeSingle();
       const data: any = row;
       if (data) {
+        const row = data as any;
         const now = new Date();
-        if (data.start_at && now < new Date(data.start_at)) {
+        if (row.start_at && now < new Date(row.start_at)) {
           navigate(`/event/${token}/soon${location.search}`);
           return;
         }
-        if (data.end_at && now > new Date(data.end_at)) {
+        if (row.end_at && now > new Date(row.end_at)) {
           navigate(`/event/${token}/ended${location.search}`);
           return;
         }
         if (!isNaN(queryShots)) {
           setMaxShots(Math.max(1, queryShots));
-        } else if (typeof data.max_shots === "number") {
-          setMaxShots(Math.max(1, data.max_shots));
+        } else if (typeof row.max_shots === "number") {
+          setMaxShots(Math.max(1, row.max_shots));
         }
       }
     })();
