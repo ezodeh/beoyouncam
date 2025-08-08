@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 const ChoosePlan = () => {
   useEffect(() => {
-    document.title = "اختر خطة — من عيونكم";
+    document.title = "خطط الشركات — من عيونكم";
   }, []);
 
   return (

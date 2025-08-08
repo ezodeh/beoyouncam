@@ -31,8 +31,8 @@ const PricingGrid = () => {
   return (
     <section className="py-12">
       <div className="container mx-auto text-center mb-8">
-        <h2 className="text-3xl font-extrabold mb-2">اختر الخطة المناسبة</h2>
-        <p className="text-muted-foreground">ابدأ مجانًا، وارتقِ لاحقًا وقت الحاجة</p>
+        <h2 className="text-3xl font-extrabold mb-2">خطط الشركات</h2>
+        <p className="text-muted-foreground">باقات مخصّصة للمصالح والشركات</p>
       </div>
       <div className="container mx-auto grid md:grid-cols-3 gap-6">
         {plans.map((p) => (

@@ -11,15 +11,15 @@ const Navbar = () => {
       <nav className="container mx-auto flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2 text-foreground">
           <span className="hidden sm:inline-flex items-center gap-2">
-            <Logo variant="icon" colored={false} gradient size={28} className="bg-brand-gradient" title="شعار من عيونكم" />
-            <Logo variant="wordmark" colored={false} size={72} title="من عيونكم" />
+            <Logo variant="icon" colored={false} gradient size={22} className="bg-brand-gradient" title="شعار من عيونكم" />
+            <Logo variant="wordmark" colored={false} size={110} title="من عيونكم" />
           </span>
-          <Logo variant="icon" colored={false} gradient size={28} className="sm:hidden bg-brand-gradient" title="شعار من عيونكم" />
+          <Logo variant="icon" colored={false} gradient size={24} className="sm:hidden bg-brand-gradient" title="شعار من عيونكم" />
           <span className="sr-only">من عيونكم</span>
         </Link>
         <div className="hidden md:flex items-center gap-4">
           <Link to="/choose-plan" className="text-sm text-muted-foreground hover:text-foreground">
-            الخطط
+            خطط الشركات
           </Link>
           <Link to="/create-event" className="text-sm text-muted-foreground hover:text-foreground">
             إنشاء مناسبة
@@ -56,7 +56,7 @@ const Navbar = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" side="bottom">
               <DropdownMenuItem asChild>
-                <Link to="/choose-plan">الخطط</Link>
+                <Link to="/choose-plan">خطط الشركات</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/create-event">إنشاء مناسبة</Link>
