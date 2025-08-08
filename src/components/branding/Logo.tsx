@@ -5,6 +5,7 @@ export type LogoVariant = "icon" | "wordmark" | "stacked" | "horizontal";
 interface LogoProps {
   variant?: LogoVariant; // which composition to render
   colored?: boolean; // render original colors or tint with currentColor
+  gradient?: boolean; // if true, use background gradient via className instead of currentColor
   size?: number | string; // width in px or any CSS size (height auto via aspect-ratio)
   className?: string;
   title?: string; // accessible label
@@ -29,6 +30,7 @@ const ratioMap: Record<LogoVariant, number> = {
 const Logo: React.FC<LogoProps> = ({
   variant = "icon",
   colored = true,
+  gradient = false,
   size = 32,
   className,
   title,
@@ -53,7 +55,6 @@ const Logo: React.FC<LogoProps> = ({
   const style: React.CSSProperties = {
     width,
     aspectRatio: String(ratioMap[variant]),
-    backgroundColor: "currentColor",
     WebkitMaskImage: `url(${src})`,
     maskImage: `url(${src})`,
     WebkitMaskRepeat: "no-repeat",
@@ -63,6 +64,7 @@ const Logo: React.FC<LogoProps> = ({
     WebkitMaskPosition: "center",
     maskPosition: "center",
     display: "inline-block",
+    ...(gradient ? {} : { backgroundColor: "currentColor" }),
   } as React.CSSProperties;
 
   return <span role="img" aria-label={aria} style={style} className={className} />;
