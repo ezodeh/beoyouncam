@@ -23,6 +23,9 @@ import EventWelcome from "./pages/EventWelcome";
 import EventSoon from "./pages/EventSoon";
 import EventEnded from "./pages/EventEnded";
 import Account from "./pages/Account";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+// removed duplicate import
 const queryClient = new QueryClient();
 
 const App = () => (
