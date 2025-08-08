@@ -203,7 +203,7 @@ export default function EventWelcome() {
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
-            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>
+            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventDetails?.title || eventName}</h1>
             <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">

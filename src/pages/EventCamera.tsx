@@ -8,12 +8,13 @@ export default function EventCamera() {
   const navigate = useNavigate();
   const { token } = useParams();
   const location = useLocation();
-  const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+  const initialName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+  const [eventTitle, setEventTitle] = useState<string>(initialName);
   const queryShots = Number(new URLSearchParams(location.search).get("shots") || "");
   const [maxShots, setMaxShots] = useState<number>(Math.max(1, isNaN(queryShots) ? 120 : queryShots));
   useEffect(() => {
-    document.title = `الكاميرا — ${eventName} — من عيونكم`;
-  }, [eventName]);
+    document.title = `الكاميرا — ${eventTitle} — من عيونكم`;
+  }, [eventTitle]);
 
   useEffect(() => {
     const has = localStorage.getItem(`participant:${token}`);
@@ -27,12 +28,13 @@ export default function EventCamera() {
       if (!token) return;
       const { data: row } = await supabase
         .from("events")
-        .select("max_shots, start_at, end_at")
+        .select("max_shots, start_at, end_at, title")
         .eq("token", token as string)
         .maybeSingle();
       const data: any = row;
       if (data) {
         const row = data as any;
+        setEventTitle(row.title || initialName);
         const now = new Date();
         if (row.start_at && now < new Date(row.start_at)) {
           const qs = new URLSearchParams(location.search);
@@ -59,7 +61,7 @@ export default function EventCamera() {
     <div className="h-[100dvh] overflow-hidden overscroll-none bg-background text-foreground relative" dir="rtl">
       <Navbar compact fullBleed />
       {/* واجهة الكاميرا الكاملة */}
-      <MobileCamera token={token || ""} eventName={eventName} maxShots={maxShots} />
+      <MobileCamera token={token || ""} eventName={eventTitle} maxShots={maxShots} />
     </div>
   );
 }

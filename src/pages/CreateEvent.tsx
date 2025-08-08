@@ -375,29 +375,37 @@ export default function CreateEvent() {
       <main className="flex-1 container mx-auto py-10">
         <div dir="rtl" className="mx-auto max-w-2xl px-4">
           <header className="mb-6">
-            <h1 className="text-3xl font-semibold font-nastaliq">إنشاء مناسبة</h1>
+            <h1 className="text-3xl font-medium font-nastaliq">إنشاء مناسبة</h1>
             <p className="text-sm text-muted-foreground mt-1">ابدأ بتعريف المناسبة، ثم اضبط الألبوم والمشاركين وخيارات العرض.</p>
             <link rel="canonical" href={window.location.origin + "/create-event"} />
           </header>
 
-          {/* Stepper */}
+          {/* Stepper (clickable) */}
           <div className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
             {[1, 2, 3, 4, 5].map((s) => (
-              <div key={s} className={`flex-1 flex items-center ${s < 5 ? "mr-2" : ""}`}>
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStep(s)}
+                className={`flex-1 flex items-center ${s < 5 ? "mr-2" : ""} group focus:outline-none`}
+                aria-label={`الانتقال إلى خطوة ${s}: ${stepTitles[s - 1]}`}
+              >
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 grid place-items-center rounded-full border ${
-                    s <= step ? "bg-primary text-primary-foreground" : "bg-muted"
-                  }`}>
+                  <div
+                    className={`w-8 h-8 grid place-items-center rounded-full border transition-colors ${
+                      s <= step ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-secondary"
+                    }`}
+                  >
                     {s}
                   </div>
-                  <span className={`mt-1 text-[10px] ${s <= step ? "text-foreground" : "text-muted-foreground"}`}>
+                  <span className={`mt-1 text-[10px] ${s <= step ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
                     {stepTitles[s - 1]}
                   </span>
                 </div>
                 {s < 5 && (
                   <div className={`h-px flex-1 mx-2 ${s < step ? "bg-primary" : "bg-muted"}`} />
                 )}
-              </div>
+              </button>
             ))}
           </div>
 

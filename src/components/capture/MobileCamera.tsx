@@ -39,6 +39,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [zoom, setZoom] = useState<number>(1);
+  useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, recent.length]);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const startDistRef = useRef<number | null>(null);
   const baseZoomRef = useRef<number>(1);
@@ -104,7 +105,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   function pad2(n: number) { return String(n).padStart(2, "0"); }
   async function capturePhoto() {
     if (left <= 0) {
-      toast({ title: "وصلت حدّك من اللقطات" });
+      toast({ title: "انتهى عدد اللقطات" });
       return;
     }
     try {
@@ -136,7 +137,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
 
   async function startVideoRecording() {
     if (!supportsVideo) return;
-    if (left <= 0) { toast({ title: "وصلت حدّك من اللقطات" }); return; }
+    if (left <= 0) { toast({ title: "انتهى عدد اللقطات" }); return; }
     try {
       const s = streamRef.current || await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: true });
       streamRef.current = s;
@@ -419,7 +420,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
             <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => {
-              const f = e.target.files?.[0]; if (!f) return; if (left <= 0) { toast({ title: "وصلت حدّك" }); return; }
+              const f = e.target.files?.[0]; if (!f) return; if (left <= 0) { toast({ title: "انتهى عدد اللقطات" }); return; }
               uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft((n)=>Math.max(0,n-1)));
               e.currentTarget.value = "";
             }} />
@@ -429,14 +430,14 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
 
       {/* Limit banner */}
       {left <= 0 && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">وصلت حدّك من اللقطات</div>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">انتهى عدد اللقطات</div>
       )}
 
       {/* Limit reached dialog */}
       <Dialog open={left <= 0}>
         <DialogContent dir="rtl">
           <DialogHeader>
-            <DialogTitle>انتهى رصيد اللقطات</DialogTitle>
+            <DialogTitle>انتهى عدد اللقطات</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground mb-2">يمكنك حذف بعض اللقطات أو تسليم الألبوم الآن.</p>
           <label className="text-sm mb-1">اكتب مباركة (اختياري)</label>
@@ -481,11 +482,11 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
                 ) : (
                   <video src={item.url} className="w-full h-24 object-cover" controls />
                 )}
-                <button
-                  className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1"
-                  aria-label="حذف"
-                  onClick={(e) => { e.stopPropagation(); setRecent((r)=> r.filter((_, i)=> i !== idx)); }}
-                >
+                  <button
+                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1"
+                    aria-label="حذف"
+                    onClick={(e) => { e.stopPropagation(); setRecent((r)=> r.filter((_, i)=> i !== idx)); setLeft((n)=> Math.min(maxShots, n + 1)); }}
+                  >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -504,7 +505,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
             <div className="relative w-full h-full bg-black">
               <div className="absolute top-3 left-3 z-20 flex gap-2">
                 <Button variant="secondary" onClick={()=>setViewerIndex(null)}>إغلاق</Button>
-                <Button variant="destructive" onClick={()=>{ setRecent(r=> r.filter((_,i)=> i!==viewerIndex)); setViewerIndex(null); }}>حذف</Button>
+                <Button variant="destructive" onClick={()=>{ setRecent(r=> r.filter((_,i)=> i!==viewerIndex)); setLeft((n)=> Math.min(maxShots, n + 1)); setViewerIndex(null); }}>حذف</Button>
                 <Button onClick={()=>{ const a=document.createElement('a'); a.href=recent[viewerIndex!].url; a.download='media'; a.click(); }}>تنزيل</Button>
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
