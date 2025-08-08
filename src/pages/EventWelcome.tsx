@@ -196,9 +196,7 @@ export default function EventWelcome() {
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
             <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>
-            {eventDetails?.description && (
-              <p className="mt-3 text-muted-foreground">{eventDetails.description}</p>
-            )}
+            <p className="mt-3 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
             {(eventDetails?.sign_in_method ?? tab) === "phone" && (
