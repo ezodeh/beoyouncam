@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 // logo served from /lovable-uploads during editing
 const Navbar = () => {
   return (
@@ -16,6 +17,7 @@ const Navbar = () => {
           <Link to="/create-event" className="text-sm text-muted-foreground hover:text-foreground">
             إنشاء مناسبة
           </Link>
+          <ThemeToggle />
           <Button asChild variant="hero" size="lg">
             <Link to="/choose-plan">جرّب الآن</Link>
           </Button>
