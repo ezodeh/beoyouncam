@@ -36,8 +36,8 @@ const App = () => (
             <Route path="/event/:token/camera" element={<EventCamera />} />
             <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
             <Route path="/gallery/:token" element={<Gallery />} />
-            <Route path="/album/:token" element={<EventAlbum />} />
             <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
+            <Route path="/album/:token" element={<EventAlbum />} />
             <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
             <Route path="/manage/:token" element={<ManageDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
