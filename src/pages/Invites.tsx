@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 
 export default function Invites() {
   const { token } = useParams();
-  const url = typeof window !== "undefined" ? `${window.location.origin}/event/${token}` : "";
+  const url = typeof window !== "undefined" ? `${window.location.origin}/event/${token}/welcome` : "";
   useEffect(() => { document.title = "دعوة الضيوف — من عيونكم"; }, []);
 
   const copy = async () => {

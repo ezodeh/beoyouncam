@@ -22,7 +22,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   const chunksRef = useRef<Blob[]>([]);
 
   const [left, setLeft] = useState<number>(maxShots);
-  const [hint] = useState<string>("بعيون صباح");
+  const initialName = typeof window !== "undefined" ? localStorage.getItem(`participantName:${token}`) : null;
+  const [hint] = useState<string>(`بعيون ${initialName || "مناسبتكم"}`);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [flashMode, setFlashMode] = useState<"auto" | "on" | "off">("auto");
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -178,31 +179,15 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   }, [recording, countdown]);
 
   async function uploadFile(file: File, kind: "image" | "video") {
-    const authToken = token;
-    const eventId = token;
-    toast({ title: "جاري الرفع…" });
+    const ext = file.name.split(".").pop() || (kind === "image" ? "jpg" : "webm");
+    const path = `events/${token}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     try {
-      const res1 = await fetch("/api/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ eventId, type: kind, ext: file.name.split(".").pop() })
+      const { error } = await supabase.storage.from("event-media").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
       });
-      if (!res1.ok) throw new Error("فشل التحضير");
-      const { url, fileUrl, fields } = await res1.json();
-      if (fields) {
-        const form = new FormData();
-        Object.entries(fields).forEach(([k, v]) => form.append(k, v as any));
-        form.append("file", file);
-        await fetch(url, { method: "POST", body: form });
-      } else {
-        await fetch(url, { method: "PUT", body: file });
-      }
-      const res2 = await fetch(`/api/events/${eventId}/media`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ type: kind, originalUrl: fileUrl, message: null })
-      });
-      if (!res2.ok) throw new Error("فشل الحفظ");
+      if (error) throw error;
       toast({ title: "تم الرفع ✅" });
     } catch (e) {
       toast({ title: "فشل — حاول مجددًا" });

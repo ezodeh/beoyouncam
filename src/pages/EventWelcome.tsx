@@ -105,6 +105,7 @@ export default function EventWelcome() {
       } = await supabase.from("participants").insert(payload);
       if (error) throw error;
       localStorage.setItem(`participant:${token}`, "1");
+      localStorage.setItem(`participantName:${token}`, name.trim());
       toast({
         title: "أهلًا وسهلًا!"
       });

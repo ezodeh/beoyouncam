@@ -6,7 +6,12 @@ import { Link } from "react-router-dom";
 type Props = { url?: string };
 
 const DesktopGate: React.FC<Props> = ({ url }) => {
-  const href = url || (typeof window !== "undefined" ? window.location.href : "");
+  const href = url || (typeof window !== "undefined" ? (() => {
+    const u = new URL(window.location.href);
+    const parts = u.pathname.split("/");
+    if (parts[1] === "event" && parts[2]) u.pathname = `/event/${parts[2]}/welcome`;
+    return u.toString();
+  })() : "");
 
   const copy = async () => {
     try {
