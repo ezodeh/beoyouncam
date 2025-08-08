@@ -181,7 +181,7 @@ export default function EventWelcome() {
       <Navbar compact fullBleed />
       <div className="brand-strip w-full" />
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
-        <div className="relative h-[78vh] md:h-[50vh]">
+        <div className="relative h-[42vh] md:h-[50vh]">
           <img src={eventDetails?.cover_url || heroImage} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
           <Button variant="secondary" size="icon" className="absolute top-4 left-4 rounded-full bg-background/70 supports-[backdrop-filter]:bg-background/40 backdrop-blur shadow-elevated" onClick={handleShare} aria-label="مشاركة">
@@ -196,7 +196,7 @@ export default function EventWelcome() {
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
             <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>
-            <p className="mt-3 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
+            <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
             {(eventDetails?.sign_in_method ?? tab) === "phone" && (
