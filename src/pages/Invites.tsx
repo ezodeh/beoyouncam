@@ -42,6 +42,12 @@ export default function Invites() {
           </div>
         </div>
       </main>
+      <footer className="sticky bottom-0 inset-x-0 bg-background/80 backdrop-blur border-t">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-center gap-3">
+          <Button onClick={share} className="rounded-full">مشاركة الباركود</Button>
+          <Button variant="outline" onClick={copy} className="rounded-full">نسخ الرابط</Button>
+        </div>
+      </footer>
     </div>
   );
 }

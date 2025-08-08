@@ -49,6 +49,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   ];
   const [effectIndex, setEffectIndex] = useState<number>(0);
   const [preview, setPreview] = useState<LocalItem | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   async function openStream() {
     try {
@@ -326,7 +327,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-32">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-36 z-20">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
@@ -369,7 +370,24 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         </button>
       )}
 
-      {/* Bottom bar removed on camera page */}
+      {/* Bottom bar */}
+      <div className="absolute inset-x-0 bottom-0 pb-3">
+        <div className="mx-3 flex items-center justify-between">
+          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border">
+            <Users className="h-4 w-4" />
+            <span>دعوة ضيوف</span>
+          </Link>
+          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border cursor-pointer">
+            <ImageIcon className="h-4 w-4" />
+            <span>المعرض</span>
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => {
+              const f = e.target.files?.[0]; if (!f) return; if (left <= 0) { toast({ title: "وصلت حدّك" }); return; }
+              uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft((n)=>Math.max(0,n-1)));
+              e.currentTarget.value = "";
+            }} />
+          </label>
+        </div>
+      </div>
 
       {/* Limit banner */}
       {left <= 0 && (
@@ -403,7 +421,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
               <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>
             )}
             {recent.map((item, idx) => (
-              <div key={idx} className="relative group border border-border rounded-lg overflow-hidden">
+              <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer" onClick={() => setViewerIndex(idx)}>
                 {item.type === "image" ? (
                   <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" />
                 ) : (
@@ -412,7 +430,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
                 <button
                   className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1"
                   aria-label="حذف"
-                  onClick={() => setRecent((r)=> r.filter((_, i)=> i !== idx))}
+                  onClick={(e) => { e.stopPropagation(); setRecent((r)=> r.filter((_, i)=> i !== idx)); }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -422,6 +440,25 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
           <DialogFooter>
             <Button onClick={()=>setShowRecent(false)}>إغلاق</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fullscreen viewer */}
+      <Dialog open={viewerIndex !== null} onOpenChange={(o)=>{ if(!o) setViewerIndex(null); }}>
+        <DialogContent dir="rtl" className="sm:max-w-[90vw] p-0">
+          {viewerIndex !== null && recent[viewerIndex] && (
+            <div className="relative w-[90vw] h-[80vh] sm:h-[85vh] bg-black">
+              {recent[viewerIndex].type === 'image' ? (
+                <img src={recent[viewerIndex].url} alt="معاينة" className="w-full h-full object-contain" />
+              ) : (
+                <video src={recent[viewerIndex].url} className="w-full h-full object-contain" controls autoPlay />
+              )}
+              <div className="absolute bottom-3 right-3 flex gap-2">
+                <Button variant="destructive" onClick={()=>{ setRecent(r=> r.filter((_,i)=> i!==viewerIndex)); setViewerIndex(null); }}>حذف</Button>
+                <Button onClick={()=>{ const a=document.createElement('a'); a.href=recent[viewerIndex!].url; a.download='media'; a.click(); }}>تنزيل</Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
