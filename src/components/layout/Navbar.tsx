@@ -46,7 +46,7 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
           )}
         </div>
       </nav>
-      {!compact && <div className="h-0.5 bg-brand-gradient" aria-hidden />}
+      {/* brand bar removed */}
     </header>
   );
 };

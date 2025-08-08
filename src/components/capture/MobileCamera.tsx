@@ -50,6 +50,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const [effectIndex, setEffectIndex] = useState<number>(0);
   const [preview, setPreview] = useState<LocalItem | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [camAnim, setCamAnim] = useState(false);
+  const [showEffectName, setShowEffectName] = useState<string | null>(null);
 
   async function openStream() {
     try {
@@ -292,15 +294,31 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         </div>
       )}
 
+      {showEffectName && (
+        <div className="absolute inset-0 pointer-events-none grid place-items-center">
+          <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
+        </div>
+      )}
+
       {/* Top info: hint + event name + counters */}
       <div className="absolute top-6 inset-x-0 text-center">
         <h1 className="text-2xl font-bold font-nastaliq tracking-tight">{eventName}</h1>
       </div>
 
       {/* Left icons column */}
-      <div className="absolute left-3 top-12 flex flex-col items-center gap-4">
-        <Button size="icon" variant="secondary" className="rounded-full" onClick={() => setFacingMode((m) => (m === "user" ? "environment" : "user"))} aria-label="تبديل الكاميرا">
-          <Camera className="h-5 w-5" />
+      <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
+        <Button
+          size="icon"
+          variant="secondary"
+          className="rounded-full"
+          onClick={() => {
+            setCamAnim(true);
+            setTimeout(() => setCamAnim(false), 400);
+            setFacingMode((m) => (m === "user" ? "environment" : "user"));
+          }}
+          aria-label="تبديل الكاميرا"
+        >
+          <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
         {supportsVideo && (
           <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid((v)=>!v)}>
@@ -321,7 +339,18 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         >
           <Flashlight className="h-5 w-5" />
         </Button>
-        <Button size="icon" variant="secondary" className="rounded-full" aria-label="إيفكتس" onClick={() => { const next=(effectIndex+1)%effects.length; setEffectIndex(next); toast({ title: `الفِلتر: ${effects[next].name}` }); }}>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="rounded-full"
+          aria-label="إيفكتس"
+          onClick={() => {
+            const next=(effectIndex+1)%effects.length;
+            setEffectIndex(next);
+            setShowEffectName(effects[next].name);
+            setTimeout(()=>setShowEffectName(null), 1200);
+          }}
+        >
           <Sparkles className="h-5 w-5" />
         </Button>
       </div>
@@ -332,7 +361,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-16 flex flex-col items-center justify-center select-none gap-3">
+      <div className="absolute inset-x-0 bottom-10 flex flex-col items-center justify-center select-none gap-3">
         {recording ? (
           <div className="w-24 h-24 rounded-full">
             <button
@@ -344,7 +373,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
             />
           </div>
         ) : (
-          <div className="w-24 h-24 rounded-full p-[2px] bg-brand-gradient">
+          <div className="w-24 h-24 rounded-full p-0 bg-brand-gradient">
             <button
               className="relative w-full h-full rounded-full shadow-lg outline-none bg-white"
               onPointerDown={onShutterDown}
