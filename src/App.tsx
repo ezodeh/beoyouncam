@@ -18,6 +18,7 @@ import EventAlbumIntro from "./pages/EventAlbumIntro";
 import EventAlbumByEyes from "./pages/EventAlbumByEyes";
 import EventFinalSubmit from "./pages/EventFinalSubmit";
 import ThemeProvider from "@/components/theme/ThemeProvider";
+import Invites from "./pages/Invites";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
             <Route path="/album/:token" element={<EventAlbum />} />
             <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
+            <Route path="/event/:token/invites" element={<Invites />} />
             <Route path="/manage/:token" element={<ManageDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
