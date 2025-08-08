@@ -14,19 +14,21 @@ export default function Scanner() {
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="w-full max-w-md grid gap-4">
           <h1 className="text-2xl font-bold text-center">ماسح الباركود</h1>
-          <QrScanner
-            containerStyle={{ width: "100%" }}
-            onDecode={(res) => {
+          <QRScanner
+            onScan={(detected: any[]) => {
+              const value = detected?.[0]?.rawValue as string | undefined;
+              if (!value) return;
               try {
-                const url = new URL(res);
+                const url = new URL(value);
                 const m = url.pathname.match(/\/event\/([^/]+)\/(welcome|camera|submit|soon|ended)?/);
                 if (m) {
                   navigate(url.pathname + url.search);
                 } else {
-                  window.location.href = res; // فتح أي رابط آخر
+                  window.location.href = value; // فتح أي رابط آخر
                 }
               } catch {
                 // ليس رابطًا صالحًا
+                window.location.href = value;
               }
             }}
             onError={() => {}}
