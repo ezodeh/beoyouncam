@@ -9,11 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "relative isolate bg-background/60 text-foreground border border-transparent hover:bg-background/80 before:content-[''] before:absolute before:-inset-px before:-z-10 before:rounded-md before:bg-brand-gradient before:opacity-60 before:blur",
+        default: "relative isolate bg-background/60 text-foreground border border-transparent hover:bg-background/80 before:content-[''] before:absolute before:-inset-px before:-z-20 before:rounded-md before:bg-brand-gradient before:opacity-60 before:blur after:content-[''] after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-background/70 after:border after:border-border",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "relative isolate bg-background/60 text-foreground border border-transparent hover:bg-background/80 before:content-[''] before:absolute before:-inset-px before:-z-10 before:rounded-md before:bg-brand-gradient before:opacity-60 before:blur",
+          "relative isolate bg-background/60 text-foreground border border-transparent hover:bg-background/80 before:content-[''] before:absolute before:-inset-px before:-z-20 before:rounded-md before:bg-brand-gradient before:opacity-60 before:blur after:content-[''] after:absolute after:inset-0 after:-z-10 after:rounded-md after:bg-background/70 after:border after:border-border",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
