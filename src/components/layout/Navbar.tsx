@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import Logo from "@/components/branding/Logo";
 import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
@@ -32,8 +31,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="container mx-auto flex items-center justify-between h-16 flex-row-reverse">
         <Link to="/" className="flex items-center gap-2 text-foreground">
-          <Logo variant="brand" size={28} />
-          <span className="sr-only">من عيونكم</span>
+          <img src="/lovable-uploads/d215095f-b0af-4ffe-a216-0e23507e61f7.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
         </Link>
         <div>
           {userName ? (
