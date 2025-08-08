@@ -29,7 +29,7 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <nav className="container mx-auto flex items-center justify-between h-16 flex-row-reverse">
+      <nav className="container mx-auto flex items-center justify-between h-16 flex-row">
         <Link to="/" className="flex items-center gap-2 text-foreground">
           <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
         </Link>
