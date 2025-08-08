@@ -13,7 +13,7 @@ const ManageDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
+      <Navbar compact />
       <main className="flex-1 container mx-auto py-12 grid gap-6">
         <div>
           <h1 className="text-3xl font-extrabold">لوحة التحكم</h1>

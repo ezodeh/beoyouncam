@@ -15,35 +15,27 @@ export default function EventAlbumIntro() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
-      <Navbar />
-      <main className="flex-1">
-        <header className="relative">
-          <figure className="h-[110vh] sm:h-[70vh] md:h-96 w-full overflow-hidden">
-            <img
-              src={coverImg}
-              alt="صورة غلاف المناسبة"
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </figure>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
-
-          <div className="absolute inset-x-0 bottom-8 sm:static sm:inset-auto container z-20 mx-auto px-4 sm:-mt-14">
-            <div className="mx-auto max-w-2xl rounded-xl border bg-card text-card-foreground shadow-lg p-6 sm:p-8">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-center mb-2">أهلًا وسهلًا في ألبوم {eventName}</h1>
-              <p className="text-center text-muted-foreground mb-6">
-                يسعدنا وجودكم معنا ومشاركتكم فرحتنا. اضغطوا أدناه للانتقال إلى الألبوم.
-              </p>
-              <div className="flex justify-center">
-                <Link to={`/album/${token}`}>
-                  <Button size="lg" className="rounded-full px-8">الدخول إلى الألبوم</Button>
-                </Link>
-              </div>
-            </div>
+      <Navbar compact fullBleed />
+      <header className="relative">
+        <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
+          <div className="relative h-[38vh] md:h-[48vh]">
+            <img src={coverImg} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
           </div>
-        </header>
+        </figure>
+      </header>
+      <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
+        <section className="max-w-md mx-auto text-center">
+          <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {eventName}</h1>
+          <p className="mt-6 md:mt-7 text-muted-foreground">يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.</p>
+          <div className="mt-6">
+            <Link to={`/album/${token}`}>
+              <Button className="rounded-full px-8">الدخول إلى الألبوم</Button>
+            </Link>
+          </div>
+        </section>
       </main>
-      <div className="hidden sm:block"><Footer /></div>
+      <Footer />
     </div>
   );
 }

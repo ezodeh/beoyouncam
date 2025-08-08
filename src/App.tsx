@@ -20,6 +20,8 @@ import EventFinalSubmit from "./pages/EventFinalSubmit";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import Invites from "./pages/Invites";
 import EventWelcome from "./pages/EventWelcome";
+import EventSoon from "./pages/EventSoon";
+import EventEnded from "./pages/EventEnded";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:token" element={<EventCapture />} />
             <Route path="/event/:token/welcome" element={<EventWelcome />} />
+            <Route path="/event/:token/soon" element={<EventSoon />} />
+            <Route path="/event/:token/ended" element={<EventEnded />} />
             <Route path="/event/:token/camera" element={<EventCamera />} />
             <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
             <Route path="/gallery/:token" element={<Gallery />} />

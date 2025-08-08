@@ -27,7 +27,7 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null } | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null } | null>(null);
   useEffect(() => {
     const title = eventDetails?.title || eventName;
     document.title = `الترحيب — ${title} — من عيونكم`;
@@ -62,10 +62,20 @@ export default function EventWelcome() {
       if (!token) return;
       const { data, error } = await supabase
         .from("events")
-        .select("title, description, sign_in_method, cover_url")
+        .select("title, description, sign_in_method, cover_url, start_at, end_at")
         .eq("token", token as string)
         .maybeSingle();
       if (!error && data) {
+        // redirect based on timing if configured
+        const now = new Date();
+        if (data.start_at && now < new Date(data.start_at)) {
+          navigate(`/event/${token}/soon${location.search}`);
+          return;
+        }
+        if (data.end_at && now > new Date(data.end_at)) {
+          navigate(`/event/${token}/ended${location.search}`);
+          return;
+        }
         setEventDetails({
           ...data,
           sign_in_method: (data.sign_in_method as "phone" | "email" | null),
@@ -173,7 +183,7 @@ export default function EventWelcome() {
       <Navbar compact fullBleed />
       <div className="brand-strip w-full" />
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
-        <div className="relative h-[42vh] md:h-[50vh]">
+        <div className="relative h-[38vh] md:h-[48vh]">
           <img src={eventDetails?.cover_url || heroImage} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
           <Button variant="secondary" size="icon" className="absolute top-4 left-4 rounded-full bg-background/70 supports-[backdrop-filter]:bg-background/40 backdrop-blur shadow-elevated" onClick={handleShare} aria-label="مشاركة">
@@ -184,7 +194,7 @@ export default function EventWelcome() {
           </figcaption>
         </div>
       </figure>
-      <main className="container mx-auto px-4 py-4 flex-1">
+      <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
             <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>

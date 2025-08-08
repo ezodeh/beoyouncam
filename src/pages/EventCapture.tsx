@@ -21,7 +21,7 @@ const EventCapture = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
+      <Navbar compact />
       <main className="flex-1">
         {!isMobile ? (
           <DesktopGate />

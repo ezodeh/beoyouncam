@@ -1,14 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import MobileCamera from "@/components/capture/MobileCamera";
 import Navbar from "@/components/layout/Navbar";
+import { supabase } from "@/integrations/supabase/client";
 export default function EventCamera() {
   const navigate = useNavigate();
   const { token } = useParams();
   const location = useLocation();
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
-  const shotsParam = Math.max(1, Number(new URLSearchParams(location.search).get("shots") || 0) || 120);
+  const queryShots = Number(new URLSearchParams(location.search).get("shots") || "");
+  const [maxShots, setMaxShots] = useState<number>(Math.max(1, isNaN(queryShots) ? 120 : queryShots));
   useEffect(() => {
     document.title = `الكاميرا — ${eventName} — من عيونكم`;
   }, [eventName]);
@@ -20,11 +22,38 @@ export default function EventCamera() {
     }
   }, [location.search, navigate, token]);
 
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      const { data } = await supabase
+        .from("events")
+        .select("max_shots, start_at, end_at")
+        .eq("token", token as string)
+        .maybeSingle();
+      if (data) {
+        const now = new Date();
+        if (data.start_at && now < new Date(data.start_at)) {
+          navigate(`/event/${token}/soon${location.search}`);
+          return;
+        }
+        if (data.end_at && now > new Date(data.end_at)) {
+          navigate(`/event/${token}/ended${location.search}`);
+          return;
+        }
+        if (!isNaN(queryShots)) {
+          setMaxShots(Math.max(1, queryShots));
+        } else if (typeof data.max_shots === "number") {
+          setMaxShots(Math.max(1, data.max_shots));
+        }
+      }
+    })();
+  }, [location.search, navigate, token]);
+
   return (
     <div className="h-[100dvh] overflow-hidden overscroll-none bg-background text-foreground relative" dir="rtl">
       <Navbar compact fullBleed />
       {/* واجهة الكاميرا الكاملة */}
-      <MobileCamera token={token || ""} eventName={eventName} maxShots={shotsParam} />
+      <MobileCamera token={token || ""} eventName={eventName} maxShots={maxShots} />
     </div>
   );
 }

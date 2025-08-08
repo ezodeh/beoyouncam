@@ -20,6 +20,17 @@ const DesktopGate: React.FC<Props> = ({ url }) => {
     } catch (_) {}
   };
 
+  const share = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url: href });
+      } else {
+        await navigator.clipboard.writeText(href);
+        alert("تم نسخ الرابط للمشاركة");
+      }
+    } catch (_) {}
+  };
+
   return (
     <div className="w-full min-h-[70vh] grid place-items-center px-4" dir="rtl">
       <div className="w-full max-w-lg rounded-2xl border border-border bg-card text-card-foreground shadow-lg p-6 sm:p-8">
@@ -28,11 +39,12 @@ const DesktopGate: React.FC<Props> = ({ url }) => {
         <div className="bg-background rounded-xl p-4 border border-border mx-auto w-full max-w-xs">
           <QRCode value={href} size={192} className="mx-auto" />
         </div>
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button onClick={copy} className="rounded-full px-6 w-full sm:w-auto">نسخ الرابط</Button>
-          <Link to="/create-event">
-            <Button variant="outline" className="rounded-full px-6 w-full sm:w-auto">بدك تنشئ مناسبة؟</Button>
-          </Link>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button onClick={share} className="rounded-full px-6">مشاركة</Button>
+          <Button variant="outline" onClick={copy} className="rounded-full px-6">نسخ الرابط</Button>
+        </div>
+        <div className="mt-4 text-center">
+          <Link to="/create-event" className="text-sm underline">بدك تنشئ مناسبة؟</Link>
         </div>
       </div>
     </div>

@@ -120,6 +120,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
       const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
       const newLeft = Math.max(0, left - 1);
       setRecent((r)=>[{ url: URL.createObjectURL(file), type: "image" as const }, ...r].slice(0,20));
+      setViewerIndex(0);
       setLeft(newLeft);
       toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
       try {
@@ -148,6 +149,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
         const file = new File([blob], `clip-${Date.now()}.webm`, { type: blob.type });
          const newLeft = Math.max(0, left - 1);
          setRecent((r)=>[{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0,20));
+         setViewerIndex(0);
          setLeft(newLeft);
          toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
          try {
@@ -497,17 +499,20 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
 
       {/* Fullscreen viewer */}
       <Dialog open={viewerIndex !== null} onOpenChange={(o)=>{ if(!o) setViewerIndex(null); }}>
-        <DialogContent dir="rtl" className="sm:max-w-[90vw] p-0">
+        <DialogContent dir="rtl" className="p-0 max-w-none w-[100vw] h-[100dvh]">
           {viewerIndex !== null && recent[viewerIndex] && (
-            <div className="relative w-[90vw] h-[80vh] sm:h-[85vh] bg-black">
-              {recent[viewerIndex].type === 'image' ? (
-                <img src={recent[viewerIndex].url} alt="معاينة" className="w-full h-full object-contain" />
-              ) : (
-                <video src={recent[viewerIndex].url} className="w-full h-full object-contain" controls autoPlay />
-              )}
-              <div className="absolute bottom-3 right-3 flex gap-2">
+            <div className="relative w-full h-full bg-black">
+              <div className="absolute top-3 left-3 z-20 flex gap-2">
+                <Button variant="secondary" onClick={()=>setViewerIndex(null)}>إغلاق</Button>
                 <Button variant="destructive" onClick={()=>{ setRecent(r=> r.filter((_,i)=> i!==viewerIndex)); setViewerIndex(null); }}>حذف</Button>
                 <Button onClick={()=>{ const a=document.createElement('a'); a.href=recent[viewerIndex!].url; a.download='media'; a.click(); }}>تنزيل</Button>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                {recent[viewerIndex].type === 'image' ? (
+                  <img src={recent[viewerIndex].url} alt="معاينة" className="max-w-full max-h-full object-contain" />
+                ) : (
+                  <video src={recent[viewerIndex].url} className="max-w-full max-h-full object-contain" controls autoPlay />
+                )}
               </div>
             </div>
           )}
