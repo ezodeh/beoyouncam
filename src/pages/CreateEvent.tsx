@@ -16,6 +16,7 @@ import { ar } from "date-fns/locale";
 import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 
 // Album timing type
 
@@ -151,15 +152,16 @@ export default function CreateEvent() {
   const [ctaLabel, setCtaLabel] = useState("للتصوير");
 
   // Step 4
-  const [guests, setGuests] = useState<number>(100);
-  const guestOptions = [7, 25, 50, 75, 100, 150, 200, 250, 300];
+  const [guests, setGuests] = useState<number>(5);
+  const guestOptions = [5, 7, 25, 50, 75, 100, 150, 200, 250, 300, 350, 400, 450, 500];
   const [shotsPerGuest, setShotsPerGuest] = useState<number>(20);
   const shotsOptions = [5, 10, 15, 20, 25, 30];
   const [enableVideo, setEnableVideo] = useState(false);
   
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-
+  type QuickEditKey = 'title' | 'startAt' | 'endAt' | 'privacy' | 'share' | 'guests' | 'shots' | 'video';
+  const [quickEdit, setQuickEdit] = useState<QuickEditKey | null>(null);
   // تطبيق قاعدة 5 مشاركين
   useEffect(() => {
     if (guests === 5) {
@@ -373,7 +375,7 @@ export default function CreateEvent() {
       <main className="flex-1 container mx-auto py-10">
         <div dir="rtl" className="mx-auto max-w-2xl px-4">
           <header className="mb-6">
-            <h1 className="text-3xl font-extrabold font-nastaliq">إنشاء مناسبة</h1>
+            <h1 className="text-3xl font-semibold font-nastaliq">إنشاء مناسبة</h1>
             <p className="text-sm text-muted-foreground mt-1">ابدأ بتعريف المناسبة، ثم اضبط الألبوم والمشاركين وخيارات العرض.</p>
             <link rel="canonical" href={window.location.origin + "/create-event"} />
           </header>
@@ -401,7 +403,7 @@ export default function CreateEvent() {
 
           <Card className="shadow-elevated bg-card/70 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 border border-border/70">
             <CardHeader>
-              <CardTitle className="text-2xl font-nastaliq">{stepTitles[step - 1]}</CardTitle>
+              <CardTitle className="text-2xl font-nastaliq font-medium">{stepTitles[step - 1]}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6">
               {step === 1 && (
@@ -569,7 +571,7 @@ export default function CreateEvent() {
                   <div className="grid gap-2">
                     <Label>عدد الحضور</Label>
                     <div className="flex flex-wrap gap-2">
-                      {[7, 25, 50, 75, 100, 150, 200, 250, 300].map((g) => (
+                      {guestOptions.map((g) => (
                         <Pill key={g} selected={guests === g} onClick={() => setGuests(g)}>
                           {g}
                         </Pill>
@@ -623,27 +625,27 @@ export default function CreateEvent() {
                   )}
                   <div className="rounded-xl bg-accent/30 border border-border p-4">
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
+                      <div onClick={() => setQuickEdit('title')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">اسم المناسبة</div>
                         <div className="font-semibold">{title || "—"}</div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('startAt')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">تاريخ البداية</div>
                         <div className="font-semibold">
                           {startAt ? format(startAt, "dd/MM/yyyy HH:mm", { locale: ar }) : "—"}
                         </div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('endAt')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">تاريخ الانتهاء</div>
                         <div className="font-semibold">
                           {endAt ? format(endAt, "dd/MM/yyyy HH:mm", { locale: ar }) : "—"}
                         </div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('privacy')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">حالة الألبوم</div>
                         <div className="font-semibold">{privacy === "public" ? "عام" : "خاص"}</div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('share')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">مشاركة تلقائية</div>
                         <div className="font-semibold">
                           {autoShareToGuests
@@ -655,15 +657,15 @@ export default function CreateEvent() {
                             : "لا"}
                         </div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('guests')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">عدد الحضور</div>
                         <div className="font-semibold">{guests}</div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('shots')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">لقطات/ضيف</div>
                         <div className="font-semibold">{shotsPerGuest === 999 ? "بلا حدود" : shotsPerGuest}</div>
                       </div>
-                      <div>
+                      <div onClick={() => setQuickEdit('video')} className="cursor-pointer rounded-md p-2 -m-2 hover:bg-accent/40 transition">
                         <div className="text-muted-foreground">فيديو</div>
                         <div className="font-semibold">{enableVideo ? "مفعل" : "غير مفعل"}</div>
                       </div>
@@ -705,6 +707,80 @@ export default function CreateEvent() {
               </div>
             </CardContent>
           </Card>
+          <Drawer open={!!quickEdit} onOpenChange={(o) => { if (!o) setQuickEdit(null); }}>
+            <DrawerContent className="p-4">
+              <DrawerHeader>
+                <DrawerTitle>تعديل سريع</DrawerTitle>
+              </DrawerHeader>
+              <div className="grid gap-4" dir="rtl">
+                {quickEdit === 'title' && (
+                  <div className="grid gap-2">
+                    <Label>اسم المناسبة</Label>
+                    <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                  </div>
+                )}
+                {quickEdit === 'startAt' && (
+                  <DateTimeField label="وقت بدء المناسبة" value={startAt} onChange={setStartAt} required />
+                )}
+                {quickEdit === 'endAt' && (
+                  <DateTimeField label="وقت انتهاء المناسبة" value={endAt} onChange={setEndAt} required />
+                )}
+                {quickEdit === 'privacy' && (
+                  <div className="grid gap-2">
+                    <Label>حالة الألبوم</Label>
+                    <div className="flex gap-2">
+                      <Pill selected={privacy === 'private'} onClick={() => setPrivacy('private')}>خاص</Pill>
+                      <Pill selected={privacy === 'public'} onClick={() => setPrivacy('public')}>عام</Pill>
+                    </div>
+                  </div>
+                )}
+                {quickEdit === 'share' && (
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label>مشاركة الألبوم للحضور تلقائيًا</Label>
+                      <Switch checked={autoShareToGuests} onCheckedChange={setAutoShareToGuests} />
+                    </div>
+                    <div className="flex gap-2">
+                      <Pill selected={shareChannel === 'sms'} onClick={() => setShareChannel('sms')} disabled={!autoShareToGuests}>SMS</Pill>
+                      <Pill selected={shareChannel === 'email'} onClick={() => setShareChannel('email')} disabled={!autoShareToGuests}>Email</Pill>
+                      <Pill selected={shareChannel === 'none'} onClick={() => setShareChannel('none')} disabled={!autoShareToGuests}>لاحقًا</Pill>
+                    </div>
+                  </div>
+                )}
+                {quickEdit === 'guests' && (
+                  <div className="grid gap-2">
+                    <Label>عدد الحضور</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {guestOptions.map((g) => (
+                        <Pill key={g} selected={guests === g} onClick={() => setGuests(g)}>{g}</Pill>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {quickEdit === 'shots' && (
+                  <div className="grid gap-2">
+                    <Label>عدد اللقطات لكل ضيف</Label>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {shotsOptions.map((s) => (
+                        <Pill key={s} selected={shotsPerGuest === s} onClick={() => setShotsPerGuest(s)}>{s}</Pill>
+                      ))}
+                      <Pill selected={shotsPerGuest === 999} onClick={() => setShotsPerGuest(999)}>بلا حدود <Crown className="inline-block h-4 w-4 ml-1" /></Pill>
+                    </div>
+                  </div>
+                )}
+                {quickEdit === 'video' && (
+                  <div className="flex items-center justify-between">
+                    <Label>السماح بالمقاطع فيديو (10s)</Label>
+                    <Switch checked={enableVideo} onCheckedChange={setEnableVideo} />
+                  </div>
+                )}
+              </div>
+              <DrawerFooter>
+                <Button className="rounded-full" onClick={() => setQuickEdit(null)}>تم</Button>
+                <DrawerClose />
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
         </div>
       </main>
       <Footer />
