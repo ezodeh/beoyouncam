@@ -6,24 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-
 const CreateEvent = () => {
   useEffect(() => {
     document.title = "إنشاء مناسبة — من عيونكم";
   }, []);
-
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: "تم حفظ النموذج", description: "سيتم تفعيل الإنشاء عند ربط الدفع وSupabase." });
+    toast({
+      title: "تم حفظ النموذج",
+      description: "سيتم تفعيل الإنشاء عند ربط الدفع وSupabase."
+    });
   };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+  return <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
       <main className="flex-1 container mx-auto py-12">
         <Card>
           <CardHeader>
-            <CardTitle className="font-aref text-3xl text-center">بيانات المناسبة</CardTitle>
+            <CardTitle className="font-aref text-center font-extrabold text-5xl">بيانات المناسبة</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-6" onSubmit={onSubmit}>
@@ -58,8 +57,6 @@ const CreateEvent = () => {
         </Card>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default CreateEvent;
