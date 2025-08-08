@@ -284,7 +284,7 @@ export default function EventAlbum() {
            onTouchEnd={handleTouchEnd}
          >
           <button
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20"
+            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20"
             onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
             aria-label="إغلاق"
             type="button"
@@ -292,8 +292,8 @@ export default function EventAlbum() {
             <X className="h-6 w-6" />
           </button>
           <button
-            className="absolute top-4 right-16 p-2 rounded-full bg-white/10 hover:bg-white/20"
-            onClick={shareCurrent}
+            className="absolute top-4 right-16 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20"
+            onClick={(e) => { e.stopPropagation(); shareCurrent(); }}
             aria-label="مشاركة"
           >
             <Share2 className="h-6 w-6" />
@@ -306,7 +306,7 @@ export default function EventAlbum() {
           </div>
 
           {/* شريط معلومات سفلي على طريقة تيكتوك */}
-          <div className="absolute inset-x-0 bottom-0 p-4">
+          <div className="absolute inset-x-0 bottom-0 p-4 z-20">
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-black/0" />
             <div className="relative flex items-center justify-between">
               <Link
@@ -314,17 +314,17 @@ export default function EventAlbum() {
                 className="rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5"
                 aria-label={`اذهب لألبوم بعيون ${(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}`}
               >
-                <span className="text-sm font-nastaliq">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
+                <span className="text-base md:text-lg font-nastaliq">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
               </Link>
             </div>
           </div>
 
-          <div className="absolute inset-y-0 start-0 flex items-center p-4">
+          <div className="absolute inset-y-0 start-0 z-10 flex items-center p-4">
             <button className="p-2 rounded-full bg-white/10 hover:bg-white/20" onClick={prevImage} aria-label="السابق">
               <ChevronRight className="h-7 w-7" />
             </button>
           </div>
-          <div className="absolute inset-y-0 end-0 flex items-center p-4">
+          <div className="absolute inset-y-0 end-0 z-10 flex items-center p-4">
             <button className="p-2 rounded-full bg-white/10 hover:bg-white/20" onClick={nextImage} aria-label="التالي">
               <ChevronLeft className="h-7 w-7" />
             </button>
