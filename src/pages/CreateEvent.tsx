@@ -86,8 +86,9 @@ function Pill({ selected, children, onClick, disabled = false }: any) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-full px-4 py-2 text-sm border transition ${
-        disabled ? "opacity-50 cursor-not-allowed" : "hover:shadow"
+      aria-pressed={selected}
+      className={`rounded-full px-4 py-2 text-sm border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:shadow hover-scale"
       } ${
         selected
           ? "bg-primary text-primary-foreground"
@@ -115,6 +116,13 @@ export default function CreateEvent() {
 
   const [step, setStep] = useState(1);
   const totalSteps = 5;
+  const stepTitles = [
+    "مناسبة جديدة",
+    "ألبوم الصور",
+    "شاشة الألبوم",
+    "إدارة المشاركين",
+    "إتمام إنشاء المناسبة",
+  ];
 
   // Step 1
   const [title, setTitle] = useState("");
@@ -272,30 +280,31 @@ export default function CreateEvent() {
           {/* Stepper */}
           <div className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
             {[1, 2, 3, 4, 5].map((s) => (
-              <div key={s} className={`flex-1 flex items-center ${s < 5 ? "mr-1" : ""}`}>
-                <div className={`w-7 h-7 grid place-items-center rounded-full border ${
-                  s <= step ? "bg-primary text-primary-foreground" : "bg-muted"
-                }`}>
-                  {s}
+              <div key={s} className={`flex-1 flex items-center ${s < 5 ? "mr-2" : ""}`}>
+                <div className="flex flex-col items-center">
+                  <div className={`w-8 h-8 grid place-items-center rounded-full border ${
+                    s <= step ? "bg-primary text-primary-foreground" : "bg-muted"
+                  }`}>
+                    {s}
+                  </div>
+                  <span className={`mt-1 text-[10px] ${s <= step ? "text-foreground" : "text-muted-foreground"}`}>
+                    {stepTitles[s - 1]}
+                  </span>
                 </div>
-                {s < 5 && <div className={`h-px flex-1 ${s < step ? "bg-primary" : "bg-muted"}`} />}
+                {s < 5 && (
+                  <div className={`h-px flex-1 mx-2 ${s < step ? "bg-primary" : "bg-muted"}`} />
+                )}
               </div>
             ))}
           </div>
 
-          <Card>
+          <Card className="shadow-elevated">
             <CardHeader>
-              <CardTitle className="text-2xl">
-                {step === 1 && "مناسبة جديدة"}
-                {step === 2 && "ألبوم الصور"}
-                {step === 3 && "شاشة الألبوم"}
-                {step === 4 && "إدارة المشاركين"}
-                {step === 5 && "إتمام إنشاء المناسبة"}
-              </CardTitle>
+              <CardTitle className="text-2xl">{stepTitles[step - 1]}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6">
               {step === 1 && (
-                <div className="grid gap-4">
+                <div className="grid gap-4 animate-in fade-in-0 duration-200">
                   <div className="grid gap-1.5">
                     <div className="flex items-center justify-between">
                       <Label>
@@ -337,7 +346,7 @@ export default function CreateEvent() {
               )}
 
               {step === 2 && (
-                <div className="grid gap-5">
+                <div className="grid gap-5 animate-in fade-in-0 duration-200">
                   <div className="grid gap-2">
                     <Label>موعد عرض الألبوم</Label>
                     <div className="flex flex-wrap gap-2">
@@ -416,7 +425,7 @@ export default function CreateEvent() {
               )}
 
               {step === 3 && (
-                <div className="grid gap-4">
+                <div className="grid gap-4 animate-in fade-in-0 duration-200">
                   <div className="grid gap-2">
                     <Label>صورة الغلاف</Label>
                     <label className="border border-dashed border-border rounded-xl p-0 overflow-hidden cursor-pointer">
@@ -455,7 +464,7 @@ export default function CreateEvent() {
               )}
 
               {step === 4 && (
-                <div className="grid gap-5">
+                <div className="grid gap-5 animate-in fade-in-0 duration-200">
                   <div className="grid gap-2">
                     <Label>عدد الحضور</Label>
                     <div className="flex flex-wrap gap-2">
@@ -483,7 +492,7 @@ export default function CreateEvent() {
                     <Label>السماح بالمقاطع فيديو (10s)</Label>
                     <Switch checked={enableVideo} onCheckedChange={setEnableVideo} />
                   </div>
-                  <div className="rounded-xl bg-accent/30 border border-border p-4 text-sm">
+                  <div className="rounded-xl bg-muted border border-border p-4 text-sm">
                     <div className="flex items-center justify-between">
                       <span>السعر التقديري</span>
                       <span className="text-xl font-bold">₪ {price}</span>
