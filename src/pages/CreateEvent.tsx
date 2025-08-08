@@ -23,7 +23,7 @@ const CreateEvent = () => {
       <main className="flex-1 container mx-auto py-12">
         <Card>
           <CardHeader>
-            <CardTitle>بيانات المناسبة</CardTitle>
+            <CardTitle className="font-aref text-3xl">بيانات المناسبة</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-6" onSubmit={onSubmit}>

@@ -88,12 +88,16 @@ export default {
 						height: '0'
 					}
 				}
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
-		}
-	},
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out'
+      },
+      fontFamily: {
+        almarai: ['Almarai','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','Arial','Apple Color Emoji','Segoe UI Emoji'],
+        aref: ['"Aref Ruqaa"','ui-serif','Georgia','serif']
+      }
+    }
+  },
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
