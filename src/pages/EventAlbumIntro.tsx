@@ -29,7 +29,7 @@ export default function EventAlbumIntro() {
 
           <div className="container mx-auto px-4 -mt-10 sm:-mt-14">
             <div className="mx-auto max-w-2xl rounded-xl border bg-card text-card-foreground shadow-lg p-6 sm:p-8">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-center mb-2">أهلًا وسهلًا في الألبوم</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-center mb-2">أهلًا وسهلًا في الألبوم</h1>
               <p className="text-center text-muted-foreground mb-6">
                 شكرًا جزيلًا لمشاركتنا فرحكم. وجودكم سعادة لنا. اضغط أدناه للانتقال إلى ألبوم المناسبة.
               </p>

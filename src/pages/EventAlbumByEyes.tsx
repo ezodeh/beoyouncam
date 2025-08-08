@@ -33,7 +33,7 @@ export default function EventAlbumByEyes() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>
               <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>
@@ -48,11 +48,11 @@ export default function EventAlbumByEyes() {
             </div>
           </div>
           <aside className="space-y-3">
-            <h2 className="text-lg font-bold">مباركات {name}</h2>
+            <h2 className="text-lg font-nastaliq font-bold">مباركات {name}</h2>
             {dummyMessages.map((m) => (
               <div key={m.id} className="rounded-lg border border-border bg-card p-3">
-                <div className="text-sm font-semibold mb-1">{m.name}</div>
-                <p className="text-sm text-muted-foreground leading-6">{m.text}</p>
+                <div className="text-sm font-nastaliq font-semibold mb-1">{m.name}</div>
+                <p className="text-sm text-muted-foreground leading-6 text-right">{m.text}</p>
               </div>
             ))}
           </aside>

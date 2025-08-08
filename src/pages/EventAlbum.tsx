@@ -33,6 +33,9 @@ export default function EventAlbum() {
   const [isBlessingOpen, setBlessingOpen] = useState(false);
   const [blessingName, setBlessingName] = useState("");
   const [blessingText, setBlessingText] = useState("");
+  const [blessingViewerIndex, setBlessingViewerIndex] = useState<number | null>(null);
+  const nextBlessing = () => setBlessingViewerIndex((i) => (i === null ? null : (i + 1) % dummyMessages.length));
+  const prevBlessing = () => setBlessingViewerIndex((i) => (i === null ? null : (i - 1 + dummyMessages.length) % dummyMessages.length));
   const { toast } = useToast();
 
 // عارض الصور (فول سكرين)
@@ -92,7 +95,7 @@ export default function EventAlbum() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-aref text-3xl sm:text-4xl font-extrabold text-right">{eventName}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">{eventName}</h1>
               <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>
@@ -117,24 +120,35 @@ export default function EventAlbum() {
 
             <TabsContent value="congrats" className="mt-6">
               <div className="grid gap-3 max-w-3xl mx-auto">
-                {dummyMessages.map((m) => (
-                  <Card key={m.id} className="bg-card border border-border">
+                {dummyMessages.map((m, idx) => (
+                  <Card
+                    key={m.id}
+                    className="bg-card border border-border cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setBlessingViewerIndex(idx)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
-                        <div className="font-semibold">{m.name}</div>
+                        <div className="font-nastaliq font-semibold text-right">{m.name}</div>
                         <div className="text-xs text-muted-foreground">{m.at}</div>
                       </div>
-                      <p className="mt-2 text-sm leading-6">{m.text}</p>
+                      <p
+                        className="mt-2 text-sm leading-7 text-right text-foreground/90"
+                        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                      >
+                        {m.text}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
               {/* زر إضافة مباركة */}
-              <div className="fixed inset-x-0 bottom-6 z-40 flex justify-center">
+              <div className="fixed inset-x-0 bottom-24 sm:bottom-28 z-50 flex justify-center pointer-events-none">
                 <Button
                   onClick={() => setBlessingOpen(true)}
-                  className="h-14 w-14 rounded-full shadow-lg"
+                  className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
                   aria-label="أضف مباركة"
                 >
                   <Plus className="h-6 w-6" />
@@ -209,10 +223,15 @@ export default function EventAlbum() {
                 {dummyAlbums.map((name, i) => (
                   <Link key={i} to={`/album/${token}/by/${encodeURIComponent(name)}`} aria-label={`ألبوم بعيون ${name}`}>
                     <Card className="bg-card border border-border hover:shadow-elevated transition-shadow" role="link">
-                      <CardContent className="p-4">
-                        <div className="aspect-video rounded-md bg-muted mb-3" />
-                        <div className="font-bold">بعيون {name}</div>
-                        <p className="text-sm text-muted-foreground">ألبوم شخصي من صور وفيديو {name}</p>
+                      <CardContent className="p-0">
+                        <div className="relative aspect-video rounded-md bg-muted overflow-hidden">
+                          <div className="absolute top-2 right-2 rounded-full bg-background/80 text-foreground shadow px-3 py-1 font-nastaliq text-sm">
+                            بعيون {name}
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm text-muted-foreground text-right">ألبوم شخصي من صور وفيديو {name}</p>
+                        </div>
                       </CardContent>
                     </Card>
                   </Link>
@@ -260,7 +279,7 @@ export default function EventAlbum() {
                 className="rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5"
                 aria-label={`اذهب لألبوم بعيون ${(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}`}
               >
-                <span className="text-sm">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
+                <span className="text-sm font-nastaliq">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
               </Link>
             </div>
           </div>
