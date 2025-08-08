@@ -20,6 +20,7 @@ const Navbar = () => {
           </Button>
         </div>
       </nav>
+      <div className="h-0.5 bg-brand-gradient" aria-hidden />
     </header>
   );
 };

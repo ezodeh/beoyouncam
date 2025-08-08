@@ -4,6 +4,7 @@ const Footer = () => {
       <div className="container mx-auto py-8 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} من عيونكم — كل الحقوق محفوظة
       </div>
+      <div className="brand-strip w-full" aria-hidden />
     </footer>
   );
 };
