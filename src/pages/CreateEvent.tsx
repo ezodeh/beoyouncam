@@ -298,7 +298,7 @@ export default function CreateEvent() {
             ))}
           </div>
 
-          <Card className="shadow-elevated bg-card/50 backdrop-blur-xl supports-[backdrop-filter]:bg-card/40 border border-border/60">
+          <Card className="shadow-elevated bg-card/70 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 border border-border/70">
             <CardHeader>
               <CardTitle className="text-2xl font-nastaliq">{stepTitles[step - 1]}</CardTitle>
             </CardHeader>
@@ -556,7 +556,7 @@ export default function CreateEvent() {
                     <div className="text-sm text-muted-foreground">الإجمالي التقديري</div>
                     <div className="text-2xl font-bold">₪ {price}</div>
                   </div>
-                  <Button size="lg" onClick={submit} disabled={submitting} className="rounded-full">
+                  <Button variant="hero" size="lg" onClick={submit} disabled={submitting} className="rounded-full">
                     {submitting ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" /> جاري الإنشاء…
@@ -573,7 +573,7 @@ export default function CreateEvent() {
                   <ChevronRight className="ml-1 h-4 w-4" />السابق
                 </Button>
                 {step < totalSteps ? (
-                  <Button onClick={next} disabled={!canNext} className="rounded-full">
+                  <Button variant="hero" onClick={next} disabled={!canNext} className="rounded-full">
                     التالي<ChevronLeft className="mr-1 h-4 w-4" />
                   </Button>
                 ) : null}

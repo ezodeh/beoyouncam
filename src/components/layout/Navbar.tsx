@@ -35,11 +35,11 @@ const Navbar = () => {
         </Link>
         <div>
           {userName ? (
-            <Button variant="outline" onClick={signOut} aria-label="تسجيل الخروج">
+            <Button variant="hero" onClick={signOut} aria-label="تسجيل الخروج">
               تسجيل الخروج
             </Button>
           ) : (
-            <Button variant="outline" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
+            <Button variant="hero" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
               تسجيل الدخول
             </Button>
           )}
