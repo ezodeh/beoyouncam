@@ -270,14 +270,47 @@ export default function CreateEvent() {
       setStep(1);
       return;
     }
+    if (!userId) {
+      toast({ title: "يرجى تسجيل الدخول", description: "سجّل الدخول لإنشاء المناسبة" });
+      return;
+    }
+    if (!termsAccepted) {
+      toast({ title: "الرجاء الموافقة على الشروط", description: "لا يمكن المتابعة دون الموافقة" });
+      return;
+    }
     setSubmitting(true);
     try {
-      // Placeholder until Supabase/payment integration
-      localStorage.removeItem("create_event_draft");
-      toast({
-        title: "تم حفظ بيانات المناسبة",
-        description: "سيتم تفعيل الإنشاء الكامل بعد ربط الدفع و Supabase.",
+      const token = Math.random().toString(36).slice(2, 10);
+      let coverUrl: string | null = null;
+      if (coverFile) {
+        const ext = coverFile.name.split(".").pop() || "jpg";
+        const path = `covers/${token}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("event-media").upload(path, coverFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: coverFile.type,
+        });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("event-media").getPublicUrl(path);
+        coverUrl = pub.publicUrl;
+      }
+
+      const { error: insErr } = await supabase.from("events").insert({
+        token,
+        title: title.trim(),
+        description: description.trim() || null,
+        sign_in_method: "phone",
+        start_at: startAt ? startAt.toISOString() : null,
+        end_at: endAt ? endAt.toISOString() : null,
+        cover_url: coverUrl,
+        max_shots: shotsPerGuest,
+        owner_id: userId,
       });
+      if (insErr) throw insErr;
+
+      localStorage.removeItem("create_event_draft");
+      toast({ title: "تم إنشاء المناسبة" });
+      navigate(`/manage/${token}`);
     } catch (err: any) {
       toast({ title: "حدث خطأ غير متوقع", description: err?.message || "" });
     } finally {
@@ -523,6 +556,17 @@ export default function CreateEvent() {
 
               {step === 5 && (
                 <div className="grid gap-4">
+                  {!userId && (
+                    <div className="rounded-xl border border-border p-4 bg-card">
+                      <div className="text-sm mb-2">قبل الإنهاء: سجّل الدخول بحسابك.</div>
+                      <Button
+                        onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/create-event" } })}
+                        className="rounded-full"
+                      >
+                        تسجيل الدخول بحساب Google
+                      </Button>
+                    </div>
+                  )}
                   <div className="rounded-xl bg-accent/30 border border-border p-4">
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
@@ -571,11 +615,19 @@ export default function CreateEvent() {
                       </div>
                     </div>
                   </div>
+
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={termsAccepted} onCheckedChange={(v:any)=> setTermsAccepted(Boolean(v))} />
+                    <span>
+                      أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a>
+                    </span>
+                  </label>
+
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">الإجمالي التقديري</div>
                     <div className="text-2xl font-bold">₪ {price}</div>
                   </div>
-                  <Button variant="hero" size="lg" onClick={submit} disabled={submitting} className="rounded-full">
+                  <Button variant="hero" size="lg" onClick={submit} disabled={submitting || !termsAccepted || !userId} className="rounded-full">
                     {submitting ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" /> جاري الإنشاء…
