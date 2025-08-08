@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
+import Logo from "@/components/branding/Logo";
 
 interface Props {
   eventName: string;
@@ -20,7 +21,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const chunksRef = useRef<Blob[]>([]);
 
   const [left, setLeft] = useState<number>(maxShots);
-  const [hint] = useState<string>("جهّزوا في صباح");
+  const [hint] = useState<string>("بعيون صباح");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [flashMode, setFlashMode] = useState<"auto" | "on" | "off">("auto");
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -239,11 +240,14 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
       </div>
       <div className="absolute top-12 inset-x-0 text-center">
-        <div className="inline-block rounded-full bg-background/60 border border-border px-4 py-1 text-sm font-semibold">{eventName}</div>
+        <h1 className="text-xl font-bold tracking-tight">{eventName}</h1>
       </div>
-      <div className="absolute top-4 right-3 flex items-center gap-2">
-        <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المتبقي: {String(left).padStart(2, "0")}</span>
-        <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المُلتقطة: {String(maxShots - left).padStart(2, "0")}</span>
+      <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+        <Logo size={20} gradient className="opacity-90" />
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المتبقي: {String(left).padStart(2, "0")}</span>
+          <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المُلتقطة: {String(maxShots - left).padStart(2, "0")}</span>
+        </div>
       </div>
 
       {/* Left icons column */}
@@ -273,12 +277,12 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-28">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-32">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-12 flex justify-center select-none">
+      <div className="absolute inset-x-0 bottom-20 flex justify-center select-none">
         <div className="w-24 h-24 rounded-full p-1 bg-brand-gradient">
           <button
             className={`relative w-full h-full rounded-full shadow-lg outline-none ${recording ? "bg-brand-gradient animate-pulse text-white" : "bg-white"}`}
@@ -297,7 +301,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       {/* Recent thumb */}
       {recent.length > 0 && (
         <button
-          className="absolute bottom-28 left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60"
+          className="absolute bottom-32 left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60"
           onClick={() => setShowRecent(true)}
           aria-label="المعرض"
         >
@@ -312,11 +316,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
             <Users className="h-4 w-4" />
             <span>دعوة ضيوف</span>
           </Link>
-          <div className="min-w-0 mx-2 flex-1 text-center">
-            <div className="whitespace-nowrap overflow-hidden">
-              <div className="inline-block animate-[marquee_12s_linear_infinite]">{eventName}</div>
-            </div>
-          </div>
+          <div className="flex-1" />
           <label className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm bg-background/70 border border-border cursor-pointer">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
