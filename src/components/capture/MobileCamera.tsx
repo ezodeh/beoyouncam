@@ -5,6 +5,7 @@ import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageI
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 
 
 interface Props {
