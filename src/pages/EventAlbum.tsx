@@ -1,6 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, Users } from "lucide-react";
 const dummyMessages = [
   { id: 1, name: "خالد", text: "ألف مبروك وربنا يتمّم على خير!", at: "قبل ساعتين" },
   { id: 2, name: "محمد", text: "يا رب أيامكم كلها فرح وسعادة.", at: "أمس" },
@@ -22,10 +22,12 @@ const dummyAlbums = ["خالد", "محمد", "سارة", "ليلى", "نور"]; 
 
 export default function EventAlbum() {
   const { token } = useParams();
+  const location = useLocation();
+  const eventName = new URLSearchParams(location.search).get("title") || "ألبوم المناسبة";
 
   useEffect(() => {
-    document.title = "ألبوم المناسبة — من عيونكم";
-  }, []);
+    document.title = `${eventName} — من عيونكم`;
+  }, [eventName]);
 
   // مباركات
   const [isBlessingOpen, setBlessingOpen] = useState(false);
@@ -33,12 +35,26 @@ export default function EventAlbum() {
   const [blessingText, setBlessingText] = useState("");
   const { toast } = useToast();
 
-  // عارض الصور (فول سكرين)
+// عارض الصور (فول سكرين)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const images = dummyPhotos.map(() => coverImg); // مؤقتًا نفس الصورة كعنصر توضيحي
   const closeLightbox = () => setLightboxIndex(null);
   const nextImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx + 1) % images.length));
   const prevImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx - 1 + images.length) % images.length));
+  // سوايب رأسي مثل تيكتوك
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const handleTouchStart = (e: any) => {
+    setTouchStartY(e.touches?.[0]?.clientY ?? null);
+  };
+  const handleTouchEnd = (e: any) => {
+    if (touchStartY === null) return;
+    const dy = (e.changedTouches?.[0]?.clientY ?? touchStartY) - touchStartY;
+    if (Math.abs(dy) > 50) {
+      if (dy < 0) nextImage();
+      else prevImage();
+    }
+    setTouchStartY(null);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
@@ -56,18 +72,27 @@ export default function EventAlbum() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="text-3xl sm:text-4xl font-extrabold">ألبوم المناسبة</h1>
+              <h1 className="font-aref text-3xl sm:text-4xl font-extrabold text-right">{eventName}</h1>
               <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>
         </header>
 
         <section className="container mx-auto px-4 py-6">
-          <Tabs defaultValue="congrats" className="w-full">
+          <Tabs defaultValue="photos" className="w-full">
             <TabsList className="grid grid-cols-3 w-full max-w-md rounded-full mx-auto">
-              <TabsTrigger value="congrats">المباركات</TabsTrigger>
-              <TabsTrigger value="photos">الصور</TabsTrigger>
-              <TabsTrigger value="albums">الألبومات</TabsTrigger>
+              <TabsTrigger value="congrats" aria-label="المباركات">
+                <PartyPopper className="h-5 w-5" />
+                <span className="sr-only">المباركات</span>
+              </TabsTrigger>
+              <TabsTrigger value="photos" aria-label="الصور">
+                <Images className="h-5 w-5" />
+                <span className="sr-only">الصور</span>
+              </TabsTrigger>
+              <TabsTrigger value="albums" aria-label="الألبومات">
+                <Users className="h-5 w-5" />
+                <span className="sr-only">الألبومات</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="congrats" className="mt-6">
@@ -179,7 +204,12 @@ export default function EventAlbum() {
       </main>
 
       {lightboxIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black/90 text-white" dir="rtl">
+        <div
+          className="fixed inset-0 z-50 bg-black/90 text-white"
+          dir="rtl"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <button
             className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20"
             onClick={closeLightbox}
