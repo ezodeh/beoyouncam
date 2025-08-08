@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { X } from "lucide-react";
-import MobileCamera from "@/components/capture/MobileCamera";
 
+import MobileCamera from "@/components/capture/MobileCamera";
+import Navbar from "@/components/layout/Navbar";
 export default function EventCamera() {
   const navigate = useNavigate();
   const { token } = useParams();
@@ -15,6 +15,7 @@ export default function EventCamera() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative" dir="rtl">
+      <Navbar />
       {/* واجهة الكاميرا الكاملة */}
       <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
     </div>

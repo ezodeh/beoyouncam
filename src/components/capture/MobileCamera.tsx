@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-import Logo from "@/components/branding/Logo";
+
 
 interface Props {
   eventName: string;
@@ -68,7 +68,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   }, [facingMode]);
 
   function formatCounter() {
-    return `${String(Math.max(0, left)).padStart(2, "0")}/${String(maxShots).padStart(2, "0")}`;
+    const captured = Math.max(0, maxShots - left);
+    return `${String(captured).padStart(2, "0")}/${String(maxShots).padStart(2, "0")}`;
   }
 
   async function capturePhoto() {
@@ -236,18 +237,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       )}
 
       {/* Top info: hint + event name + counters */}
-      <div className="absolute top-4 inset-x-0 flex items-center justify-center">
-        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
-      </div>
-      <div className="absolute top-12 inset-x-0 text-center">
-        <h1 className="text-xl font-bold tracking-tight">{eventName}</h1>
-      </div>
-      <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
-        <Logo size={20} gradient className="opacity-90" />
-        <div className="flex items-center gap-2">
-          <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المتبقي: {String(left).padStart(2, "0")}</span>
-          <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المُلتقطة: {String(maxShots - left).padStart(2, "0")}</span>
-        </div>
+      <div className="absolute top-6 inset-x-0 text-center">
+        <h1 className="text-2xl font-bold font-nastaliq tracking-tight">{eventName}</h1>
       </div>
 
       {/* Left icons column */}
@@ -282,10 +273,10 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-20 flex justify-center select-none">
-        <div className="w-24 h-24 rounded-full p-1 bg-brand-gradient">
+      <div className="absolute inset-x-0 bottom-20 flex flex-col items-center justify-center select-none gap-3">
+        <div className="w-24 h-24 rounded-full p-1 bg-primary">
           <button
-            className={`relative w-full h-full rounded-full shadow-lg outline-none ${recording ? "bg-brand-gradient animate-pulse text-white" : "bg-white"}`}
+            className={`relative w-full h-full rounded-full shadow-lg outline-none ${recording ? "bg-primary animate-pulse text-primary-foreground" : "bg-white"}`}
             onPointerDown={onShutterDown}
             onPointerUp={onShutterUp}
             disabled={left <= 0}
@@ -296,6 +287,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
             )}
           </button>
         </div>
+        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
       </div>
 
       {/* Recent thumb */}

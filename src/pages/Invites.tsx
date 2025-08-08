@@ -29,7 +29,7 @@ export default function Invites() {
       </Link>
       <main className="flex-1 container mx-auto px-4 py-10 grid place-items-center">
         <div className="text-center w-full max-w-sm">
-          <h1 className="text-2xl font-bold mb-6">دعوة الضيوف</h1>
+          <h1 className="text-3xl font-bold font-nastaliq mb-6">دعوة الضيوف</h1>
           <div className="flex justify-center mb-6">
             <div className="bg-card p-5 rounded-2xl border border-border">
               <QRCode value={url} size={192} />
