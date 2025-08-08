@@ -46,10 +46,14 @@ export default function EventWelcome() {
   };
 
   async function submit() {
+    if (!name.trim()) {
+      toast({ title: "الاسم مطلوب", description: "يرجى كتابة اسمك للمتابعة." });
+      return;
+    }
     try {
       setLoading(true);
       const method = tab === "phone" ? "phone" : "email";
-      const payload: any = { event_token: token, method, name: name || null };
+      const payload: any = { event_token: token, method, name: name.trim() };
       if (method === "phone") { payload.country_code = country; payload.phone = phone.trim(); }
       else { payload.email = email.trim(); }
 
@@ -102,8 +106,8 @@ export default function EventWelcome() {
             </TabsList>
             <TabsContent value="phone" className="space-y-3">
               <div>
-                <Label htmlFor="name">الاسم (اختياري)</Label>
-                <Input id="name" value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
+                <Label htmlFor="name">الاسم</Label>
+                <Input id="name" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1">
@@ -122,18 +126,18 @@ export default function EventWelcome() {
                   <Input id="phone" inputMode="tel" dir="ltr" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="5XXXXXXX" />
                 </div>
               </div>
-              <Button className="w-full rounded-full" disabled={loading || phone.trim().length < 6} onClick={submit}>ابدأ</Button>
+              <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || phone.trim().length < 6} onClick={submit}>ابدأ</Button>
             </TabsContent>
             <TabsContent value="email" className="space-y-3">
               <div>
-                <Label htmlFor="name2">الاسم (اختياري)</Label>
-                <Input id="name2" value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
+                <Label htmlFor="name2">الاسم</Label>
+                <Input id="name2" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
               <div>
                 <Label htmlFor="email">الإيميل</Label>
                 <Input id="email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
               </div>
-              <Button className="w-full rounded-full" disabled={loading || !email.includes("@")} onClick={submit}>ابدأ</Button>
+              <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || !email.includes("@")} onClick={submit}>ابدأ</Button>
             </TabsContent>
           </Tabs>
 
