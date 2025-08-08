@@ -9,6 +9,8 @@ import Navbar from "@/components/layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
+import Footer from "@/components/layout/Footer";
+import { Share } from "lucide-react";
 
 export default function EventWelcome() {
   const { token } = useParams();
@@ -29,6 +31,7 @@ export default function EventWelcome() {
   }, [eventName]);
 
   const countries = useMemo(() => [
+    { code: "+972", label: "مناطق الـ48" },
     { code: "+962", label: "الأردن" },
     { code: "+966", label: "السعودية" },
     { code: "+971", label: "الإمارات" },
@@ -74,6 +77,18 @@ export default function EventWelcome() {
     } catch (_) {}
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: document.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "تم نسخ الرابط للمشاركة" });
+      }
+    } catch (_) {}
+  };
+
   useEffect(() => {
     // If already registered locally or logged in, allow proceeding
     const has = localStorage.getItem(`participant:${token}`);
@@ -93,16 +108,20 @@ export default function EventWelcome() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
       <Navbar compact fullBleed />
-      <figure className="relative w-full mb-6 overflow-hidden bg-secondary rounded-none">
-        <div className="relative h-[68vh] md:h-[50vh]">
+      <div className="brand-strip w-full" />
+      <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
+        <div className="relative h-[78vh] md:h-[50vh]">
           <img src={heroImage} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-          <figcaption className="absolute top-4 right-4 left-4 flex justify-end">
-            <h1 className="text-3xl md:text-4xl font-nastaliq text-foreground">{eventName}</h1>
+          <Button variant="secondary" size="icon" className="absolute top-4 left-4 rounded-full bg-background/70 supports-[backdrop-filter]:bg-background/40 backdrop-blur shadow-elevated" onClick={handleShare} aria-label="مشاركة">
+            <Share className="h-4 w-4" />
+          </Button>
+          <figcaption className="absolute inset-x-4 top-4 flex justify-center">
+            <h1 className="text-3xl md:text-5xl font-nastaliq bg-foreground/80 text-background px-4 py-2 rounded-xl shadow-elevated">{eventName}</h1>
           </figcaption>
         </div>
       </figure>
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4">
         <section className="max-w-md mx-auto">
 
           <Tabs value={tab} onValueChange={(v)=>setTab(v as any)} className="w-full">
@@ -112,15 +131,15 @@ export default function EventWelcome() {
             </TabsList>
             <TabsContent value="phone" className="space-y-3">
               <div>
-                <Label htmlFor="name" className="block text-right">الاسم</Label>
+                <Label htmlFor="name" className="block mb-1.5 text-right">الاسم</Label>
                 <Input id="name" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-1">
-                  <Label className="block text-right">المقدمة</Label>
+                  <Label className="block mb-1.5 text-right">المقدمة</Label>
                   <Select value={country} onValueChange={setCountry}>
                     <SelectTrigger className="w-full"><SelectValue placeholder="الدولة" /></SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-popover text-popover-foreground shadow-elevated z-50">
                       {countries.map((c)=> (
                         <SelectItem key={c.code} value={c.code}>{c.label} {c.code}</SelectItem>
                       ))}
@@ -128,7 +147,7 @@ export default function EventWelcome() {
                   </Select>
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="phone" className="block text-right">الهاتف</Label>
+                  <Label htmlFor="phone" className="block mb-1.5 text-right">الهاتف</Label>
                   <Input id="phone" inputMode="tel" dir="ltr" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="5XXXXXXX" />
                 </div>
               </div>
@@ -136,11 +155,11 @@ export default function EventWelcome() {
             </TabsContent>
             <TabsContent value="email" className="space-y-3">
               <div>
-                <Label htmlFor="name2" className="block text-right">الاسم</Label>
+                <Label htmlFor="name2" className="block mb-1.5 text-right">الاسم</Label>
                 <Input id="name2" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
               <div>
-                <Label htmlFor="email" className="block text-right">الإيميل</Label>
+                <Label htmlFor="email" className="block mb-1.5 text-right">الإيميل</Label>
                 <Input id="email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
               </div>
               <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || !email.includes("@")} onClick={submit}>ابدأ</Button>
@@ -155,6 +174,8 @@ export default function EventWelcome() {
           <Button variant="secondary" className="w-full rounded-full" onClick={signInWithGoogle}>المتابعة بحساب Google</Button>
         </section>
       </main>
+      <div className="brand-strip w-full" />
+      <Footer />
     </div>
   );
 }
