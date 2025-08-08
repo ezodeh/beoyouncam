@@ -96,6 +96,7 @@ export default {
       fontFamily: {
         almarai: ['Almarai','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','Arial','Apple Color Emoji','Segoe UI Emoji'],
         aref: ['"Aref Ruqaa"','ui-serif','Georgia','serif'],
+        amiri: ['"Amiri"','ui-serif','Georgia','serif'],
         nastaliq: ['"Noto Nastaliq Urdu"','ui-serif','Georgia','serif']
       }
     }

@@ -10,7 +10,7 @@ const Hero = () => {
       <PointerGlow />
       <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center py-16">
         <div className="space-y-6">
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
+          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight font-nastaliq">
             ألبوم صور وفيديو جماعي لمناسبتك — بسهولة رابط أو QR
           </h1>
           <p className="text-lg text-muted-foreground">

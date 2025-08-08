@@ -6,7 +6,7 @@ const Footer = () => {
     <footer className="border-t">
       <div className="container mx-auto py-10 grid gap-6 md:grid-cols-3 text-sm">
         <div className="space-y-2">
-          <h2 className="text-base font-semibold font-nastaliq">من نحن</h2>
+          <h2 className="text-base font-semibold font-amiri">من نحن</h2>
           <p className="text-muted-foreground">
             منصة تجمع صور وفيديو الضيوف في ألبوم واحد أنيق — بسهولة وأمان.
           </p>
