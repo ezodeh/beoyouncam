@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 232 14% 12%;
 
-    --primary: 188 60% 40%;           /* Teal — calm solid */
+    --primary: 258 72% 48%;           /* Violet (darker) */
     --primary-foreground: 0 0% 100%;  /* White */
 
     --secondary: 258 35% 96%;
@@ -31,7 +31,7 @@
 
     --border: 220 14% 90%;
     --input: 220 14% 90%;
-    --ring: 188 60% 40%;
+    --ring: 258 72% 48%;
 
     --radius: 0.7rem;
 
@@ -71,7 +71,7 @@
     --popover: 232 14% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 188 60% 55%;
+    --primary: 258 72% 52%;
     --primary-foreground: 232 14% 10%;
 
     --secondary: 232 14% 16%;
@@ -88,7 +88,7 @@
 
     --border: 232 14% 20%;
     --input: 232 14% 20%;
-    --ring: 188 60% 55%;
+    --ring: 258 72% 52%;
     --brand-foreground: 0 0% 100%;
   }
 }
