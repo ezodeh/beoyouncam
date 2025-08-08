@@ -160,6 +160,14 @@ export default function CreateEvent() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // تطبيق قاعدة 5 مشاركين
+  useEffect(() => {
+    if (guests === 5) {
+      if (shotsPerGuest !== 10) setShotsPerGuest(10);
+      if (enableVideo) setEnableVideo(false);
+    }
+  }, [guests]);
+
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -223,6 +231,11 @@ export default function CreateEvent() {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUserId(session?.user.id || null);
+      if (!session?.user?.id) {
+        alert("Sign in first. You cannot make an event without signing in.");
+        navigate("/auth");
+        return;
+      }
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setUserId(s?.user.id || null));
       unsub = subscription;
     })();
@@ -580,6 +593,11 @@ export default function CreateEvent() {
                     <Label>السماح بالمقاطع فيديو (10s)</Label>
                     <Switch checked={enableVideo} onCheckedChange={setEnableVideo} />
                   </div>
+                  {guests === 5 && (
+                    <div className="rounded-md bg-accent/30 border border-border p-3 text-sm">
+                      تم تفعيل باقة 5 مشاركين: 10 لقطات لكل شخص مجانًا (بدون فيديو). الإيميل مجاني، والواتساب غير مجاني.
+                    </div>
+                  )}
                   <div className="rounded-xl bg-muted border border-border p-4 text-sm">
                     <div className="flex items-center justify-between">
                       <span>السعر التقديري</span>

@@ -103,13 +103,13 @@ export default function Account() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ownedPast.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {ownedPast.map((e) => (
-                  <Link key={e.token} to={`/album/${e.token}`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
+                  <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
                     <div className="aspect-video bg-muted overflow-hidden">
                       {e.cover_url ? <img src={e.cover_url} alt={e.title} className="w-full h-full object-cover"/> : null}
                     </div>
                     <div className="p-3">
                       <div className="font-nastaliq text-xl">{e.title}</div>
-                      <div className="text-xs text-muted-foreground">اذهب إلى الألبوم</div>
+                      <div className="text-xs text-muted-foreground">اذهب إلى المقدمة</div>
                     </div>
                   </Link>
                 ))}
@@ -121,13 +121,13 @@ export default function Account() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {joinedCurrent.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {joinedCurrent.map((e) => (
-                  <Link key={e.token} to={`/album/${e.token}`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
+                  <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
                     <div className="aspect-video bg-muted overflow-hidden">
                       {e.cover_url ? <img src={e.cover_url} alt={e.title} className="w-full h-full object-cover"/> : null}
                     </div>
                     <div className="p-3">
                       <div className="font-nastaliq text-xl">{e.title}</div>
-                      <div className="text-xs text-muted-foreground">اذهب إلى الألبوم</div>
+                      <div className="text-xs text-muted-foreground">اذهب إلى المقدمة</div>
                     </div>
                   </Link>
                 ))}
@@ -139,13 +139,13 @@ export default function Account() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {joinedPast.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {joinedPast.map((e) => (
-                  <Link key={e.token} to={`/album/${e.token}`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
+                  <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
                     <div className="aspect-video bg-muted overflow-hidden">
                       {e.cover_url ? <img src={e.cover_url} alt={e.title} className="w-full h-full object-cover"/> : null}
                     </div>
                     <div className="p-3">
                       <div className="font-nastaliq text-xl">{e.title}</div>
-                      <div className="text-xs text-muted-foreground">اذهب إلى الألبوم</div>
+                      <div className="text-xs text-muted-foreground">اذهب إلى المقدمة</div>
                     </div>
                   </Link>
                 ))}
@@ -154,6 +154,16 @@ export default function Account() {
                 <Link to="/scanner" className="inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2 hover-scale">ماسح QR</Link>
                 <Link to="/settings" className="inline-flex rounded-full bg-secondary text-secondary-foreground px-6 py-2 hover-scale">إعدادات الحساب</Link>
               </div>
+
+              <section className="mt-10">
+                <h2 className="text-2xl font-bold mb-3">خيارات الحساب</h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <a href="mailto:support@manyoyonkom.app" className="rounded-full px-4 py-2 border text-center hover:shadow-elevated">Feedback (تواصل معنا)</a>
+                  <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("سجل الفوترة: سيتم إظهاره قريبًا")}>سجل الفوترة</button>
+                  <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("تم تعطيل الحساب مؤقتًا")}>تعطيل الحساب</button>
+                  <button className="rounded-full px-4 py-2 border border-destructive text-destructive hover:shadow-elevated" onClick={() => { if (confirm("هل أنت متأكد من حذف الحساب؟")) { supabase.auth.signOut(); alert("تم إرسال طلب حذف الحساب"); window.location.href = "/"; }}}>حذف الحساب</button>
+                </div>
+              </section>
             </section>
           </>
         )}

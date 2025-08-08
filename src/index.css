@@ -5,7 +5,7 @@
 /* Design system — HSL tokens only */
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 232 14% 12%;
 
     --card: 0 0% 100%;
@@ -91,6 +91,7 @@
   * { @apply border-border; }
   body {
     @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
     font-family: 'Almarai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   }
 }

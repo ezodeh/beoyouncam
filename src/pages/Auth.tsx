@@ -5,34 +5,39 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { document.title = "تسجيل الدخول/التسجيل — من عيونكم"; }, []);
 
   const signIn = async () => {
+    if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (!error) navigate("/"); else alert(error.message);
+    if (!error) navigate("/account"); else alert(error.message);
   };
 
   const signUp = async () => {
+    if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/account`;
     const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
     setLoading(false);
     if (!error) alert("تم إرسال رسالة تأكيد إلى بريدك."); else alert(error.message);
   };
 
   const signInGoogle = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
+    if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
+    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
   };
 
   return (
@@ -51,15 +56,23 @@ export default function Auth() {
               <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
               <Label>كلمة المرور</Label>
               <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" />
-              <Button className="w-full rounded-full" disabled={loading} onClick={signIn}>دخول</Button>
-              <Button variant="secondary" className="w-full rounded-full" onClick={signInGoogle}>المتابعة بـ Google</Button>
+              <label className="flex items-center gap-2 text-sm mt-1">
+                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
+                <span>أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
+              </label>
+              <Button className="w-full rounded-full" disabled={loading || !agree} onClick={signIn}>دخول</Button>
+              <Button variant="secondary" className="w-full rounded-full" disabled={!agree} onClick={signInGoogle}>المتابعة بـ Google</Button>
             </TabsContent>
             <TabsContent value="signup" className="mt-4 grid gap-3">
               <Label>البريد الإلكتروني</Label>
               <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
               <Label>كلمة المرور</Label>
               <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" />
-              <Button className="w-full rounded-full" disabled={loading} onClick={signUp}>إنشاء حساب</Button>
+              <label className="flex items-center gap-2 text-sm mt-1">
+                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
+                <span>أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
+              </label>
+              <Button className="w-full rounded-full" disabled={loading || !agree} onClick={signUp}>إنشاء حساب</Button>
             </TabsContent>
           </Tabs>
         </div>

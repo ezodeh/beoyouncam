@@ -1,10 +1,12 @@
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PointerGlow from "@/components/visuals/PointerGlow";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden">
       <PointerGlow />
@@ -20,8 +22,20 @@ const Hero = () => {
             <Button asChild variant="hero" size="lg">
               <Link to="/choose-plan">اختر خطتك</Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/create-event">أنشئ مناسبة</Link>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                  alert("Sign in first. You cannot make an event without signing in.");
+                  navigate("/auth");
+                } else {
+                  navigate("/create-event");
+                }
+              }}
+            >
+              أنشئ مناسبة
             </Button>
             <Button
               variant="secondary"
