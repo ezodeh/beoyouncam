@@ -129,31 +129,31 @@ export default function EventAlbum() {
                     onClick={() => setBlessingViewerIndex(idx)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="font-nastaliq font-semibold text-right">{m.name}</div>
-                        <div className="text-xs text-muted-foreground">{m.at}</div>
+                      <div className="text-right">
+                        <div className="font-nastaliq font-semibold">{m.name}</div>
+                        <p
+                          className="mt-2 text-sm leading-7 text-foreground/90"
+                          style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                        >
+                          {m.text}
+                        </p>
+                        <div className="mt-1 text-xs text-muted-foreground text-left">{m.at}</div>
                       </div>
-                      <p
-                        className="mt-2 text-sm leading-7 text-right text-foreground/90"
-                        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
-                      >
-                        {m.text}
-                      </p>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
               {/* زر إضافة مباركة */}
-              <div className="fixed inset-x-0 bottom-24 sm:bottom-28 z-50 flex justify-center pointer-events-none">
-                <Button
-                  onClick={() => setBlessingOpen(true)}
-                  className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
-                  aria-label="أضف مباركة"
-                >
-                  <Plus className="h-6 w-6" />
-                </Button>
-              </div>
+               <div className="fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-50 pointer-events-none">
+                 <Button
+                   onClick={() => setBlessingOpen(true)}
+                   className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
+                   aria-label="أضف مباركة"
+                 >
+                   <Plus className="h-6 w-6" />
+                 </Button>
+               </div>
 
               {/* Dialog إضافة مباركة */}
               <Dialog open={isBlessingOpen} onOpenChange={setBlessingOpen}>
@@ -201,6 +201,33 @@ export default function EventAlbum() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+              {/* Dialog عرض المباركة كاملة مع تنقل */}
+              <Dialog open={blessingViewerIndex !== null} onOpenChange={(open) => setBlessingViewerIndex(open ? (blessingViewerIndex ?? 0) : null)}>
+                <DialogContent dir="rtl" className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="font-nastaliq">
+                      {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].name : ""}
+                    </DialogTitle>
+                    <DialogDescription className="text-left">
+                      {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].at : ""}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="text-right whitespace-pre-wrap leading-8">
+                    {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].text : ""}
+                  </div>
+                  <DialogFooter className="w-full flex items-center justify-between">
+                    <Button variant="ghost" onClick={prevBlessing} aria-label="السابق">
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                    <div className="text-xs text-muted-foreground">
+                      {blessingViewerIndex !== null ? String(blessingViewerIndex + 1).padStart(2, "0") : "00"}/{dummyMessages.length}
+                    </div>
+                    <Button variant="ghost" onClick={nextBlessing} aria-label="التالي">
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             <TabsContent value="photos" className="mt-6">
@@ -221,7 +248,12 @@ export default function EventAlbum() {
             <TabsContent value="albums" className="mt-6">
               <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {dummyAlbums.map((name, i) => (
-                  <Link key={i} to={`/album/${token}/by/${encodeURIComponent(name)}`} aria-label={`ألبوم بعيون ${name}`}>
+                  <Link
+                    key={i}
+                    to={`/album/${token}/by/${encodeURIComponent(name)}`}
+                    aria-label={`ألبوم بعيون ${name}`}
+                    className={`${i === dummyAlbums.length - 1 && dummyAlbums.length % 3 === 1 ? "md:col-start-3" : ""}`}
+                  >
                     <Card className="bg-card border border-border hover:shadow-elevated transition-shadow" role="link">
                       <CardContent className="p-0">
                         <div className="relative aspect-video rounded-md bg-muted overflow-hidden">
@@ -243,16 +275,19 @@ export default function EventAlbum() {
       </main>
 
       {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 text-white"
-          dir="rtl"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
+         <div
+           className="fixed inset-0 z-50 bg-black/90 text-white"
+           dir="rtl"
+           tabIndex={-1}
+           onKeyDown={(e) => { if (e.key === "Escape") closeLightbox(); }}
+           onTouchStart={handleTouchStart}
+           onTouchEnd={handleTouchEnd}
+         >
           <button
             className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20"
-            onClick={closeLightbox}
+            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
             aria-label="إغلاق"
+            type="button"
           >
             <X className="h-6 w-6" />
           </button>
