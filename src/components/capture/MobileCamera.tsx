@@ -248,7 +248,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
 
   if (permissionDenied) {
     return (
-      <div className="relative w-full h-[calc(100dvh-56px)] grid place-items-center px-4" dir="rtl">
+      <div className="relative w-full h-[calc(100dvh-48px)] grid place-items-center px-4 pb-[env(safe-area-inset-bottom)]" dir="rtl">
         <div className="text-center">
           <CameraOff className="mx-auto h-10 w-10 mb-3 opacity-70" />
           <h2 className="text-xl font-semibold mb-2">صلاحية الكاميرا مرفوضة</h2>
@@ -268,7 +268,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   }
 
   return (
-    <div className="relative w-full h-[calc(100dvh-56px)] overflow-hidden overscroll-none" dir="rtl">
+    <div className="relative w-full h-[calc(100dvh-48px)] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
       {/* Preview */}
       <video
         ref={videoRef}
@@ -356,12 +356,12 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-36 z-20">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-20">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-10 flex flex-col items-center justify-center select-none gap-3">
+      <div className="absolute inset-x-0 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-3">
         {recording ? (
           <div className="w-24 h-24 rounded-full">
             <button
@@ -391,7 +391,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       {/* Recent thumb */}
       {recent.length > 0 && (
         <button
-          className="absolute bottom-32 left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60"
+          className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60"
           onClick={() => setShowRecent(true)}
           aria-label="المعرض"
         >
@@ -400,7 +400,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       )}
 
       {/* Bottom bar */}
-      <div className="absolute inset-x-0 bottom-0 pb-3">
+      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="mx-3 flex items-center justify-between">
           <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border">
             <Users className="h-4 w-4" />
