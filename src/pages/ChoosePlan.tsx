@@ -1,23 +1,22 @@
 import Navbar from "@/components/layout/Navbar";
-import Hero from "@/components/sections/Hero";
 import Footer from "@/components/layout/Footer";
+import PricingGrid from "@/components/sections/PricingGrid";
 import { useEffect } from "react";
 
-const Index = () => {
+const ChoosePlan = () => {
   useEffect(() => {
-    document.title = "من عيونكم — ألبوم صور وفيديو جماعي";
+    document.title = "اختر خطة — من عيونكم";
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <Hero />
-        {/* ... keep existing code (additional sections can be added here) */}
+        <PricingGrid />
       </main>
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default ChoosePlan;
