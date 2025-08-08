@@ -45,6 +45,16 @@ export default function Settings() {
             <Button onClick={() => alert("تم حفظ الإعدادات (للعرض فقط)")}>حفظ</Button>
             <Button variant="outline" onClick={() => supabase.auth.signOut()}>تسجيل الخروج</Button>
           </div>
+
+          <section className="grid gap-3 pt-2">
+            <h2 className="text-xl font-semibold">خيارات إضافية</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <a href="mailto:support@manyoyonkom.app" className="rounded-full px-4 py-2 border text-center hover:shadow-elevated">Feedback (تواصل معنا)</a>
+              <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("سجل الفوترة: سيتم إظهاره قريبًا")}>سجل الفوترة</button>
+              <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("تم تعطيل الحساب مؤقتًا")}>تعطيل الحساب</button>
+              <button className="rounded-full px-4 py-2 border border-destructive text-destructive hover:shadow-elevated" onClick={() => { if (confirm("هل أنت متأكد من حذف الحساب؟")) { supabase.auth.signOut(); alert("تم إرسال طلب حذف الحساب"); window.location.href = "/"; }}}>حذف الحساب</button>
+            </div>
+          </section>
         </div>
       </main>
       <Footer />

@@ -31,13 +31,15 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} flex items-center justify-between ${compact ? "h-12" : "h-16"} flex-row`}>
-        <Link to="/" className="flex items-center gap-2 text-foreground">
-          <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-7 w-auto md:h-8" loading="eager" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link to="/" className="flex items-center gap-2 text-foreground">
+            <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-7 w-auto md:h-8" loading="eager" />
+          </Link>
+        </div>
         <div>
           {userName ? (
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Link to="/settings" className="hidden sm:inline-flex rounded-full px-3 py-1.5 bg-secondary text-secondary-foreground hover-scale" aria-label="حسابي">
                 حسابي
               </Link>
@@ -47,7 +49,6 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Button asChild variant="hero" size="sm" className="md:h-10 md:px-4" aria-label="تسجيل الدخول">
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
@@ -55,6 +56,7 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
           )}
         </div>
       </nav>
+      <div className="brand-strip w-full" aria-hidden />
       {/* brand bar removed */}
     </header>
   );

@@ -31,6 +31,15 @@ export default function EventAlbum() {
     document.title = `الألبوم — ${eventName} — من عيونكم`;
   }, [eventName]);
 
+  // تأكيد المرور بشاشة المقدمة أولاً
+  useEffect(() => {
+    if (!token) return;
+    const seen = sessionStorage.getItem(`intro_${token}`);
+    if (!seen) {
+      navigate(`/album/${token}/intro?title=${encodeURIComponent(eventName)}`);
+    }
+  }, [token]);
+
   useEffect(() => {
     (async () => {
       if (!token) return;

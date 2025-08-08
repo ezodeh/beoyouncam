@@ -41,9 +41,15 @@ export default function EventAlbumIntro() {
           <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {eventName}</h1>
           <p className="mt-6 md:mt-7 text-muted-foreground">يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.</p>
           <div className="mt-6">
-            <Link to={`/album/${token}`}>
-              <Button className="rounded-full px-8">الدخول إلى الألبوم</Button>
-            </Link>
+            <Button
+              className="rounded-full px-8"
+              onClick={() => {
+                if (token) sessionStorage.setItem(`intro_${token}`, "done");
+                navigate(`/album/${token}`);
+              }}
+            >
+              الدخول إلى الألبوم
+            </Button>
           </div>
         </section>
       </main>
