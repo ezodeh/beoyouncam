@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -39,6 +39,16 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const startDistRef = useRef<number | null>(null);
   const baseZoomRef = useRef<number>(1);
+  const effects = [
+    { name: "بدون", css: "none" },
+    { name: "أبيض وأسود", css: "grayscale(1) contrast(1.1)" },
+    { name: "سيبيا", css: "sepia(0.8) contrast(1.05)" },
+    { name: "زاهي", css: "saturate(1.5) contrast(1.1)" },
+    { name: "دافئ", css: "sepia(0.3) saturate(1.2) brightness(1.05)" },
+    { name: "بارد", css: "hue-rotate(200deg) saturate(1.1)" },
+  ];
+  const [effectIndex, setEffectIndex] = useState<number>(0);
+  const [preview, setPreview] = useState<LocalItem | null>(null);
 
   async function openStream() {
     try {
@@ -88,6 +98,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       const h = video.videoHeight || 1920;
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext("2d")!;
+      ctx.filter = effects[effectIndex].css || "none";
       ctx.drawImage(video, 0, 0, w, h);
       const blob: Blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9));
       const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
@@ -259,7 +270,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover touch-none will-change-transform"
-        style={{ transform: `scale(${zoom})` }}
+        style={{ transform: `scale(${zoom})`, filter: effects[effectIndex].css || "none" }}
         onPointerDown={onVideoPointerDown}
         onPointerMove={onVideoPointerMove}
         onPointerUp={onVideoPointerUp}
@@ -286,7 +297,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Left icons column */}
-      <div className="absolute left-3 top-20 flex flex-col items-center gap-4">
+      <div className="absolute left-3 top-12 flex flex-col items-center gap-4">
         <Button size="icon" variant="secondary" className="rounded-full" onClick={() => setFacingMode((m) => (m === "user" ? "environment" : "user"))} aria-label="تبديل الكاميرا">
           <Camera className="h-5 w-5" />
         </Button>
@@ -309,19 +320,22 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         >
           <Flashlight className="h-5 w-5" />
         </Button>
+        <Button size="icon" variant="secondary" className="rounded-full" aria-label="إيفكتس" onClick={() => { const next=(effectIndex+1)%effects.length; setEffectIndex(next); toast({ title: `الفِلتر: ${effects[next].name}` }); }}>
+          <Sparkles className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-40">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-32">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center justify-center select-none gap-3">
+      <div className="absolute inset-x-0 bottom-16 flex flex-col items-center justify-center select-none gap-3">
         {recording ? (
           <div className="w-24 h-24 rounded-full">
             <button
-              className="relative w-full h-full rounded-full shadow-lg outline-none bg-primary text-primary-foreground animate-pulse"
+              className="relative w-full h-full rounded-full shadow-lg outline-none bg-brand-gradient text-brand-foreground animate-pulse"
               onPointerDown={onShutterDown}
               onPointerUp={onShutterUp}
               disabled={left <= 0}
@@ -329,18 +343,16 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
             />
           </div>
         ) : (
-          <div className="w-24 h-24 rounded-full p-[6px] bg-brand-gradient">
-            <div className="w-full h-full rounded-full p-[6px] bg-background/80">
-              <button
-                className="relative w-full h-full rounded-full shadow-lg outline-none bg-white"
-                onPointerDown={onShutterDown}
-                onPointerUp={onShutterUp}
-                disabled={left <= 0}
-                aria-label="التقاط"
-              >
-                <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
-              </button>
-            </div>
+          <div className="w-24 h-24 rounded-full p-[2px] bg-brand-gradient">
+            <button
+              className="relative w-full h-full rounded-full shadow-lg outline-none bg-white"
+              onPointerDown={onShutterDown}
+              onPointerUp={onShutterUp}
+              disabled={left <= 0}
+              aria-label="التقاط"
+            >
+              <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
+            </button>
           </div>
         )}
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
