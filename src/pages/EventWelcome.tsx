@@ -32,40 +32,31 @@ export default function EventWelcome() {
     const title = eventDetails?.title || eventName;
     document.title = `الترحيب — ${title} — من عيونكم`;
   }, [eventName, eventDetails?.title]);
-  const countries = useMemo(() => [{
-    code: "+972",
-    label: "مناطق الـ48"
-  }, {
-    code: "+962",
-    label: "الأردن"
-  }, {
-    code: "+966",
-    label: "السعودية"
-  }, {
-    code: "+971",
-    label: "الإمارات"
-  }, {
-    code: "+20",
-    label: "مصر"
-  }, {
-    code: "+964",
-    label: "العراق"
-  }, {
-    code: "+965",
-    label: "الكويت"
-  }, {
-    code: "+973",
-    label: "البحرين"
-  }, {
-    code: "+968",
-    label: "عُمان"
-  }, {
-    code: "+974",
-    label: "قطر"
-  }, {
-    code: "+961",
-    label: "لبنان"
-  }], []);
+  const countries = useMemo(() => [
+    { code: "+212", label: "المغرب" },
+    { code: "+213", label: "الجزائر" },
+    { code: "+218", label: "ليبيا" },
+    { code: "+216", label: "تونس" },
+    { code: "+20", label: "مصر" },
+    { code: "+249", label: "السودان" },
+    { code: "+967", label: "اليمن" },
+    { code: "+963", label: "سوريا" },
+    { code: "+970", label: "فلسطين" },
+    { code: "+972", label: "مناطق الـ48" },
+    { code: "+961", label: "لبنان" },
+    { code: "+962", label: "الأردن" },
+    { code: "+966", label: "السعودية" },
+    { code: "+971", label: "الإمارات" },
+    { code: "+974", label: "قطر" },
+    { code: "+973", label: "البحرين" },
+    { code: "+968", label: "عُمان" },
+    { code: "+965", label: "الكويت" },
+    { code: "+964", label: "العراق" },
+    { code: "+252", label: "الصومال" },
+    { code: "+253", label: "جيبوتي" },
+    { code: "+269", label: "جزر القمر" },
+    { code: "+222", label: "موريتانيا" },
+  ], []);
   useEffect(() => {
     (async () => {
       if (!token) return;

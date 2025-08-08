@@ -8,7 +8,7 @@ export default function EventCamera() {
   const { token } = useParams();
   const location = useLocation();
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
-
+  const shotsParam = Math.max(1, Number(new URLSearchParams(location.search).get("shots") || 0) || 120);
   useEffect(() => {
     document.title = `الكاميرا — ${eventName} — من عيونكم`;
   }, [eventName]);
@@ -24,7 +24,7 @@ export default function EventCamera() {
     <div className="h-[100dvh] overflow-hidden overscroll-none bg-background text-foreground relative" dir="rtl">
       <Navbar compact fullBleed />
       {/* واجهة الكاميرا الكاملة */}
-      <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
+      <MobileCamera token={token || ""} eventName={eventName} maxShots={shotsParam} />
     </div>
   );
 }

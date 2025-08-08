@@ -3,18 +3,19 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
 
 
 interface Props {
   eventName: string;
   token: string;
-  maxShots?: number; // default 70
+  maxShots?: number; // default 120
 }
 
 type LocalItem = { url: string; type: "image" | "video" };
 
-const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
+const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -41,17 +42,26 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const baseZoomRef = useRef<number>(1);
   const effects = [
     { name: "بدون", css: "none" },
-    { name: "أبيض وأسود", css: "grayscale(1) contrast(1.1)" },
-    { name: "سيبيا", css: "sepia(0.8) contrast(1.05)" },
-    { name: "زاهي", css: "saturate(1.5) contrast(1.1)" },
-    { name: "دافئ", css: "sepia(0.3) saturate(1.2) brightness(1.05)" },
-    { name: "بارد", css: "hue-rotate(200deg) saturate(1.1)" },
+    { name: "المغرب - فاس", css: "saturate(1.4) contrast(1.1) hue-rotate(10deg)" },
+    { name: "الجزائر - القصبة", css: "contrast(1.15) brightness(1.02) saturate(1.2)" },
+    { name: "تونس - قرطاج", css: "sepia(0.25) saturate(1.15) brightness(1.05)" },
+    { name: "ليبيا - طرابلس", css: "grayscale(0.1) contrast(1.15)" },
+    { name: "مصر - النيل", css: "sepia(0.2) saturate(1.2) brightness(1.04)" },
+    { name: "فلسطين - القدس", css: "grayscale(0.15) contrast(1.2) brightness(1.03)" },
+    { name: "الأردن - البتراء", css: "sepia(0.35) saturate(1.15) contrast(1.05)" },
+    { name: "سوريا - الشام", css: "hue-rotate(-10deg) saturate(1.1) contrast(1.08)" },
+    { name: "لبنان - الأرز", css: "saturate(1.25) contrast(1.05)" },
+    { name: "الخليج - لؤلؤ", css: "saturate(1.05) brightness(1.06)" },
+    { name: "اليمن - صنعاء", css: "sepia(0.3) hue-rotate(5deg) contrast(1.05)" },
+    { name: "السودان - النوبة", css: "sepia(0.25) saturate(1.1)" },
   ];
   const [effectIndex, setEffectIndex] = useState<number>(0);
   const [preview, setPreview] = useState<LocalItem | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [camAnim, setCamAnim] = useState(false);
   const [showEffectName, setShowEffectName] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState("");
+  const navigate = useNavigate();
 
   async function openStream() {
     try {
@@ -89,6 +99,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
     return `${String(captured).padStart(2, "0")}/${String(maxShots).padStart(2, "0")}`;
   }
 
+  function pad2(n: number) { return String(n).padStart(2, "0"); }
   async function capturePhoto() {
     if (left <= 0) {
       toast({ title: "وصلت حدّك من اللقطات" });
@@ -105,9 +116,16 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       ctx.drawImage(video, 0, 0, w, h);
       const blob: Blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9));
       const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
+      const newLeft = Math.max(0, left - 1);
       setRecent((r)=>[{ url: URL.createObjectURL(file), type: "image" as const }, ...r].slice(0,20));
-      await uploadFile(file, "image");
-      setLeft((n) => Math.max(0, n - 1));
+      setLeft(newLeft);
+      toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
+      try {
+        await uploadFile(file, "image");
+      } catch (e) {
+        setLeft((n) => Math.min(maxShots, n + 1));
+        setShowRetry({});
+      }
     } catch (e) {
       setShowRetry({});
     }
@@ -126,13 +144,16 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       rec.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" });
         const file = new File([blob], `clip-${Date.now()}.webm`, { type: blob.type });
-        setRecent((r)=>[{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0,20));
-        try {
-          await uploadFile(file, "video");
-          setLeft((n) => Math.max(0, n - 1));
-        } catch (e) {
-          setShowRetry({ file, kind: "video" });
-        }
+         const newLeft = Math.max(0, left - 1);
+         setRecent((r)=>[{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0,20));
+         setLeft(newLeft);
+         toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
+         try {
+           await uploadFile(file, "video");
+         } catch (e) {
+           setLeft((n) => Math.min(maxShots, n + 1));
+           setShowRetry({ file, kind: "video" });
+         }
         setRecording(false);
       };
       rec.start();
@@ -356,7 +377,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(9rem+env(safe-area-inset-bottom))] z-20">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(11rem+env(safe-area-inset-bottom))] z-20">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
@@ -422,6 +443,22 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       {left <= 0 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">وصلت حدّك من اللقطات</div>
       )}
+
+      {/* Limit reached dialog */}
+      <Dialog open={left <= 0}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>انتهى رصيد اللقطات</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-2">يمكنك حذف بعض اللقطات أو تسليم الألبوم الآن.</p>
+          <label className="text-sm mb-1">اكتب مباركة (اختياري)</label>
+          <Textarea value={greeting} onChange={(e)=>setGreeting(e.target.value)} placeholder="اكتب تهنئة قصيرة للعروسين…" />
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="secondary" onClick={() => setShowRecent(true)}>حذف بعض اللقطات</Button>
+            <Button onClick={() => navigate(`/event/${token}/final-submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Retry modal */}
       <Dialog open={Boolean(showRetry)} onOpenChange={(o)=>!o && setShowRetry(null)}>
