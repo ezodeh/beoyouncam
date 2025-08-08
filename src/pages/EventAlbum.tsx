@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2 } from "lucide-react";
 const dummyMessages = [
   { id: 1, name: "خالد", text: "ألف مبروك وربنا يتمّم على خير!", at: "قبل ساعتين" },
@@ -139,7 +139,7 @@ export default function EventAlbum() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="congrats" className="mt-6">
+            <TabsContent value="congrats" className="mt-6 pb-32">
               <div className="grid gap-3 max-w-3xl mx-auto">
                 {dummyMessages.map((m, idx) => (
                   <Card
@@ -166,7 +166,7 @@ export default function EventAlbum() {
               </div>
 
               {/* زر إضافة مباركة */}
-               <div className="fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-50 pointer-events-none">
+               <div className="fixed bottom-28 sm:bottom-32 md:bottom-36 left-4 sm:left-6 z-50 pointer-events-none">
                  <Button
                    onClick={() => setBlessingOpen(true)}
                    className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
@@ -283,7 +283,7 @@ export default function EventAlbum() {
                           </div>
                         </div>
                         <div className="p-4">
-                          <p className="text-sm text-muted-foreground text-right">ألبوم شخصي من صور وفيديو {name}</p>
+                          <p className="text-sm text-muted-foreground text-right">اسم المناسبة من صور وفيديو الاسم تاع المستخدم الي وثّق</p>
                         </div>
                       </CardContent>
                     </Card>

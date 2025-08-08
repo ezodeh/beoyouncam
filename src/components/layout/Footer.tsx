@@ -4,7 +4,8 @@ import { Facebook, Instagram, Twitter } from "lucide-react";
 const Footer = () => {
   return (
     <footer className="border-t">
-      <div className="container mx-auto py-10 grid gap-6 md:grid-cols-3 text-sm">
+      {/* Desktop / Tablet */}
+      <div className="container mx-auto py-10 grid gap-6 md:grid-cols-3 text-sm hidden md:grid">
         <div className="space-y-2">
           <h2 className="text-base font-normal">من نحن</h2>
           <p className="text-muted-foreground">
@@ -27,7 +28,9 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <div className="container mx-auto pb-6 text-center text-xs text-muted-foreground">
+
+      {/* Mobile minimal */}
+      <div className="md:hidden px-4 py-4 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} من عيونكم — كل الحقوق محفوظة
       </div>
       <div className="brand-strip w-full" aria-hidden />

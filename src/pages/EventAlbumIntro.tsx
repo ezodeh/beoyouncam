@@ -18,7 +18,7 @@ export default function EventAlbumIntro() {
       <Navbar />
       <main className="flex-1">
         <header className="relative">
-          <figure className="h-72 sm:h-80 md:h-96 w-full overflow-hidden">
+          <figure className="h-[110vh] sm:h-[70vh] md:h-96 w-full overflow-hidden">
             <img
               src={coverImg}
               alt="صورة غلاف المناسبة"
@@ -28,7 +28,7 @@ export default function EventAlbumIntro() {
           </figure>
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
 
-          <div className="container relative z-20 mx-auto px-4 -mt-10 sm:-mt-14">
+          <div className="absolute inset-x-0 bottom-8 sm:static sm:inset-auto container z-20 mx-auto px-4 sm:-mt-14">
             <div className="mx-auto max-w-2xl rounded-xl border bg-card text-card-foreground shadow-lg p-6 sm:p-8">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-center mb-2">أهلًا وسهلًا في ألبوم {eventName}</h1>
               <p className="text-center text-muted-foreground mb-6">
@@ -43,7 +43,7 @@ export default function EventAlbumIntro() {
           </div>
         </header>
       </main>
-      <Footer />
+      <div className="hidden sm:block"><Footer /></div>
     </div>
   );
 }

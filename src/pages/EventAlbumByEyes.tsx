@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const dummyPhotos = new Array(18).fill(0).map((_, i) => ({ id: i + 1 }));
@@ -26,6 +26,7 @@ export default function EventAlbumByEyes() {
     src: coverImg,
     alt: `صورة ${i + 1} بعيون ${name}`,
   }));
+  const [shareCount, setShareCount] = useState(0);
 
   const openAt = (i: number) => setLightboxIndex(i);
   const close = () => setLightboxIndex(null);
@@ -44,16 +45,19 @@ export default function EventAlbumByEyes() {
   }, [lightboxIndex, mediaItems.length]);
 
   const { toast } = useToast();
+  const personName = name ?? "";
   const sharePage = async () => {
     const url = window.location.href;
     const title = `بعيون ${name} — من عيونكم`;
     if ((navigator as any).share) {
       try {
         await (navigator as any).share({ title, url });
+        setShareCount((c) => c + 1);
       } catch (_) {}
     } else {
       try {
         await navigator.clipboard.writeText(url);
+        setShareCount((c) => c + 1);
         toast({ title: "تم نسخ رابط المشاركة" });
       } catch (_) {}
     }
@@ -78,6 +82,7 @@ export default function EventAlbumByEyes() {
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">مشاركة</span>
             </Button>
+            <span className="rounded-full bg-background/80 text-foreground text-xs px-2 py-1 border border-border">{shareCount}</span>
             <Link to={`/album/${token}`}>
               <Button size="sm" variant="secondary" className="rounded-full" aria-label="رجوع للألبوم">
                 <ArrowRight className="h-4 w-4" />
@@ -115,12 +120,20 @@ export default function EventAlbumByEyes() {
           </div>
           <aside className="space-y-3">
             <h2 className="text-lg font-nastaliq font-bold">مباركات {name}</h2>
-            {dummyMessages.map((m) => (
-              <div key={m.id} className="rounded-lg border border-border bg-card p-3">
-                <div className="text-sm font-nastaliq font-semibold mb-1">{m.name}</div>
-                <p className="text-sm text-muted-foreground leading-6 text-right">{m.text}</p>
+            {dummyMessages.filter((m) => m.name === personName).length > 0 ? (
+              dummyMessages
+                .filter((m) => m.name === personName)
+                .map((m) => (
+                  <div key={m.id} className="rounded-lg border border-border bg-card p-3">
+                    <div className="text-sm font-nastaliq font-semibold mb-1">{m.name}</div>
+                    <p className="text-sm text-muted-foreground leading-6 text-right">{m.text}</p>
+                  </div>
+                ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                ما في مباركة من {personName} بعد
               </div>
-            ))}
+            )}
           </aside>
         </section>
         {lightboxIndex !== null && (
