@@ -32,15 +32,15 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} flex items-center justify-between ${compact ? "h-12" : "h-16"} flex-row`}>
         <Link to="/" className="flex items-center gap-2 text-foreground">
-          <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
+          <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-7 w-auto md:h-8" loading="eager" />
         </Link>
         <div>
           {userName ? (
-            <Button variant="hero" onClick={signOut} aria-label="تسجيل الخروج">
+            <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signOut} aria-label="تسجيل الخروج">
               تسجيل الخروج
             </Button>
           ) : (
-            <Button variant="hero" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
+            <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
               تسجيل الدخول
             </Button>
           )}

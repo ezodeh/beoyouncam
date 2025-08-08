@@ -177,7 +177,7 @@ export default function EventWelcome() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <div className="min-h-screen bg-background text-foreground" dir="rtl">
+  return <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar compact fullBleed />
       <div className="brand-strip w-full" />
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
@@ -192,7 +192,7 @@ export default function EventWelcome() {
           </figcaption>
         </div>
       </figure>
-      <main className="container mx-auto px-4 py-4">
+      <main className="container mx-auto px-4 py-4 flex-1">
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
             <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>
