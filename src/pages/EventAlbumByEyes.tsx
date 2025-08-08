@@ -1,11 +1,11 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useParams, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Share2, ArrowRight } from "lucide-react";
+import { Share2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const dummyPhotos = new Array(18).fill(0).map((_, i) => ({ id: i + 1 }));
 const dummyMessages = [
@@ -19,6 +19,29 @@ export default function EventAlbumByEyes() {
   useEffect(() => {
     document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const mediaItems: { type: "image" | "video"; src: string; alt?: string }[] = dummyPhotos.map((_, i) => ({
+    type: "image",
+    src: coverImg,
+    alt: `صورة ${i + 1} بعيون ${name}`,
+  }));
+
+  const openAt = (i: number) => setLightboxIndex(i);
+  const close = () => setLightboxIndex(null);
+  const prev = () => setLightboxIndex((idx) => (idx === null ? idx : (idx - 1 + mediaItems.length) % mediaItems.length));
+  const next = () => setLightboxIndex((idx) => (idx === null ? idx : (idx + 1) % mediaItems.length));
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIndex, mediaItems.length]);
 
   const { toast } = useToast();
   const sharePage = async () => {
@@ -73,8 +96,20 @@ export default function EventAlbumByEyes() {
         <section className="container mx-auto px-4 py-6 grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-              {dummyPhotos.map((p) => (
-                <div key={p.id} className="aspect-square overflow-hidden rounded-md border border-border bg-muted" />
+{dummyPhotos.map((p, idx) => (
+                <button
+                  key={p.id}
+                  onClick={() => openAt(idx)}
+                  className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
+                >
+                  <img
+                    src={mediaItems[idx].src}
+                    alt={mediaItems[idx].alt}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </button>
               ))}
             </div>
           </div>
@@ -88,6 +123,50 @@ export default function EventAlbumByEyes() {
             ))}
           </aside>
         </section>
+        {lightboxIndex !== null && (
+          <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm text-foreground">
+            <button
+              onClick={close}
+              className="absolute top-4 left-4 md:top-6 md:left-6 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              aria-label="إغلاق العرض الكامل"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <button
+              onClick={prev}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              aria-label="السابق"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+
+            <button
+              onClick={next}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              aria-label="التالي"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+
+            <div className="h-full w-full flex items-center justify-center p-4">
+              {mediaItems[lightboxIndex].type === "video" ? (
+                <video
+                  src={(mediaItems[lightboxIndex] as any).src}
+                  className="max-h-[88vh] max-w-[92vw] rounded-lg shadow-lg"
+                  controls
+                  autoPlay
+                />
+              ) : (
+                <img
+                  src={mediaItems[lightboxIndex].src}
+                  alt={mediaItems[lightboxIndex].alt}
+                  className="max-h-[88vh] max-w-[92vw] object-contain rounded-lg shadow-lg"
+                />
+              )}
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>
