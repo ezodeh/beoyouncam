@@ -271,8 +271,8 @@ export default function CreateEvent() {
       return;
     }
     if (!userId) {
-      toast({ title: "يرجى تسجيل الدخول", description: "سجّل الدخول لإنشاء المناسبة" });
-      return;
+      toast({ title: "يرجى تسجيل الدخول", description: "سجّل الدخول أو أنشئ حسابًا للمتابعة" });
+      return navigate("/auth");
     }
     if (!termsAccepted) {
       toast({ title: "الرجاء الموافقة على الشروط", description: "لا يمكن المتابعة دون الموافقة" });

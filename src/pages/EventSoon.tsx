@@ -63,8 +63,9 @@ export default function EventSoon() {
               ))}
             </div>
           )}
-          <div className="mt-8">
+          <div className="mt-8 flex items-center justify-center gap-2">
             <Button className="rounded-full px-8" onClick={() => navigator.clipboard.writeText(window.location.href)}>انسخ الرابط</Button>
+            <Button asChild variant="outline" className="rounded-full px-8"><a href={`/event/${token}/welcome${location.search}`}>العودة للترحيب</a></Button>
           </div>
         </section>
       </main>

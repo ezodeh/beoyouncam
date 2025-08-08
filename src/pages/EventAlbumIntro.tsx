@@ -1,9 +1,10 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EventAlbumIntro() {
   const { token } = useParams();
@@ -12,6 +13,17 @@ export default function EventAlbumIntro() {
   useEffect(() => {
     document.title = `مقدمة الألبوم — ${eventName} — من عيونكم`;
   }, [eventName]);
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      const { data } = await supabase.from("events").select("is_private, published_at, title").eq("token", token).maybeSingle();
+      if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventName)}`);
+      }
+    })();
+  }, [token]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">

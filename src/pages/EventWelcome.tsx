@@ -252,6 +252,11 @@ export default function EventWelcome() {
             <div className="h-px bg-border flex-1" />
           </div>
           <Button variant="secondary" className="w-full rounded-full" onClick={signInWithGoogle}>المتابعة بحساب Google</Button>
+          <div className="mt-3 text-center">
+            <Button asChild variant="outline" className="rounded-full">
+              <a href="/auth">تسجيل/إنشاء حساب بالبريد</a>
+            </Button>
+          </div>
         </section>
       </main>
       

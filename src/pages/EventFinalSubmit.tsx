@@ -13,10 +13,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 const schema = z.object({
   name: z.string().min(2, "الاسم مطلوب"),
-  phone: z
-    .string()
-    .regex(/^\+?\d{8,15}$/u, "رقم هاتف غير صالح"),
+  phone: z.string().regex(/^\+?\d{8,15}$/u, "رقم هاتف غير صالح"),
   email: z.string().email("بريد إلكتروني غير صالح"),
+  blessing: z.string().min(4, "اكتب مباركتك").max(500, "كلام كثير شوي")
 });
 
 type FormData = z.infer<typeof schema>;
@@ -76,6 +75,14 @@ export default function EventFinalSubmit() {
                   <Input id="email" type="email" inputMode="email" {...register("email")} placeholder="name@example.com" />
                   {errors.email && (
                     <span className="text-sm text-destructive">{errors.email.message}</span>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="blessing">مباركتك للحفل</Label>
+                  <Input id="blessing" {...register("blessing")} placeholder="اكتب كلماتك الجميلة" />
+                  {errors.blessing && (
+                    <span className="text-sm text-destructive">{errors.blessing.message}</span>
                   )}
                 </div>
 

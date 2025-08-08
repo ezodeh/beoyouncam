@@ -150,6 +150,10 @@ export default function Account() {
                   </Link>
                 ))}
               </div>
+              <div className="mt-6 flex items-center gap-3">
+                <Link to="/scanner" className="inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2 hover-scale">ماسح QR</Link>
+                <Link to="/settings" className="inline-flex rounded-full bg-secondary text-secondary-foreground px-6 py-2 hover-scale">إعدادات الحساب</Link>
+              </div>
             </section>
           </>
         )}

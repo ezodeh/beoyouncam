@@ -1,6 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 const dummyMessages = [
   { id: 1, name: "خالد", text: "ألف مبروك وربنا يتمّم على خير!", at: "قبل ساعتين" },
   { id: 2, name: "محمد", text: "يا رب أيامكم كلها فرح وسعادة.", at: "أمس" },
@@ -24,10 +25,21 @@ export default function EventAlbum() {
   const { token } = useParams();
   const location = useLocation();
   const eventName = new URLSearchParams(location.search).get("title") || "ألبوم المناسبة";
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = `الألبوم — ${eventName} — من عيونكم`;
   }, [eventName]);
+
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      const { data } = await supabase.from("events").select("is_private, published_at, title").eq("token", token).maybeSingle();
+      if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventName)}`);
+      }
+    })();
+  }, [token]);
 
   // مباركات
   const [isBlessingOpen, setBlessingOpen] = useState(false);
@@ -323,7 +335,7 @@ export default function EventAlbum() {
           <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{images.length}</div>
 
           <div className="h-full w-full flex items-center justify-center p-4">
-            <img src={images[lightboxIndex]} alt={`صورة رقم ${lightboxIndex + 1}`} className="max-h-full max-w-full object-contain" />
+            <img src={images[lightboxIndex!]} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
           </div>
 
           {/* شريط معلومات سفلي على طريقة تيكتوك */}

@@ -48,8 +48,8 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
           ) : (
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
-                تسجيل الدخول
+              <Button asChild variant="hero" size="sm" className="md:h-10 md:px-4" aria-label="تسجيل الدخول">
+                <Link to="/auth">تسجيل الدخول</Link>
               </Button>
             </div>
           )}
