@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          sign_in_method: string
+          title: string
+          token: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          sign_in_method: string
+          title: string
+          token: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          sign_in_method?: string
+          title?: string
+          token?: string
+        }
+        Relationships: []
+      }
       participants: {
         Row: {
           consent: boolean

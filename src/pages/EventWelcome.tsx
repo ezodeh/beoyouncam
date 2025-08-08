@@ -27,9 +27,11 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null } | null>(null);
   useEffect(() => {
-    document.title = `الترحيب — ${eventName} — من عيونكم`;
-  }, [eventName]);
+    const title = eventDetails?.title || eventName;
+    document.title = `الترحيب — ${title} — من عيونكم`;
+  }, [eventName, eventDetails?.title]);
   const countries = useMemo(() => [{
     code: "+972",
     label: "مناطق الـ48"
@@ -64,6 +66,23 @@ export default function EventWelcome() {
     code: "+961",
     label: "لبنان"
   }], []);
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      const { data, error } = await supabase
+        .from("events")
+        .select("title, description, sign_in_method, cover_url")
+        .eq("token", token as string)
+        .maybeSingle();
+      if (!error && data) {
+        setEventDetails({
+          ...data,
+          sign_in_method: (data.sign_in_method as "phone" | "email" | null),
+        });
+        if (data.sign_in_method) setTab(data.sign_in_method as any);
+      }
+    })();
+  }, [token]);
   const goToCamera = () => {
     const qs = location.search || "";
     navigate(`/event/${token}/camera${qs}`);
@@ -163,7 +182,7 @@ export default function EventWelcome() {
       <div className="brand-strip w-full" />
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
         <div className="relative h-[78vh] md:h-[50vh]">
-          <img src={heroImage} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
+          <img src={eventDetails?.cover_url || heroImage} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
           <Button variant="secondary" size="icon" className="absolute top-4 left-4 rounded-full bg-background/70 supports-[backdrop-filter]:bg-background/40 backdrop-blur shadow-elevated" onClick={handleShare} aria-label="مشاركة">
             <Share className="h-4 w-4" />
@@ -175,45 +194,56 @@ export default function EventWelcome() {
       </figure>
       <main className="container mx-auto px-4 py-4">
         <section className="max-w-md mx-auto">
-
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold">مناسبتكم</h1>
+            {eventDetails?.description && (
+              <p className="mt-2 text-muted-foreground">{eventDetails.description}</p>
+            )}
+          </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="phone">الهاتف</TabsTrigger>
-              <TabsTrigger value="email">الإيميل</TabsTrigger>
-            </TabsList>
-            <TabsContent value="phone" className="space-y-3">
-              <div>
-                <Label htmlFor="name" className="block mb-1.5 text-right">الاسم</Label>
-                <Input id="name" required value={name} onChange={e => setName(e.target.value)} placeholder="اسمك" />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-1">
-                  <Label className="block mb-1.5 text-right">المقدمة</Label>
-                  <Select value={country} onValueChange={setCountry}>
-                    <SelectTrigger className="w-full"><SelectValue placeholder="الدولة" /></SelectTrigger>
-                    <SelectContent className="bg-popover text-popover-foreground shadow-elevated z-50">
-                      {countries.map(c => <SelectItem key={c.code} value={c.code}>{c.label} {c.code}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+            {!eventDetails?.sign_in_method && (
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="phone">الهاتف</TabsTrigger>
+                <TabsTrigger value="email">الإيميل</TabsTrigger>
+              </TabsList>
+            )}
+            {(eventDetails?.sign_in_method ?? tab) === "phone" && (
+              <TabsContent value="phone" className="space-y-3" forceMount>
+                <div>
+                  <Label htmlFor="name" className="block mb-2.5 text-right">الاسم</Label>
+                  <Input id="name" required value={name} onChange={e => setName(e.target.value)} placeholder="اسمك" />
                 </div>
-                <div className="col-span-2">
-                  <Label htmlFor="phone" className="block mb-1.5 text-right">الهاتف</Label>
-                  <Input id="phone" inputMode="tel" dir="ltr" value={phone} onChange={e => setPhone(e.target.value)} placeholder="5XXXXXXX" />
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="col-span-1">
+                    <Label className="block mb-2.5 text-right">المقدمة</Label>
+                    <Select value={country} onValueChange={setCountry}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="الدولة" /></SelectTrigger>
+                      <SelectContent className="bg-popover text-popover-foreground shadow-elevated z-50">
+                        {countries.map(c => <SelectItem key={c.code} value={c.code}>{c.label} {c.code}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="phone" className="block mb-2.5 text-right">الهاتف</Label>
+                    <Input id="phone" inputMode="tel" dir="ltr" value={phone} onChange={e => setPhone(e.target.value)} placeholder="5XXXXXXX" />
+                  </div>
                 </div>
-              </div>
-              <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || phone.trim().length < 6} onClick={submit}>ابدأ</Button>
-            </TabsContent>
-            <TabsContent value="email" className="space-y-3">
-              <div>
-                <Label htmlFor="name2" className="block mb-1.5 text-right">الاسم</Label>
-                <Input id="name2" required value={name} onChange={e => setName(e.target.value)} placeholder="اسمك" />
-              </div>
-              <div>
-                <Label htmlFor="email" className="block mb-1.5 text-right">الإيميل</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
-              </div>
-              <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || !email.includes("@")} onClick={submit}>ابدأ</Button>
-            </TabsContent>
+                <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || phone.trim().length < 6} onClick={submit}>ابدأ</Button>
+              </TabsContent>
+            )}
+            {(eventDetails?.sign_in_method ?? tab) === "email" && (
+              <TabsContent value="email" className="space-y-3" forceMount>
+                <div>
+                  <Label htmlFor="name2" className="block mb-2.5 text-right">الاسم</Label>
+                  <Input id="name2" required value={name} onChange={e => setName(e.target.value)} placeholder="اسمك" />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="block mb-2.5 text-right">الإيميل</Label>
+                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+                </div>
+                <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || !email.includes("@")} onClick={submit}>ابدأ</Button>
+              </TabsContent>
+            )}
           </Tabs>
 
           <div className="my-4 flex items-center gap-2">
