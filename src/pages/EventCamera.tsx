@@ -13,6 +13,13 @@ export default function EventCamera() {
     document.title = `الكاميرا — ${eventName} — من عيونكم`;
   }, [eventName]);
 
+  useEffect(() => {
+    const has = localStorage.getItem(`participant:${token}`);
+    if (!has) {
+      navigate(`/event/${token}/welcome${location.search}`);
+    }
+  }, [location.search, navigate, token]);
+
   return (
     <div className="min-h-screen overflow-hidden bg-background text-foreground relative" dir="rtl">
       <Navbar compact fullBleed />

@@ -19,6 +19,7 @@ import EventAlbumByEyes from "./pages/EventAlbumByEyes";
 import EventFinalSubmit from "./pages/EventFinalSubmit";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import Invites from "./pages/Invites";
+import EventWelcome from "./pages/EventWelcome";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/payment" element={<Payment />} />
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:token" element={<EventCapture />} />
+            <Route path="/event/:token/welcome" element={<EventWelcome />} />
             <Route path="/event/:token/camera" element={<EventCamera />} />
             <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
             <Route path="/gallery/:token" element={<Gallery />} />
