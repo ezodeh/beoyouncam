@@ -35,6 +35,10 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [zoom, setZoom] = useState<number>(1);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const startDistRef = useRef<number | null>(null);
+  const baseZoomRef = useRef<number>(1);
 
   async function openStream() {
     try {
@@ -176,7 +180,36 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       const track = streamRef.current?.getVideoTracks()[0];
       // @ts-ignore
       await track?.applyConstraints?.({ advanced: [{ torch: mode === "on" }] });
-    } catch (_) {}
+    } catch (_) { toast({ title: "الفلاش غير مدعوم على هذا الجهاز/المتصفح" }); }
+  }
+
+  // Pinch-to-zoom handlers
+  function distance(a: { x: number; y: number }, b: { x: number; y: number }) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
+    (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 2) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      startDistRef.current = distance(a, b);
+      baseZoomRef.current = zoom;
+    }
+  }
+  function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 2 && startDistRef.current) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      const dist = distance(a, b);
+      const next = Math.min(6, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
+      setZoom(next);
+    }
+  }
+  function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) {
+      startDistRef.current = null;
+      baseZoomRef.current = zoom;
+    }
   }
 
   // Long-press logic
@@ -221,9 +254,20 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   }
 
   return (
-    <div className="relative w-full h-[calc(100dvh-56px)]" dir="rtl">
+    <div className="relative w-full h-[calc(100dvh-56px)] overflow-hidden overscroll-none" dir="rtl">
       {/* Preview */}
-      <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted autoPlay />
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover touch-none will-change-transform"
+        style={{ transform: `scale(${zoom})` }}
+        onPointerDown={onVideoPointerDown}
+        onPointerMove={onVideoPointerMove}
+        onPointerUp={onVideoPointerUp}
+        onPointerCancel={onVideoPointerUp}
+        playsInline
+        muted
+        autoPlay
+      />
 
       {/* Grid overlay */}
       {showGrid && (
@@ -268,25 +312,37 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-32">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-40">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-20 flex flex-col items-center justify-center select-none gap-3">
-        <div className="w-24 h-24 rounded-full p-1 bg-primary">
-          <button
-            className={`relative w-full h-full rounded-full shadow-lg outline-none ${recording ? "bg-primary animate-pulse text-primary-foreground" : "bg-white"}`}
-            onPointerDown={onShutterDown}
-            onPointerUp={onShutterUp}
-            disabled={left <= 0}
-            aria-label="التقاط"
-          >
-            {!recording && (
-              <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
-            )}
-          </button>
-        </div>
+      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center justify-center select-none gap-3">
+        {recording ? (
+          <div className="w-24 h-24 rounded-full">
+            <button
+              className="relative w-full h-full rounded-full shadow-lg outline-none bg-primary text-primary-foreground animate-pulse"
+              onPointerDown={onShutterDown}
+              onPointerUp={onShutterUp}
+              disabled={left <= 0}
+              aria-label="التقاط"
+            />
+          </div>
+        ) : (
+          <div className="w-24 h-24 rounded-full p-[6px] bg-brand-gradient">
+            <div className="w-full h-full rounded-full p-[6px] bg-background/80">
+              <button
+                className="relative w-full h-full rounded-full shadow-lg outline-none bg-white"
+                onPointerDown={onShutterDown}
+                onPointerUp={onShutterUp}
+                disabled={left <= 0}
+                aria-label="التقاط"
+              >
+                <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
+              </button>
+            </div>
+          </div>
+        )}
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
       </div>
 
@@ -301,25 +357,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
         </button>
       )}
 
-      {/* Bottom bar */}
-      <div className="absolute inset-x-0 bottom-0 pb-2">
-        <div className="mx-2 mb-2 flex items-center justify-between">
-          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm bg-background/70 border border-border">
-            <Users className="h-4 w-4" />
-            <span>دعوة ضيوف</span>
-          </Link>
-          <div className="flex-1" />
-          <label className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm bg-background/70 border border-border cursor-pointer">
-            <ImageIcon className="h-4 w-4" />
-            <span>المعرض</span>
-            <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => {
-              const f = e.target.files?.[0]; if (!f) return; if (left <= 0) { toast({ title: "وصلت حدّك" }); return; }
-              uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft((n)=>Math.max(0,n-1)));
-              e.currentTarget.value = "";
-            }} />
-          </label>
-        </div>
-      </div>
+      {/* Bottom bar removed on camera page */}
 
       {/* Limit banner */}
       {left <= 0 && (

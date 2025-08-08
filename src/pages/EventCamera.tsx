@@ -14,8 +14,8 @@ export default function EventCamera() {
   }, [eventName]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative" dir="rtl">
-      <Navbar />
+    <div className="min-h-screen overflow-hidden bg-background text-foreground relative" dir="rtl">
+      <Navbar compact fullBleed />
       {/* واجهة الكاميرا الكاملة */}
       <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
     </div>
