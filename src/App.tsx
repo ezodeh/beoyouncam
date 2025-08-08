@@ -12,6 +12,7 @@ import EventCapture from "./pages/EventCapture";
 import Gallery from "./pages/Gallery";
 import ManageDashboard from "./pages/ManageDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import EventAlbum from "./pages/EventAlbum";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:token" element={<EventCapture />} />
             <Route path="/gallery/:token" element={<Gallery />} />
+            <Route path="/album/:token" element={<EventAlbum />} />
             <Route path="/manage/:token" element={<ManageDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
