@@ -9,6 +9,7 @@ import ChoosePlan from "./pages/ChoosePlan";
 import Payment from "./pages/Payment";
 import CreateEvent from "./pages/CreateEvent";
 import EventCapture from "./pages/EventCapture";
+import EventCamera from "./pages/EventCamera";
 import Gallery from "./pages/Gallery";
 import ManageDashboard from "./pages/ManageDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -32,7 +33,7 @@ const App = () => (
             <Route path="/payment" element={<Payment />} />
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:token" element={<EventCapture />} />
-            <Route path="/event/:token/camera" element={<EventCapture />} />
+            <Route path="/event/:token/camera" element={<EventCamera />} />
             <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
             <Route path="/gallery/:token" element={<Gallery />} />
             <Route path="/album/:token" element={<EventAlbum />} />

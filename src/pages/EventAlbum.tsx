@@ -26,7 +26,7 @@ export default function EventAlbum() {
   const eventName = new URLSearchParams(location.search).get("title") || "ألبوم المناسبة";
 
   useEffect(() => {
-    document.title = `${eventName} — من عيونكم`;
+    document.title = `الألبوم — ${eventName} — من عيونكم`;
   }, [eventName]);
 
   // مباركات
@@ -95,7 +95,7 @@ export default function EventAlbum() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">{eventName}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {eventName}</h1>
               <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>
