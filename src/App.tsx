@@ -13,8 +13,9 @@ import Gallery from "./pages/Gallery";
 import ManageDashboard from "./pages/ManageDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import EventAlbum from "./pages/EventAlbum";
+import EventAlbumIntro from "./pages/EventAlbumIntro";
+import EventAlbumByEyes from "./pages/EventAlbumByEyes";
 import ThemeProvider from "@/components/theme/ThemeProvider";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -32,6 +33,8 @@ const App = () => (
             <Route path="/event/:token" element={<EventCapture />} />
             <Route path="/gallery/:token" element={<Gallery />} />
             <Route path="/album/:token" element={<EventAlbum />} />
+            <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
+            <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
             <Route path="/manage/:token" element={<ManageDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
