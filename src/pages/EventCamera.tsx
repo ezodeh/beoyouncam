@@ -1,51 +1,32 @@
-import { useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
+import MobileCamera from "@/components/capture/MobileCamera";
 
 export default function EventCamera() {
   const navigate = useNavigate();
   const { token } = useParams();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const location = useLocation();
+  const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
 
   useEffect(() => {
-    document.title = "الكاميرا — من عيونكم";
-    let stream: MediaStream | null = null;
-    const start = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    start();
-    return () => {
-      stream?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
+    document.title = `الكاميرا — ${eventName} — من عيونكم`;
+  }, [eventName]);
 
   return (
     <div className="min-h-screen bg-background text-foreground relative" dir="rtl">
-      {/* Top bar: H2 on the right, X on the left */}
-      <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4">
-        <h2 className="text-2xl font-nastaliq text-right">التقاط</h2>
-        <button
-          type="button"
-          className="p-2 rounded-full bg-background/70 hover:bg-background/90"
-          aria-label="إغلاق"
-          onClick={() => navigate(`/event/${token}`)}
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      {/* زر إغلاق/رجوع */}
+      <button
+        type="button"
+        className="absolute top-4 left-4 z-50 p-2 rounded-full bg-background/70 border border-border hover:bg-background"
+        aria-label="إغلاق"
+        onClick={() => navigate(`/event/${token}`)}
+      >
+        <X className="h-6 w-6" />
+      </button>
 
-      {/* Camera preview */}
-      <div className="h-screen w-full overflow-hidden">
-        <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
-      </div>
+      {/* واجهة الكاميرا الكاملة */}
+      <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
     </div>
   );
 }
