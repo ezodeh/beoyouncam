@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EventAlbum from "./pages/EventAlbum";
 import EventAlbumIntro from "./pages/EventAlbumIntro";
 import EventAlbumByEyes from "./pages/EventAlbumByEyes";
+import EventFinalSubmit from "./pages/EventFinalSubmit";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 const queryClient = new QueryClient();
 
@@ -31,6 +32,8 @@ const App = () => (
             <Route path="/payment" element={<Payment />} />
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:token" element={<EventCapture />} />
+            <Route path="/event/:token/camera" element={<EventCapture />} />
+            <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
             <Route path="/gallery/:token" element={<Gallery />} />
             <Route path="/album/:token" element={<EventAlbum />} />
             <Route path="/album/:token/intro" element={<EventAlbumIntro />} />

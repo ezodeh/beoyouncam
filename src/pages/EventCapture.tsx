@@ -1,6 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,6 +179,12 @@ const EventCapture = () => {
               </div>
 
               {busy && <Progress value={progress} />}
+
+              <div className="grid gap-3 mt-2">
+                <Link to={`/event/${token}/submit`}>
+                  <Button size="lg" className="rounded-full w-full">إنهاء وتسليم الألبوم</Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
