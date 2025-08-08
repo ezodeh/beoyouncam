@@ -105,4 +105,5 @@
   .bg-brand-gradient { background-image: var(--gradient-brand); }
   .brand-strip { background-image: var(--gradient-brand); height: 4px; }
   .text-brand-foreground { color: hsl(var(--brand-foreground)); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
 }
