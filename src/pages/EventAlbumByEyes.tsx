@@ -3,6 +3,9 @@ import Footer from "@/components/layout/Footer";
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { Share2, ArrowRight } from "lucide-react";
 
 const dummyPhotos = new Array(18).fill(0).map((_, i) => ({ id: i + 1 }));
 const dummyMessages = [
@@ -17,6 +20,22 @@ export default function EventAlbumByEyes() {
     document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
 
+  const { toast } = useToast();
+  const sharePage = async () => {
+    const url = window.location.href;
+    const title = `بعيون ${name} — من عيونكم`;
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({ title, url });
+      } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "تم نسخ رابط المشاركة" });
+      } catch (_) {}
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
@@ -30,7 +49,19 @@ export default function EventAlbumByEyes() {
               loading="lazy"
             />
           </figure>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
+          <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+            <Button size="sm" variant="outline" className="rounded-full" onClick={sharePage} aria-label="مشاركة الصفحة">
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">مشاركة</span>
+            </Button>
+            <Link to={`/album/${token}`}>
+              <Button size="sm" variant="secondary" className="rounded-full" aria-label="رجوع للألبوم">
+                <ArrowRight className="h-4 w-4" />
+                <span className="hidden sm:inline">رجوع للألبوم</span>
+              </Button>
+            </Link>
+          </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>

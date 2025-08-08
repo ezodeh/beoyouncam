@@ -79,6 +79,21 @@ export default function EventAlbum() {
     }
   };
 
+  const shareAlbum = async () => {
+    const shareUrl = window.location.href;
+    const title = `الألبوم — ${eventName}`;
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({ title, url: shareUrl });
+      } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "تم نسخ رابط المشاركة" });
+      } catch (_) {}
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
@@ -92,7 +107,13 @@ export default function EventAlbum() {
               loading="lazy"
             />
           </figure>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
+          <div className="absolute top-3 left-3 z-20">
+            <Button size="sm" variant="outline" className="rounded-full" onClick={shareAlbum} aria-label="مشاركة الألبوم">
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">مشاركة</span>
+            </Button>
+          </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {eventName}</h1>
