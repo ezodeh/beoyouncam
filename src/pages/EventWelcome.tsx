@@ -60,11 +60,12 @@ export default function EventWelcome() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data, error } = await supabase
+      const { data: row, error } = await supabase
         .from("events")
         .select("title, description, sign_in_method, cover_url, start_at, end_at")
         .eq("token", token as string)
         .maybeSingle();
+      const data: any = row;
       if (!error && data) {
         // redirect based on timing if configured
         const now = new Date();

@@ -19,7 +19,11 @@ export type Database = {
           cover_url: string | null
           created_at: string
           description: string | null
+          end_at: string | null
+          max_shots: number
+          owner_id: string | null
           sign_in_method: string
+          start_at: string | null
           title: string
           token: string
         }
@@ -27,7 +31,11 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          end_at?: string | null
+          max_shots?: number
+          owner_id?: string | null
           sign_in_method: string
+          start_at?: string | null
           title: string
           token: string
         }
@@ -35,7 +43,11 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          end_at?: string | null
+          max_shots?: number
+          owner_id?: string | null
           sign_in_method?: string
+          start_at?: string | null
           title?: string
           token?: string
         }

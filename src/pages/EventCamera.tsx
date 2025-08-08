@@ -25,11 +25,12 @@ export default function EventCamera() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data } = await supabase
+      const { data: row } = await supabase
         .from("events")
         .select("max_shots, start_at, end_at")
         .eq("token", token as string)
         .maybeSingle();
+      const data: any = row;
       if (data) {
         const now = new Date();
         if (data.start_at && now < new Date(data.start_at)) {
