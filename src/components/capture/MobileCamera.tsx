@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Sparkles, Users, Image as ImageIcon } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Sparkles, Users, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -10,6 +10,8 @@ interface Props {
   token: string;
   maxShots?: number; // default 70
 }
+
+type LocalItem = { url: string; type: "image" | "video" };
 
 const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -29,6 +31,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const [showRetry, setShowRetry] = useState<{file?: File; kind?: "image"|"video"} | null>(null);
 
   const { toast } = useToast();
+  const [recent, setRecent] = useState<LocalItem[]>([]);
+  const [showRecent, setShowRecent] = useState(false);
 
   async function openStream() {
     try {
@@ -80,6 +84,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       ctx.drawImage(video, 0, 0, w, h);
       const blob: Blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9));
       const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
+      setRecent((r)=>[{ url: URL.createObjectURL(file), type: "image" as const }, ...r].slice(0,20));
       await uploadFile(file, "image");
       setLeft((n) => Math.max(0, n - 1));
     } catch (e) {
@@ -100,6 +105,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       rec.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" });
         const file = new File([blob], `clip-${Date.now()}.webm`, { type: blob.type });
+        setRecent((r)=>[{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0,20));
         try {
           await uploadFile(file, "video");
           setLeft((n) => Math.max(0, n - 1));
@@ -254,19 +260,31 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
 
       {/* Shutter */}
       <div className="absolute inset-x-0 bottom-12 flex justify-center select-none">
-        <button
-          className="relative h-20 w-20 rounded-full bg-white shadow-lg outline-none"
-          onPointerDown={onShutterDown}
-          onPointerUp={onShutterUp}
-          disabled={left <= 0}
-          aria-label="التقاط"
-        >
-          <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
-          {recording && (
-            <span className="pointer-events-none absolute -inset-2 rounded-full border-4 border-primary/60 animate-pulse" />
-          )}
-        </button>
+        <div className="w-24 h-24 rounded-full p-1 bg-brand-gradient">
+          <button
+            className={`relative w-full h-full rounded-full shadow-lg outline-none ${recording ? "bg-brand-gradient animate-pulse text-white" : "bg-white"}`}
+            onPointerDown={onShutterDown}
+            onPointerUp={onShutterUp}
+            disabled={left <= 0}
+            aria-label="التقاط"
+          >
+            {!recording && (
+              <span className="pointer-events-none absolute inset-0 rounded-full" style={{ boxShadow: "0 0 0 4px hsl(var(--primary)) inset" }} />
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Recent thumb */}
+      {recent.length > 0 && (
+        <button
+          className="absolute bottom-28 left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60"
+          onClick={() => setShowRecent(true)}
+          aria-label="المعرض"
+        >
+          <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
+        </button>
+      )}
 
       {/* Bottom bar */}
       <div className="absolute inset-x-0 bottom-0 pb-2">
@@ -309,6 +327,39 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
             {showRetry?.file && showRetry?.kind && (
               <Button onClick={async ()=>{ try{ await uploadFile(showRetry.file!, showRetry.kind!); setShowRetry(null);} catch(_){} }}>إعادة المحاولة</Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recent modal */}
+      <Dialog open={showRecent} onOpenChange={setShowRecent}>
+        <DialogContent dir="rtl" className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>لقطاتي</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {recent.length === 0 && (
+              <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>
+            )}
+            {recent.map((item, idx) => (
+              <div key={idx} className="relative group border border-border rounded-lg overflow-hidden">
+                {item.type === "image" ? (
+                  <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" />
+                ) : (
+                  <video src={item.url} className="w-full h-24 object-cover" controls />
+                )}
+                <button
+                  className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1"
+                  aria-label="حذف"
+                  onClick={() => setRecent((r)=> r.filter((_, i)=> i !== idx))}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={()=>setShowRecent(false)}>إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
