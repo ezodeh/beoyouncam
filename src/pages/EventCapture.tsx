@@ -133,8 +133,8 @@ const EventCapture = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
-      <main className="flex-1 container mx-auto py-8">
-        <div dir="rtl" className="mx-auto max-w-md p-4">
+      <main className="flex-1 container mx-auto py-8 flex items-center justify-center">
+        <div dir="rtl" className="mx-auto w-full max-w-sm sm:max-w-md p-4">
           <Card className="bg-card border border-border">
             <CardHeader>
               <CardTitle className="text-2xl">التقاط لحظاتكم</CardTitle>
