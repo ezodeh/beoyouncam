@@ -195,18 +195,12 @@ export default function EventWelcome() {
       <main className="container mx-auto px-4 py-4">
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold">مناسبتكم</h1>
+            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">مناسبتكم</h1>
             {eventDetails?.description && (
-              <p className="mt-2 text-muted-foreground">{eventDetails.description}</p>
+              <p className="mt-3 text-muted-foreground">{eventDetails.description}</p>
             )}
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
-            {!eventDetails?.sign_in_method && (
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="phone">الهاتف</TabsTrigger>
-                <TabsTrigger value="email">الإيميل</TabsTrigger>
-              </TabsList>
-            )}
             {(eventDetails?.sign_in_method ?? tab) === "phone" && (
               <TabsContent value="phone" className="space-y-3" forceMount>
                 <div>
