@@ -4,13 +4,14 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Menu as MenuIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-// logo served from /lovable-uploads during editing
+import Logo from "@/components/branding/Logo";
 const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="container mx-auto flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2 font-extrabold text-lg tracking-tight">
-          <img src="/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png" alt="شعار من عيونكم" className="h-7 w-auto" loading="lazy" />
+        <Link to="/" className="flex items-center gap-2 text-primary">
+          <Logo variant="horizontal" colored={false} size={112} className="hidden sm:block" title="شعار من عيونكم" />
+          <Logo variant="icon" colored={false} size={28} className="sm:hidden" title="شعار من عيونكم" />
           <span className="sr-only">من عيونكم</span>
         </Link>
         <div className="hidden md:flex items-center gap-4">
