@@ -97,10 +97,10 @@
 }
 
 @layer utilities {
-  .bg-brand-gradient { background-image: var(--gradient-brand); }
-  .brand-strip { background-image: var(--gradient-brand); height: 4px; }
-  .text-brand-foreground { color: hsl(var(--brand-foreground)); }
-  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+.bg-brand-gradient { background-image: var(--gradient-brand); }
+.brand-strip { background-image: var(--gradient-brand); height: 6px; }
+.text-brand-foreground { color: hsl(var(--brand-foreground)); }
+.shadow-elevated { box-shadow: var(--shadow-elevated); }
   /* Links underline animation */
   .story-link { position: relative; display: inline-block; }
   .story-link::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; width: 100%; transform-origin: right; transform: scaleX(0); background-color: hsl(var(--primary)); transition: transform 300ms; }

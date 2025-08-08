@@ -30,6 +30,7 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="brand-strip w-full" aria-hidden />
       <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} flex items-center justify-between ${compact ? "h-12" : "h-16"} flex-row`}>
         <div className="flex items-center gap-3">
           <ThemeToggle />
