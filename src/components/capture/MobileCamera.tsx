@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Sparkles, Users, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -33,6 +33,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
   const { toast } = useToast();
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
   async function openStream() {
     try {
@@ -222,9 +223,27 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
       {/* Preview */}
       <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted autoPlay />
 
-      {/* Hint capsule */}
-      <div className="absolute top-4 inset-x-0 flex justify-center">
+      {/* Grid overlay */}
+      {showGrid && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="w-full h-full grid grid-cols-3 grid-rows-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="border border-white/30" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top info: hint + event name + counters */}
+      <div className="absolute top-4 inset-x-0 flex items-center justify-center">
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
+      </div>
+      <div className="absolute top-12 inset-x-0 text-center">
+        <div className="inline-block rounded-full bg-background/60 border border-border px-4 py-1 text-sm font-semibold">{eventName}</div>
+      </div>
+      <div className="absolute top-4 right-3 flex items-center gap-2">
+        <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المتبقي: {String(left).padStart(2, "0")}</span>
+        <span className="rounded-full bg-background/80 border border-border text-[10px] px-2 py-0.5">المُلتقطة: {String(maxShots - left).padStart(2, "0")}</span>
       </div>
 
       {/* Left icons column */}
@@ -233,8 +252,8 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 70 }) => {
           <Camera className="h-5 w-5" />
         </Button>
         {supportsVideo && (
-          <Button size="icon" variant="secondary" className="rounded-full" aria-label="تفعيل/تعطيل فيديو 10s">
-            <Sparkles className="h-5 w-5" />
+          <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid((v)=>!v)}>
+            <GridIcon className="h-5 w-5" />
           </Button>
         )}
         <Button

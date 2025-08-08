@@ -15,16 +15,6 @@ export default function EventCamera() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative" dir="rtl">
-      {/* زر إغلاق/رجوع */}
-      <button
-        type="button"
-        className="absolute top-4 left-4 z-50 p-2 rounded-full bg-background/70 border border-border hover:bg-background"
-        aria-label="إغلاق"
-        onClick={() => navigate(`/event/${token}`)}
-      >
-        <X className="h-6 w-6" />
-      </button>
-
       {/* واجهة الكاميرا الكاملة */}
       <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
     </div>

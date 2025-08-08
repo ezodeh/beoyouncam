@@ -137,18 +137,38 @@ export default function EventAlbumByEyes() {
           </aside>
         </section>
         {lightboxIndex !== null && (
-          <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm text-foreground">
+          <div className="fixed inset-0 z-50 bg-black/90 text-white" dir="rtl">
+            {/* Close + Share like main album (right side) */}
             <button
               onClick={close}
-              className="absolute top-4 left-4 md:top-6 md:left-6 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              className="absolute top-4 right-4 inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 p-2"
               aria-label="إغلاق العرض الكامل"
             >
               <X className="h-5 w-5" />
             </button>
+            <button
+              onClick={async () => {
+                const url = window.location.href + `#${lightboxIndex!+1}`;
+                const title = mediaItems[lightboxIndex!].alt || "صورة";
+                if ((navigator as any).share) {
+                  try { await (navigator as any).share({ title, url }); } catch(_){}
+                } else {
+                  try { await navigator.clipboard.writeText(url); toast({ title: "تم نسخ رابط المشاركة" }); } catch(_){}
+                }
+              }}
+              className="absolute top-4 right-16 inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 p-2"
+              aria-label="مشاركة"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
 
+            {/* Index like main album (left top) */}
+            <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{mediaItems.length}</div>
+
+            {/* Prev/Next */}
             <button
               onClick={prev}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 p-2"
               aria-label="السابق"
             >
               <ChevronRight className="h-6 w-6" />
@@ -156,7 +176,7 @@ export default function EventAlbumByEyes() {
 
             <button
               onClick={next}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border border-border bg-card/80 p-2 shadow-sm"
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 p-2"
               aria-label="التالي"
             >
               <ChevronLeft className="h-6 w-6" />
