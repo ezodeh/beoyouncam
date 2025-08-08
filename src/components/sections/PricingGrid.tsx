@@ -51,7 +51,7 @@ const PricingGrid = () => {
                 ))}
               </ul>
               <Button asChild variant={p.highlight ? "hero" : "secondary"} className="w-full">
-                <Link to={`/payment?plan=${p.code}`}>{p.cta}</Link>
+                <Link to={p.code === "basic" ? "/create-event" : `/payment?plan=${p.code}`}>{p.cta}</Link>
               </Button>
             </CardContent>
           </Card>

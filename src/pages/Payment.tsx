@@ -3,16 +3,24 @@ import Footer from "@/components/layout/Footer";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Payment = () => {
   useEffect(() => {
     document.title = "الدفع — من عيونكم";
   }, []);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (searchParams.get("plan") === "basic") {
+      navigate("/create-event", { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const handleSoon = (label: string) => () => {
     toast({ title: `${label}`, description: "قريبًا — سنفعل بوابة الدفع خلال الإعداد." });
   };
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
