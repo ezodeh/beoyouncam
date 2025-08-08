@@ -7,12 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 // Album timing type
 
@@ -115,6 +118,7 @@ export default function CreateEvent() {
   }, []);
 
   const [step, setStep] = useState(1);
+  const navigate = useNavigate();
   const totalSteps = 5;
   const stepTitles = [
     "مناسبة جديدة",
@@ -152,6 +156,9 @@ export default function CreateEvent() {
   const [shotsPerGuest, setShotsPerGuest] = useState<number>(20);
   const shotsOptions = [5, 10, 15, 20, 25, 30];
   const [enableVideo, setEnableVideo] = useState(false);
+  
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -209,6 +216,18 @@ export default function CreateEvent() {
     };
     localStorage.setItem("create_event_draft", JSON.stringify(draft));
   }, [title, description, startAt, endAt, timing, customPublishAt, privacy, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, guests, shotsPerGuest, enableVideo]);
+
+  // auth session
+  useEffect(() => {
+    let unsub: { unsubscribe: () => void } | null = null;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user.id || null);
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setUserId(s?.user.id || null));
+      unsub = subscription;
+    })();
+    return () => { try { unsub?.unsubscribe(); } catch {} };
+  }, []);
 
   // price estimation
   const price = useMemo(() => {

@@ -22,6 +22,7 @@ import Invites from "./pages/Invites";
 import EventWelcome from "./pages/EventWelcome";
 import EventSoon from "./pages/EventSoon";
 import EventEnded from "./pages/EventEnded";
+import Account from "./pages/Account";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
             <Route path="/event/:token/invites" element={<Invites />} />
             <Route path="/manage/:token" element={<ManageDashboard />} />
+            <Route path="/account" element={<Account />} />
             <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -36,9 +36,14 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
         </Link>
         <div>
           {userName ? (
-            <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signOut} aria-label="تسجيل الخروج">
-              تسجيل الخروج
-            </Button>
+            <div className="flex items-center gap-2">
+              <Link to="/account" className="hidden sm:inline-flex rounded-full px-3 py-1.5 bg-secondary text-secondary-foreground hover-scale" aria-label="حسابي">
+                حسابي
+              </Link>
+              <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signOut} aria-label="تسجيل الخروج">
+                تسجيل الخروج
+              </Button>
+            </div>
           ) : (
             <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signInWithGoogle} aria-label="تسجيل الدخول">
               تسجيل الدخول
