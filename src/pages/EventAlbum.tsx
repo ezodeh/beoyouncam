@@ -10,15 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, Users } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2 } from "lucide-react";
 const dummyMessages = [
   { id: 1, name: "خالد", text: "ألف مبروك وربنا يتمّم على خير!", at: "قبل ساعتين" },
   { id: 2, name: "محمد", text: "يا رب أيامكم كلها فرح وسعادة.", at: "أمس" },
   { id: 3, name: "سارة", text: "ابتسامات لا تنتهي!", at: "منذ 3 أيام" },
 ];
 
-const dummyPhotos = new Array(15).fill(0).map((_, i) => ({ id: i + 1 }));
 const dummyAlbums = ["خالد", "محمد", "سارة", "ليلى", "نور"]; // بعيون ...
+const dummyPhotos = new Array(15).fill(0).map((_, i) => ({ id: i + 1, by: dummyAlbums[i % dummyAlbums.length] }));
 
 export default function EventAlbum() {
   const { token } = useParams();
@@ -56,6 +56,26 @@ export default function EventAlbum() {
     setTouchStartY(null);
   };
 
+  const shareCurrent = async () => {
+    if (lightboxIndex === null) return;
+    const owner = (dummyPhotos as Array<{ id: number; by: string }>)[lightboxIndex]?.by;
+    const shareUrl = window.location.href;
+    const title = `${eventName} — بعيون ${owner}`;
+    const text = `لقطة جميلة من ${owner}`;
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({ title, text, url: shareUrl });
+      } catch (_) {
+        // user cancelled
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "تم نسخ رابط المشاركة" });
+      } catch (_) {}
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
@@ -90,7 +110,7 @@ export default function EventAlbum() {
                 <span className="sr-only">الصور</span>
               </TabsTrigger>
               <TabsTrigger value="albums" aria-label="الألبومات">
-                <Users className="h-5 w-5" />
+                <SquareStack className="h-5 w-5" />
                 <span className="sr-only">الألبومات</span>
               </TabsTrigger>
             </TabsList>
@@ -217,11 +237,32 @@ export default function EventAlbum() {
           >
             <X className="h-6 w-6" />
           </button>
+          <button
+            className="absolute top-4 right-16 p-2 rounded-full bg-white/10 hover:bg-white/20"
+            onClick={shareCurrent}
+            aria-label="مشاركة"
+          >
+            <Share2 className="h-6 w-6" />
+          </button>
 
           <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{images.length}</div>
 
           <div className="h-full w-full flex items-center justify-center p-4">
             <img src={images[lightboxIndex]} alt={`صورة رقم ${lightboxIndex + 1}`} className="max-h-full max-w-full object-contain" />
+          </div>
+
+          {/* شريط معلومات سفلي على طريقة تيكتوك */}
+          <div className="absolute inset-x-0 bottom-0 p-4">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-black/0" />
+            <div className="relative flex items-center justify-between">
+              <Link
+                to={`/album/${token}/by/${encodeURIComponent((dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by)}`}
+                className="rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5"
+                aria-label={`اذهب لألبوم بعيون ${(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}`}
+              >
+                <span className="text-sm">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
+              </Link>
+            </div>
           </div>
 
           <div className="absolute inset-y-0 start-0 flex items-center p-4">
