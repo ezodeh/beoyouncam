@@ -76,7 +76,7 @@ export default function Account() {
           <section className="text-center max-w-md mx-auto">
             <h1 className="text-3xl font-extrabold mb-2">حسابي</h1>
             <p className="text-muted-foreground mb-4">سجّل الدخول لعرض مناسباتك.</p>
-            <a href="#login" onClick={(e)=>{e.preventDefault(); supabase.auth.signInWithOAuth({provider:"google", options:{ redirectTo: window.location.origin + "/account"}});}} className="inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2 hover-scale">تسجيل الدخول</a>
+            <a href="#login" onClick={(e)=>{e.preventDefault(); supabase.auth.signInWithOAuth({provider:"google", options:{ redirectTo: window.location.origin }});}} className="inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2 hover-scale">تسجيل الدخول</a>
           </section>
         ) : (
           <>

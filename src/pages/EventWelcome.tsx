@@ -139,7 +139,7 @@ export default function EventWelcome() {
       await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + `/event/${token}/welcome${location.search}`
+          redirectTo: window.location.origin
         }
       });
     } catch (_) {}
