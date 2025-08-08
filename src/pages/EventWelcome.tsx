@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 
 export default function EventWelcome() {
   const { token } = useParams();
@@ -92,12 +93,17 @@ export default function EventWelcome() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
       <Navbar compact fullBleed />
+      <figure className="relative w-full mb-6 overflow-hidden bg-secondary rounded-none">
+        <div className="relative h-[68vh] md:h-[50vh]">
+          <img src={heroImage} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+          <figcaption className="absolute top-4 right-4 left-4 flex justify-end">
+            <h1 className="text-3xl md:text-4xl font-nastaliq text-foreground">{eventName}</h1>
+          </figcaption>
+        </div>
+      </figure>
       <main className="container mx-auto px-4 py-8">
         <section className="max-w-md mx-auto">
-          <header className="text-center mb-6">
-            <h1 className="text-3xl font-nastaliq">{eventName}</h1>
-            <p className="text-sm text-muted-foreground mt-1">مرحبًا! سجّل دخولك للمشاركة في الكاميرا</p>
-          </header>
 
           <Tabs value={tab} onValueChange={(v)=>setTab(v as any)} className="w-full">
             <TabsList className="grid grid-cols-2 mb-4">
@@ -106,12 +112,12 @@ export default function EventWelcome() {
             </TabsList>
             <TabsContent value="phone" className="space-y-3">
               <div>
-                <Label htmlFor="name">الاسم</Label>
+                <Label htmlFor="name" className="block text-right">الاسم</Label>
                 <Input id="name" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1">
-                  <Label>المقدمة</Label>
+                  <Label className="block text-right">المقدمة</Label>
                   <Select value={country} onValueChange={setCountry}>
                     <SelectTrigger className="w-full"><SelectValue placeholder="الدولة" /></SelectTrigger>
                     <SelectContent>
@@ -122,7 +128,7 @@ export default function EventWelcome() {
                   </Select>
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="phone">الهاتف</Label>
+                  <Label htmlFor="phone" className="block text-right">الهاتف</Label>
                   <Input id="phone" inputMode="tel" dir="ltr" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="5XXXXXXX" />
                 </div>
               </div>
@@ -130,11 +136,11 @@ export default function EventWelcome() {
             </TabsContent>
             <TabsContent value="email" className="space-y-3">
               <div>
-                <Label htmlFor="name2">الاسم</Label>
+                <Label htmlFor="name2" className="block text-right">الاسم</Label>
                 <Input id="name2" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك" />
               </div>
               <div>
-                <Label htmlFor="email">الإيميل</Label>
+                <Label htmlFor="email" className="block text-right">الإيميل</Label>
                 <Input id="email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
               </div>
               <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || !email.includes("@")} onClick={submit}>ابدأ</Button>
