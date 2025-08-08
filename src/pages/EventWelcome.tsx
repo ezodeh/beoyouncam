@@ -209,7 +209,7 @@ export default function EventWelcome() {
                   <div className="col-span-1">
                     <Label className="block mb-2.5 text-right">المقدمة</Label>
                     <Select value={country} onValueChange={setCountry}>
-                      <SelectTrigger className="w-full"><SelectValue placeholder="الدولة" /></SelectTrigger>
+                      <SelectTrigger className="w-full"><span dir="ltr" className="tabular-nums">{country}</span></SelectTrigger>
                       <SelectContent className="bg-popover text-popover-foreground shadow-elevated z-50">
                         {countries.map(c => <SelectItem key={c.code} value={c.code}>{c.label} {c.code}</SelectItem>)}
                       </SelectContent>
