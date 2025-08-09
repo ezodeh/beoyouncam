@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { Image, Camera, Share2, Settings } from "lucide-react";
 
 interface EventItem { token: string; title: string; cover_url: string | null; start_at: string | null; end_at: string | null; }
 
@@ -85,15 +86,58 @@ export default function Account() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ownedCurrent.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {ownedCurrent.map((e) => (
-                  <Link key={e.token} to={`/manage/${e.token}`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
-                    <div className="aspect-video bg-muted overflow-hidden">
-                      {e.cover_url ? <img src={e.cover_url} alt={e.title} className="w-full h-full object-cover"/> : null}
+                  <div key={e.token} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
+                    <Link to={`/manage/${e.token}`}>
+                      <div className="aspect-video bg-muted overflow-hidden">
+                        {e.cover_url ? <img src={e.cover_url} alt={e.title} className="w-full h-full object-cover"/> : null}
+                      </div>
+                      <div className="p-3">
+                        <div className="font-nastaliq text-xl">{e.title}</div>
+                        <div className="text-xs text-muted-foreground">إدارة المناسبة</div>
+                      </div>
+                    </Link>
+                    
+                    {/* Quick Control Icons */}
+                    <div className="p-3 pt-0 flex items-center justify-between border-t">
+                      <div className="flex items-center gap-2">
+                        <Link 
+                          to={`/album/${e.token}`} 
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                          title="زيارة الألبوم"
+                        >
+                          <Image className="h-3 w-3" />
+                          <span>الألبوم</span>
+                        </Link>
+                        <Link 
+                          to={`/event/${e.token}/camera`} 
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                          title="فتح الكاميرا"
+                        >
+                          <Camera className="h-3 w-3" />
+                          <span>الكاميرا</span>
+                        </Link>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/event/${e.token}`);
+                            // Add toast notification here
+                          }}
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                          title="مشاركة"
+                        >
+                          <Share2 className="h-3 w-3" />
+                          <span>مشاركة</span>
+                        </button>
+                      </div>
+                      <Link 
+                        to={`/manage/${e.token}`}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        title="إدارة"
+                      >
+                        <Settings className="h-3 w-3" />
+                        <span>إدارة</span>
+                      </Link>
                     </div>
-                    <div className="p-3">
-                      <div className="font-nastaliq text-xl">{e.title}</div>
-                      <div className="text-xs text-muted-foreground">إدارة المناسبة</div>
-                    </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </section>
