@@ -290,12 +290,13 @@ const MobileCamera: React.FC<Props> = ({
   async function applyTorch(mode: "on" | "off") {
     try {
       const track = streamRef.current?.getVideoTracks()[0];
-      // @ts-ignore
-      await track?.applyConstraints?.({
-        advanced: [{
-          torch: mode === "on"
-        }]
-      });
+      if (track && 'applyConstraints' in track) {
+        await (track as any).applyConstraints({
+          advanced: [{
+            torch: mode === "on"
+          }]
+        });
+      }
     } catch (_) {
       toast({
         title: "الفلاش غير مدعوم على هذا الجهاز/المتصفح"
