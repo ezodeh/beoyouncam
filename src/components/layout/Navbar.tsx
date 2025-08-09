@@ -43,13 +43,12 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
           </div>
           
           {/* Second row - Menu/Auth */}
-          <div className="flex items-center justify-center py-3">
+          <div className="flex items-center justify-end py-3">
             {userName ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-full px-4" aria-label="القائمة">
-                    <MoreVertical className="h-4 w-4 ml-2" />
-                    القائمة
+                  <Button variant="outline" size="icon" className="rounded-full" aria-label="القائمة">
+                    <MoreVertical className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-48">
