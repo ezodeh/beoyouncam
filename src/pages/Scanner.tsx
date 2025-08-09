@@ -12,80 +12,94 @@ export default function Scanner() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
-        <div className="w-full max-w-lg grid gap-4">
-          <h1 className="text-2xl font-bold text-center">ماسح الباركود</h1>
-          <div className="relative w-full aspect-square max-w-xs sm:max-w-sm md:max-w-md mx-auto rounded-lg overflow-hidden border border-border bg-muted">
-            <QRScanner
-              constraints={{ 
-                facingMode: { exact: "environment" },
-                width: { ideal: 720 },
-                height: { ideal: 720 }
-              }}
-              onScan={(detected: any[]) => {
-                const value = detected?.[0]?.rawValue as string | undefined;
-                if (!value) return;
-                try {
-                  const url = new URL(value);
-                  const m = url.pathname.match(/\/event\/([^/]+)\/(welcome|camera|submit|soon|ended)?/);
-                  if (m) {
-                    navigate(url.pathname + url.search);
-                  } else {
-                    window.location.href = value; // فتح أي رابط آخر
+      <main className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="container mx-auto px-4 py-6 text-center">
+          <h1 className="text-3xl font-bold mb-2">ماسح رمز QR</h1>
+          <p className="text-muted-foreground">وجّه الكاميرا نحو رمز الـ QR للانضمام للمناسبة</p>
+        </div>
+
+        {/* Scanner Container */}
+        <div className="flex-1 flex items-center justify-center px-4 pb-8">
+          <div className="relative w-full max-w-sm mx-auto">
+            {/* Camera Preview */}
+            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted border-2 border-border shadow-xl">
+              <QRScanner
+                constraints={{ 
+                  facingMode: "environment",
+                  width: { ideal: 1280, min: 720 },
+                  height: { ideal: 1280, min: 720 },
+                  aspectRatio: 1.0
+                }}
+                onScan={(detected: any[]) => {
+                  const value = detected?.[0]?.rawValue as string | undefined;
+                  if (!value) return;
+                  try {
+                    const url = new URL(value);
+                    const m = url.pathname.match(/\/event\/([^/]+)\/(welcome|camera|submit|soon|ended)?/);
+                    if (m) {
+                      navigate(url.pathname + url.search);
+                    } else {
+                      window.location.href = value;
+                    }
+                  } catch {
+                    window.location.href = value;
                   }
-                } catch {
-                  // ليس رابطًا صالحًا
-                  window.location.href = value;
-                }
-              }}
-              onError={(err) => {
-                console.error(err);
-                toast({ title: "تعذّر قراءة الرمز", description: "حاول الإضاءة/تقريب الكاميرا ثم أعد المحاولة" });
-              }}
-              styles={{
-                container: {
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "relative"
-                },
-                video: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }
-              }}
-            />
-            
-            {/* QR Scanner Overlay with Rainbow Gradient */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="relative w-48 h-48">
-                {/* Corner brackets with gradient */}
-                <div className="absolute top-0 left-0 w-8 h-8">
-                  <div className="w-full h-1 bg-brand-gradient rounded-full"></div>
-                  <div className="w-1 h-full bg-brand-gradient rounded-full"></div>
-                </div>
-                <div className="absolute top-0 right-0 w-8 h-8">
-                  <div className="w-full h-1 bg-brand-gradient rounded-full"></div>
-                  <div className="w-1 h-full bg-brand-gradient rounded-full ml-auto"></div>
-                </div>
-                <div className="absolute bottom-0 left-0 w-8 h-8">
-                  <div className="w-1 h-full bg-brand-gradient rounded-full"></div>
-                  <div className="w-full h-1 bg-brand-gradient rounded-full mt-auto"></div>
-                </div>
-                <div className="absolute bottom-0 right-0 w-8 h-8">
-                  <div className="w-1 h-full bg-brand-gradient rounded-full ml-auto"></div>
-                  <div className="w-full h-1 bg-brand-gradient rounded-full mt-auto"></div>
+                }}
+                onError={(err) => {
+                  console.error(err);
+                  toast({ title: "تعذّر قراءة الرمز", description: "حاول تحسين الإضاءة أو تقريب الكاميرا" });
+                }}
+                styles={{
+                  container: {
+                    width: "100%",
+                    height: "100%",
+                    position: "relative"
+                  },
+                  video: {
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover"
+                  }
+                }}
+              />
+              
+              {/* QR Scanner Overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Dark overlay with cutout */}
+                <div className="absolute inset-0 bg-black/50">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-transparent border-2 border-primary rounded-2xl shadow-2xl">
+                    {/* Corner indicators */}
+                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
+                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
+                    
+                    {/* Scanning line animation */}
+                    <div className="absolute inset-x-2 top-2 h-1 bg-primary rounded-full opacity-80 animate-pulse shadow-lg shadow-primary/50"></div>
+                  </div>
                 </div>
                 
-                {/* Scanning line animation */}
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-gradient animate-pulse shadow-lg opacity-80"></div>
+                {/* Central target */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 bg-primary rounded-full animate-ping"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-primary rounded-full"></div>
+                </div>
+                
+                {/* Instructions overlay */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm rounded-full px-4 py-2 border border-border">
+                  <p className="text-sm font-medium text-center">ضع الرمز داخل الإطار</p>
+                </div>
               </div>
             </div>
+            
+            {/* Bottom hint */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                تأكد من وضوح الرمز والإضاءة الجيدة لأفضل النتائج
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center">وجّه الكاميرا نحو رمز الـ QR لفتح الرابط.</p>
         </div>
       </main>
       <Footer />
