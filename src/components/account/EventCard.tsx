@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import QRCode from "react-qr-code";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 
 interface EventItem {
@@ -19,9 +20,10 @@ interface EventCardProps {
   subtitle: string;
   isOwner?: boolean;
   isPast?: boolean;
+  onEventDeleted?: () => void;
 }
 
-export default function EventCard({ event, linkTo, subtitle, isOwner, isPast }: EventCardProps) {
+export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, onEventDeleted }: EventCardProps) {
   const { toast } = useToast();
   const [qrOpen, setQrOpen] = useState(false);
   const svgId = `qr-svg-${event.token}`;
@@ -68,6 +70,93 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast }: 
       }
     } catch {
       // ignored
+    }
+  };
+
+  const deleteEvent = async () => {
+    const firstConfirm = window.confirm(`هل أنت متأكد من حذف مناسبة "${event.title}" نهائياً؟\n\nسيتم حذف:\n- جميع الصور\n- جميع المباركات\n- جميع بيانات المشاركين\n- المناسبة كاملة`);
+    if (!firstConfirm) return;
+    
+    const secondConfirm = window.confirm("تأكيد أخير: هذا الإجراء لا يمكن التراجع عنه!\n\nاضغط موافق للمتابعة أو إلغاء للتوقف.");
+    if (!secondConfirm) return;
+    
+    try {
+      console.log("بدء عملية حذف المناسبة:", event.token);
+      
+      // Delete all photos from storage first
+      console.log("حذف الصور من التخزين...");
+      try {
+        const { data: files } = await supabase.storage
+          .from("event-media")
+          .list(`events/${event.token}`, { limit: 1000 });
+        
+        if (files && files.length > 0) {
+          const filePaths = files.map(file => `events/${event.token}/${file.name}`);
+          const { error: storageError } = await supabase.storage
+            .from("event-media")
+            .remove(filePaths);
+          if (storageError) console.error("خطأ في حذف الصور:", storageError);
+        }
+      } catch (storageErr) {
+        console.error("خطأ في الوصول للصور:", storageErr);
+      }
+      
+      // Delete cover image if exists
+      console.log("حذف صورة الغلاف...");
+      if (event.cover_url) {
+        try {
+          const coverFileName = event.cover_url.split('/').pop();
+          if (coverFileName && coverFileName.includes(event.token)) {
+            await supabase.storage.from("event-media").remove([coverFileName]);
+          }
+        } catch (coverErr) {
+          console.error("خطأ في حذف صورة الغلاف:", coverErr);
+        }
+      }
+      
+      // Delete blessings
+      console.log("حذف المباركات...");
+      const { error: blessingsError } = await supabase
+        .from("blessings")
+        .delete()
+        .eq("event_token", event.token);
+      if (blessingsError) console.error("خطأ في حذف المباركات:", blessingsError);
+      
+      // Delete participants
+      console.log("حذف المشاركين...");
+      const { error: participantsError } = await supabase
+        .from("participants")
+        .delete()
+        .eq("event_token", event.token);
+      if (participantsError) console.error("خطأ في حذف المشاركين:", participantsError);
+      
+      // Delete the event itself
+      console.log("حذف المناسبة...");
+      const { error: eventError } = await supabase
+        .from("events")
+        .delete()
+        .eq("token", event.token);
+      
+      if (eventError) {
+        console.error("خطأ في حذف المناسبة:", eventError);
+        throw eventError;
+      }
+      
+      console.log("تم حذف المناسبة بنجاح");
+      toast({ title: "تم حذف المناسبة نهائياً بنجاح" });
+      
+      // Call the callback to refresh the events list
+      if (onEventDeleted) {
+        onEventDeleted();
+      }
+      
+    } catch (error) {
+      console.error("خطأ عام في حذف المناسبة:", error);
+      toast({
+        title: "فشل في حذف المناسبة",
+        description: "حدث خطأ أثناء الحذف. يرجى المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -164,7 +253,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast }: 
                     <DropdownMenuItem asChild>
                       <Link to={`/manage/${event.token}`}>وصول الضيوف</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "حذف الألبوم", description: "يرجى التأكيد لاحقًا", variant: "destructive" })} className="cursor-pointer text-destructive">
+                    <DropdownMenuItem onClick={deleteEvent} className="cursor-pointer text-destructive">
                       حذف الألبوم
                     </DropdownMenuItem>
                   </>

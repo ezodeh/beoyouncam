@@ -57,6 +57,36 @@ export default function Account() {
     })();
   }, []);
 
+  const refreshEvents = async () => {
+    if (!userId) return;
+    
+    // Refresh owned events
+    const { data: myEvents } = await supabase
+      .from("events")
+      .select("token, title, cover_url, start_at, end_at")
+      .eq("owner_id", userId)
+      .order("created_at", { ascending: false });
+
+    setOwnEvents(myEvents as any || []);
+
+    // Refresh joined events
+    const { data: parts } = await supabase
+      .from("participants")
+      .select("event_token")
+      .eq("user_id", userId);
+
+    const tokens = Array.from(new Set((parts || []).map((p: any) => p.event_token)));
+    if (tokens.length) {
+      const { data: evs } = await supabase
+        .from("events")
+        .select("token, title, cover_url, start_at, end_at")
+        .in("token", tokens);
+      setJoinedEvents((evs as any) || []);
+    } else {
+      setJoinedEvents([]);
+    }
+  };
+
   const now = new Date();
   const [ownedCurrent, ownedPast] = useMemo(() => {
     const current: EventItem[] = [];
@@ -94,13 +124,14 @@ export default function Account() {
               <h2 className="text-2xl font-bold mb-3 text-right">مناسباتي الحالية</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {ownedCurrent.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
-                {ownedCurrent.map((e) => (
+                 {ownedCurrent.map((e) => (
                   <EventCard
                     key={e.token}
                     event={e as any}
                     linkTo={`/manage/${e.token}`}
                     subtitle="إدارة المناسبة"
                     isOwner
+                    onEventDeleted={refreshEvents}
                   />
                 ))}
               </div>
@@ -110,7 +141,7 @@ export default function Account() {
               <h2 className="text-2xl font-bold mb-3">مناسباتي السابقة</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {ownedPast.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
-                {ownedPast.map((e) => (
+                 {ownedPast.map((e) => (
                   <EventCard
                     key={e.token}
                     event={e as any}
@@ -118,6 +149,7 @@ export default function Account() {
                     subtitle="اذهب إلى المقدمة"
                     isOwner
                     isPast
+                    onEventDeleted={refreshEvents}
                   />
                 ))}
               </div>
