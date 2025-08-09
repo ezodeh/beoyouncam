@@ -44,19 +44,36 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
       toast({ title: "تعذّر العثور على الباركود", variant: "destructive" });
       return;
     }
+    
+    // Clone and enhance the SVG
+    const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
+    
+    // Set larger dimensions and proper viewBox
+    const size = 1024;
+    clonedSvg.setAttribute("width", size.toString());
+    clonedSvg.setAttribute("height", size.toString());
+    clonedSvg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+    
+    // Ensure proper background
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("width", "100%");
+    rect.setAttribute("height", "100%");
+    rect.setAttribute("fill", "white");
+    clonedSvg.insertBefore(rect, clonedSvg.firstChild);
+    
     const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svg);
+    const source = serializer.serializeToString(clonedSvg);
     const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = `event-${event.token}-qr.svg`;
+    a.download = `event-${event.token}-qr-large.svg`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast({ title: "تم تنزيل الباركود بصيغة SVG عالية الجودة" });
+    toast({ title: "تم تنزيل الباركود SVG بحجم كبير" });
   };
 
   const downloadQrPng = () => {
@@ -287,7 +304,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={downloadQrSvg} className="cursor-pointer">
                   <Download className="h-4 w-4" />
-                  تنزيل SVG (فائق الجودة)
+                  تنزيل SVG (كبير ومتمركز)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={downloadQrPng} className="cursor-pointer">
                   <Download className="h-4 w-4" />
@@ -340,7 +357,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
             <div className="flex gap-2 mt-4">
               <button onClick={downloadQrSvg} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Download className="h-4 w-4" />
-                SVG (فائق)
+                SVG (كبير)
               </button>
               <button onClick={downloadQrPng} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Download className="h-4 w-4" />
