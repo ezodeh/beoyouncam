@@ -311,6 +311,15 @@ export default function CreateEvent() {
 
   // price estimation
   const price = useMemo(() => {
+    // باقة 5 مشاركين مجانية: 10 لقطات لكل شخص (بدون فيديو)
+    if (guests === 5 && shotsPerGuest === 10 && !enableVideo) {
+      // الإيميل مجاني، والواتساب غير مجاني
+      if (autoShareToGuests && shareChannel === "sms") {
+        return Math.round(0.18 * guests); // تكلفة الواتساب فقط
+      }
+      return 0; // مجاني تماماً
+    }
+    
     let base = 120; // قاعدة بسيطة
     base += Math.ceil(Math.max(guests, 1) / 50) * 90;
     base += Math.ceil(Math.max(shotsPerGuest, 1) / 10) * 40;
