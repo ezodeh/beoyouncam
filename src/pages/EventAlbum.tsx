@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2, Heart, Users, ExternalLink, MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
 interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string }
 
@@ -245,11 +246,7 @@ export default function EventAlbum() {
                           <div className="flex-1 text-right">
                             <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
                             <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message}</p>
-                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA-u-ca-islamic', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric'
-                            })}</span>
+                            <span className="text-xs text-muted-foreground">{formatShortDate(cong.created_at)}</span>
                           </div>
                         </div>
                       </CardContent>
