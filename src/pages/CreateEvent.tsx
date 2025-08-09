@@ -417,6 +417,7 @@ export default function CreateEvent() {
         end_at: endAt ? endAt.toISOString() : null,
         cover_url: coverUrl,
         max_shots: shotsPerGuest,
+        expected_guests: guests,
         owner_id: userId,
         is_private: isPrivate,
         published_at: publicationAt,
