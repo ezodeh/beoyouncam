@@ -44,31 +44,39 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Beautiful gradients - Rainbow spectrum like the uploaded image */
+    /* Beautiful gradients - Rainbow spectrum with more red and yellow */
     --gradient-primary: linear-gradient(90deg, 
-      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
-      hsl(300 89% 60%) 16%,  /* Purple */
-      hsl(260 89% 60%) 33%,  /* Blue-Purple */
-      hsl(220 89% 60%) 50%,  /* Blue */
-      hsl(180 89% 60%) 66%,  /* Cyan */
-      hsl(140 89% 60%) 83%,  /* Green */
-      hsl(60 89% 60%) 100%   /* Yellow */
+      hsl(0 89% 60%) 0%,     /* Red */
+      hsl(15 89% 60%) 12%,   /* Red-Orange */
+      hsl(30 89% 60%) 25%,   /* Orange */
+      hsl(45 89% 60%) 37%,   /* Yellow-Orange */
+      hsl(60 89% 60%) 50%,   /* Yellow */
+      hsl(120 89% 60%) 62%,  /* Green */
+      hsl(180 89% 60%) 75%,  /* Cyan */
+      hsl(240 89% 60%) 87%,  /* Blue */
+      hsl(300 89% 60%) 100%  /* Magenta */
     );
     --gradient-brand: linear-gradient(90deg,
-      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
-      hsl(300 89% 60%) 14%,  /* Purple */
-      hsl(260 89% 60%) 28%,  /* Blue-Purple */
-      hsl(220 89% 60%) 42%,  /* Blue */
-      hsl(180 89% 60%) 57%,  /* Cyan */
-      hsl(140 89% 60%) 71%,  /* Green */
-      hsl(100 89% 60%) 85%,  /* Light Green */
-      hsl(60 89% 60%) 100%   /* Yellow */
+      hsl(0 89% 60%) 0%,     /* Red */
+      hsl(20 89% 60%) 11%,   /* Red-Orange */
+      hsl(40 89% 60%) 22%,   /* Orange */
+      hsl(60 89% 60%) 33%,   /* Yellow */
+      hsl(80 89% 60%) 44%,   /* Yellow-Green */
+      hsl(120 89% 60%) 55%,  /* Green */
+      hsl(160 89% 60%) 66%,  /* Green-Cyan */
+      hsl(200 89% 60%) 77%,  /* Cyan-Blue */
+      hsl(240 89% 60%) 88%,  /* Blue */
+      hsl(300 89% 60%) 100%  /* Magenta */
     );
     --gradient-hero: linear-gradient(135deg, 
-      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
-      hsl(260 89% 60%) 50%,  /* Blue-Purple */
-      hsl(180 89% 60%) 100%  /* Cyan */
+      hsl(0 89% 60%) 0%,     /* Red */
+      hsl(60 89% 60%) 33%,   /* Yellow */
+      hsl(180 89% 60%) 66%,  /* Cyan */
+      hsl(300 89% 60%) 100%  /* Magenta */
     );
+    --brand-foreground: 0 0% 100%;
+    --shadow-elevated: 0 12px 30px -10px hsl(var(--primary)/0.25);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -114,7 +122,7 @@
 
 @layer utilities {
 .bg-brand-gradient { background-image: var(--gradient-brand); }
-.brand-strip { background-image: var(--gradient-brand); height: 6px; }
+.brand-strip { background-image: var(--gradient-brand); height: 3px; }
 .text-brand-foreground { color: hsl(var(--brand-foreground)); }
 .shadow-elevated { box-shadow: var(--shadow-elevated); }
   /* Links underline animation */
