@@ -39,16 +39,18 @@ const EventCapture = () => {
   const isMobile = isMobileUA && isNarrow;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar compact />
-      <main className="flex-1">
-        {!isMobile ? (
-          <DesktopGate />
-        ) : (
-          <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} />
-        )}
-      </main>
-      <Footer />
+    <div className="min-h-screen bg-background text-foreground">
+      {!isMobile ? (
+        <>
+          <Navbar compact />
+          <main className="flex-1">
+            <DesktopGate />
+          </main>
+          <Footer />
+        </>
+      ) : (
+        <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} />
+      )}
     </div>
   );
 };

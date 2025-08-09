@@ -528,6 +528,23 @@ const MobileCamera: React.FC<Props> = ({
   }
 
   return (
+    <div className="fixed inset-0 z-50 bg-black">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between p-4">
+          <Link 
+            to={`/event/${token}`}
+            className="text-white hover:text-white/80 transition-colors"
+          >
+            ← رجوع
+          </Link>
+          <h1 className="text-white font-semibold text-lg">
+            {eventName}
+          </h1>
+          <div className="w-6"></div>
+        </div>
+      </div>
+
       <div 
         className="camera-container" 
         dir="rtl"
@@ -647,15 +664,9 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Top info: event name */}
-      <div className="absolute top-6 inset-x-0 text-center">
-        <h1 className="text-2xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">
-          {eventName}
-        </h1>
-      </div>
 
       {/* Left icons column */}
-      <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
+      <div className="absolute left-3 top-20 flex flex-col items-center gap-4">
         <Button 
           size="icon" 
           variant="secondary" 
@@ -981,6 +992,7 @@ const MobileCamera: React.FC<Props> = ({
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };
