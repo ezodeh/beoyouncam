@@ -420,12 +420,12 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
         </button>
       )}
 
-      {/* Bottom bar */}
+      {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
       <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="mx-3 flex items-center justify-between">
           <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border">
             <Users className="h-4 w-4" />
-            <span>دعوة ضيوف</span>
+            <span>QR دعوة</span>
           </Link>
           <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border cursor-pointer">
             <ImageIcon className="h-4 w-4" />

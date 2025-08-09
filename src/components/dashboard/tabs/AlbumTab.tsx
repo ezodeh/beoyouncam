@@ -28,20 +28,38 @@ export function AlbumTab({ token }: AlbumTabProps) {
 
   const fetchPhotos = async () => {
     try {
-      // Use dummy data since tables don't exist yet
-      const dummyPhotos = [
-        { id: "1", url: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png", created_at: new Date().toISOString(), participant_name: "أحمد" },
-        { id: "2", url: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png", created_at: new Date().toISOString(), participant_name: "فاطمة" },
-        { id: "3", url: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png", created_at: new Date().toISOString(), participant_name: "محمد" },
-      ];
+      // استخدام بيانات حقيقية من التخزين
+      const prefix = `events/${token}`;
+      const { data: files, error } = await supabase.storage
+        .from("event-media")
+        .list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "desc" } });
+      
+      if (error) throw error;
+      
+      if (!files || files.length === 0) {
+        setPhotos([]);
+        return;
+      }
 
-      setPhotos(dummyPhotos);
+      const photoData = files
+        .filter((file: any) => {
+          const ext = file.name.split('.').pop()?.toLowerCase();
+          return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+        })
+        .map((file: any) => {
+          const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${file.name}`);
+          return {
+            id: file.name,
+            url: pub.publicUrl,
+            created_at: file.created_at || new Date().toISOString(),
+            participant_name: "مشارك" // placeholder
+          };
+        });
+
+      setPhotos(photoData);
     } catch (error) {
-      toast({
-        title: "خطأ في تحميل الصور",
-        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
-        variant: "destructive"
-      });
+      console.error("Error fetching photos:", error);
+      setPhotos([]);
     } finally {
       setLoading(false);
     }
@@ -50,9 +68,24 @@ export function AlbumTab({ token }: AlbumTabProps) {
   const deletePhoto = async (photoId: string) => {
     if (!confirm("هل أنت متأكد من حذف هذه الصورة؟")) return;
 
-    // Remove from dummy data
-    setPhotos(prev => prev.filter(p => p.id !== photoId));
-    toast({ title: "تم حذف الصورة بنجاح" });
+    try {
+      // Delete from storage permanently
+      const prefix = `events/${token}`;
+      const { error } = await supabase.storage
+        .from("event-media")
+        .remove([`${prefix}/${photoId}`]);
+      
+      if (error) throw error;
+      
+      // Remove from local state
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      toast({ title: "تم حذف الصورة نهائياً" });
+    } catch (error) {
+      toast({
+        title: "فشل في حذف الصورة",
+        variant: "destructive"
+      });
+    }
   };
 
   const downloadPhoto = async (url: string, filename: string) => {

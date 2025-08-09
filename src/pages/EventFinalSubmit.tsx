@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
   name: z.string().min(2, "الاسم مطلوب"),
@@ -38,8 +39,17 @@ export default function EventFinalSubmit() {
   async function onSubmit(values: FormData) {
     // هنا يمكن إرسال القيم إلى الـ API لتخزين تفاصيل التسليم
     await new Promise((r) => setTimeout(r, 400));
-    toast({ title: "تم التأكيد", description: "تم تسليم الألبوم بنجاح." });
-    navigate(`/album/${token}/intro`);
+    // Save blessing to database
+    try {
+      await supabase.from("blessings").insert({
+        event_token: token,
+        name: values.name,
+        content: values.blessing
+      });
+    } catch (error) {
+      console.error("Error saving blessing:", error);
+    }
+    navigate(`/event/${token}/submit-success`);
   }
 
   return (

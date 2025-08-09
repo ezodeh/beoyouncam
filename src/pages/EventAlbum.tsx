@@ -69,12 +69,25 @@ export default function EventAlbum() {
   const [congratsIndex, setCongratIndex] = useState(0);
 
   useEffect(() => {
-    // Dummy congratulations
-    setCongratulations([
-      { id: 1, message: "مبروك! أتمنى لكم حياة سعيدة", sender_name: "أحمد محمد", created_at: new Date().toISOString() },
-      { id: 2, message: "ألف مبروك بالتوفيق والسعادة", sender_name: "فاطمة علي", created_at: new Date().toISOString() },
-      { id: 3, message: "مباركات وتهاني من القلب", sender_name: "محمد خالد", created_at: new Date().toISOString() },
-    ]);
+    // جلب المباركات الحقيقية من قاعدة البيانات
+    const fetchBlessings = async () => {
+      if (!token) return;
+      try {
+        const { data, error } = await supabase
+          .from("blessings")
+          .select("*")
+          .eq("event_token", token)
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setCongratulations(data || []);
+      } catch (error) {
+        console.error("Error fetching blessings:", error);
+        setCongratulations([]);
+      }
+    };
+
+    fetchBlessings();
 
     // Dummy personal albums by eyes
     setPersonalAlbums([
@@ -84,16 +97,27 @@ export default function EventAlbum() {
     ]);
   }, [token]);
 
-  const addCongratulation = () => {
+  const addCongratulation = async () => {
     if (!newCongratulation.trim() || !senderName.trim()) {
       toast({ title: "خطأ", description: "يرجى ملء جميع الحقول", variant: "destructive" });
       return;
     }
-    const newItem = { id: Date.now(), message: newCongratulation, sender_name: senderName, created_at: new Date().toISOString() };
-    setCongratulations((prev) => [newItem, ...prev]);
-    setNewCongratulation("");
-    setSenderName("");
-    toast({ title: "تم إضافة المباركة", description: "شكراً لك" });
+    try {
+      const { data, error } = await supabase.from("blessings").insert({
+        event_token: token,
+        name: senderName,
+        content: newCongratulation
+      }).select().single();
+      
+      if (error) throw error;
+      
+      setCongratulations((prev) => [{ ...data, sender_name: data.name, message: data.content }, ...prev]);
+      setNewCongratulation("");
+      setSenderName("");
+      toast({ title: "تم إضافة المباركة", description: "شكراً لك" });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر إضافة المباركة" });
+    }
   };
 
   useEffect(() => {
@@ -231,27 +255,33 @@ export default function EventAlbum() {
               <div className="space-y-6 max-w-3xl mx-auto">
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" dir="rtl">
-                  {congratulations.map((cong) => (
-                    <Card key={cong.id} className="cursor-pointer" onClick={() => { 
-                      const idx = congratulations.findIndex(c => c.id === cong.id);
-                      setCongratIndex(idx);
-                      setActiveCongrat(cong); 
-                      setShowCongratsDialog(true); 
-                    }}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
-                            {cong.sender_name.charAt(0)}
+                  {congratulations.length === 0 ? (
+                    <div className="col-span-full text-center text-sm text-muted-foreground py-10">
+                      لا توجد مباركات بعد
+                    </div>
+                  ) : (
+                    congratulations.map((cong) => (
+                      <Card key={cong.id} className="cursor-pointer" onClick={() => { 
+                        const idx = congratulations.findIndex(c => c.id === cong.id);
+                        setCongratIndex(idx);
+                        setActiveCongrat(cong); 
+                        setShowCongratsDialog(true); 
+                      }}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
+                              {(cong.sender_name || cong.name || "؟").charAt(0)}
+                            </div>
+                            <div className="flex-1 text-right">
+                              <h4 className="font-semibold text-foreground">{cong.sender_name || cong.name}</h4>
+                              <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message || cong.content}</p>
+                              <span className="text-xs text-muted-foreground">{formatShortDate(cong.created_at)}</span>
+                            </div>
                           </div>
-                          <div className="flex-1 text-right">
-                            <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
-                            <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message}</p>
-                            <span className="text-xs text-muted-foreground">{formatShortDate(cong.created_at)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
 
                 {/* زر عائم لإضافة مباركة - يسار الشاشة */}
@@ -326,23 +356,25 @@ export default function EventAlbum() {
 
             <TabsContent value="albums" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                {personalAlbums.map((album) => (
-                  <Card key={album.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="aspect-square rounded-lg overflow-hidden mb-3">
-                        <img src={album.latest_photo} alt={`ألبوم ${album.person_name}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
-                      </div>
-                      <div className="text-center" dir="rtl">
-                        <h3 className="font-semibold text-foreground">بعيون {album.person_name}</h3>
-                        <p className="text-sm text-muted-foreground">{album.photo_count} صورة</p>
-                        <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => window.open(`/album/${token}/${encodeURIComponent(album.person_name)}`, '_blank')}>
-                          <ExternalLink className="h-3 w-3 ml-1" />
-                          عرض الألبوم
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {personalAlbums.length === 0 ? (
+                  <div className="col-span-full text-center text-sm text-muted-foreground py-10">
+                    لا توجد ألبومات شخصية بعد
+                  </div>
+                ) : (
+                  personalAlbums.map((album) => (
+                    <Card key={album.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.open(`/album/${token}/${encodeURIComponent(album.person_name)}`, '_blank')}>
+                      <CardContent className="p-4">
+                        <div className="aspect-square rounded-lg overflow-hidden mb-3">
+                          <img src={album.latest_photo} alt={`ألبوم ${album.person_name}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                        </div>
+                        <div className="text-center" dir="rtl">
+                          <h3 className="font-semibold text-foreground text-sm">بعيون {album.person_name}</h3>
+                          <p className="text-sm text-muted-foreground">{album.photo_count} صورة</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </TabsContent>
           </Tabs>

@@ -134,6 +134,7 @@ export default function CreateEvent() {
   const [description, setDescription] = useState("");
   const [startAt, setStartAt] = useState<Date | null>(null);
   const [endAt, setEndAt] = useState<Date | null>(null);
+  const [calendarType, setCalendarType] = useState<"gregorian" | "hijri">("gregorian");
 
   // Step 2
   const [timing, setTiming] = useState<AlbumTiming>("manual");
@@ -356,6 +357,7 @@ export default function CreateEvent() {
         is_private: isPrivate,
         published_at: publicationAt,
         country_code: organizerCountry,
+        calendar_type: calendarType,
       });
       if (insErr) throw insErr;
 
@@ -453,6 +455,25 @@ export default function CreateEvent() {
                     required
                     error={errors.endAt}
                   />
+                  
+                  {/* خيار التقويم */}
+                  <div className="grid gap-2">
+                    <Label>نوع التقويم</Label>
+                    <div className="flex gap-2">
+                      <Pill 
+                        selected={calendarType === "gregorian"} 
+                        onClick={() => setCalendarType("gregorian")}
+                      >
+                        ميلادي
+                      </Pill>
+                      <Pill 
+                        selected={calendarType === "hijri"} 
+                        onClick={() => setCalendarType("hijri")}
+                      >
+                        هجري
+                      </Pill>
+                    </div>
+                  </div>
                 </div>
               )}
 

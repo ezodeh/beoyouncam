@@ -17,6 +17,7 @@ import EventAlbum from "./pages/EventAlbum";
 import EventAlbumIntro from "./pages/EventAlbumIntro";
 import EventAlbumByEyes from "./pages/EventAlbumByEyes";
 import EventFinalSubmit from "./pages/EventFinalSubmit";
+import EventSubmitSuccess from "./pages/EventSubmitSuccess";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import Invites from "./pages/Invites";
 import EventWelcome from "./pages/EventWelcome";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/event/:token/ended" element={<EventEnded />} />
             <Route path="/event/:token/camera" element={<EventCamera />} />
             <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
+            <Route path="/event/:token/submit-success" element={<EventSubmitSuccess />} />
             <Route path="/gallery/:token" element={<Gallery />} />
             <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
             <Route path="/album/:token" element={<EventAlbum />} />
