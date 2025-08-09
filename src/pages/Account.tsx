@@ -131,7 +131,7 @@ export default function Account() {
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <h1 className="text-3xl font-extrabold mb-4">مرحباً بك في من عيونكم!</h1>
+                  <h1 className="text-3xl font-extrabold mb-4">مرحبا بكم ب عيونCam</h1>
                   <p className="text-lg text-muted-foreground mb-8">
                     ابدأ رحلتك في توثيق اللحظات الجميلة وجمع الذكريات من أعين الأحباب
                   </p>
