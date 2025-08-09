@@ -124,10 +124,12 @@ export default function Account() {
             {ownEvents.length === 0 && joinedEvents.length === 0 ? (
               <section className="text-center max-w-2xl mx-auto py-12">
                 <div className="mb-8">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center p-4">
+                    <img 
+                      src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" 
+                      alt="من عيونكم" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <h1 className="text-3xl font-extrabold mb-4">مرحباً بك في من عيونكم!</h1>
                   <p className="text-lg text-muted-foreground mb-8">
