@@ -21,14 +21,14 @@ export default function Scanner() {
 
         {/* Scanner Container */}
         <div className="flex-1 flex items-center justify-center px-4 pb-8">
-          <div className="relative w-full max-w-sm mx-auto">
+          <div className="relative w-full max-w-lg mx-auto">
             {/* Camera Preview */}
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted border-2 border-border shadow-xl">
               <QRScanner
                 constraints={{ 
                   facingMode: "environment",
-                  width: { ideal: 1280, min: 720 },
-                  height: { ideal: 1280, min: 720 },
+                  width: { ideal: 1920, min: 1280 },
+                  height: { ideal: 1920, min: 1280 },
                   aspectRatio: 1.0
                 }}
                 onScan={(detected: any[]) => {
@@ -59,7 +59,9 @@ export default function Scanner() {
                   video: {
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover"
+                    objectFit: "cover",
+                    transform: "scale(1.2)",
+                    transformOrigin: "center"
                   }
                 }}
               />
@@ -68,12 +70,12 @@ export default function Scanner() {
               <div className="absolute inset-0 pointer-events-none">
                 {/* Dark overlay with cutout */}
                 <div className="absolute inset-0 bg-black/50">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-transparent border-2 border-primary rounded-2xl shadow-2xl">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-transparent border-2 border-primary rounded-2xl shadow-2xl">
                     {/* Corner indicators */}
-                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
-                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
+                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
+                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
+                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
                     
                     {/* Scanning line animation */}
                     <div className="absolute inset-x-2 top-2 h-1 bg-primary rounded-full opacity-80 animate-pulse shadow-lg shadow-primary/50"></div>
@@ -88,7 +90,7 @@ export default function Scanner() {
                 
                 {/* Instructions overlay */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm rounded-full px-4 py-2 border border-border">
-                  <p className="text-sm font-medium text-center">ضع الرمز داخل الإطار</p>
+                  <p className="text-sm font-medium text-center">ضع الرمز داخل الإطار الأكبر</p>
                 </div>
               </div>
             </div>
