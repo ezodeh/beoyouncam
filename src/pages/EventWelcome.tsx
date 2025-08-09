@@ -105,10 +105,15 @@ export default function EventWelcome() {
     try {
       setLoading(true);
       const method = tab === "phone" ? "phone" : "email";
+      
+      // Get current session to link participant with user if logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const payload: any = {
         event_token: token,
         method,
-        name: name.trim()
+        name: name.trim(),
+        user_id: session?.user?.id || null // Add user_id if user is logged in
       };
       if (method === "phone") {
         payload.country_code = country;

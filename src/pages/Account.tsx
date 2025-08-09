@@ -280,24 +280,24 @@ export default function Account() {
                   </div>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-bold mb-3">سجل المشاركات</h2>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
-                    {joinedPast.length === 0 ? (
-                      <div className="text-sm text-muted-foreground">لا يوجد</div>
-                    ) : (
-                      joinedPast.map((e) => (
+                {/* Past events I joined - History */}
+                {joinedPast.length > 0 && (
+                  <section>
+                    <h2 className="text-2xl font-bold mb-3">تاريخ مشاركاتي</h2>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
+                      {joinedPast.map((e) => (
                         <EventCard
                           key={e.token}
                           event={e as any}
                           linkTo={`/album/${e.token}/intro`}
-                          subtitle="اذهب إلى المقدمة"
+                          subtitle="مناسبة منتهية"
                           isPast
                         />
-                      ))
-                    )}
-                  </div>
-                </section>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
               </>
             )}
           </>
