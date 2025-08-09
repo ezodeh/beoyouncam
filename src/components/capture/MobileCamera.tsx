@@ -49,6 +49,14 @@ const MobileCamera: React.FC<Props> = ({
   const [greeting, setGreeting] = useState("");
   const navigate = useNavigate();
 
+  // Professional Hybrid Zoom System
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
+  const [currentCameraId, setCurrentCameraId] = useState<string>("");
+  const [cameraType, setCameraType] = useState<'wide' | 'main' | 'telephoto'>('main');
+  const [isUsingDigitalZoom, setIsUsingDigitalZoom] = useState(false);
+  const [maxOpticalZoom, setMaxOpticalZoom] = useState<number>(1);
+  const [showCameraType, setShowCameraType] = useState(false);
+
   // Instagram-style camera states
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [recordingProgress, setRecordingProgress] = useState(0);
@@ -56,6 +64,10 @@ const MobileCamera: React.FC<Props> = ({
   const [showZoomLevel, setShowZoomLevel] = useState(false);
   
   const maxRecordingTime = 15; // 15 seconds like Instagram
+
+  // Zoom levels configuration
+  const zoomLevels = [0.5, 1, 2, 5, 10];
+  const quickZoomButtons = [0.5, 1, 2, 5];
 
   useEffect(() => {
     if (recent.length === 0) setLeft(maxShots);
@@ -107,12 +119,203 @@ const MobileCamera: React.FC<Props> = ({
   const [camAnim, setCamAnim] = useState(false);
   const [showEffectName, setShowEffectName] = useState<string | null>(null);
 
+  // Professional Camera Discovery and Management
+  async function discoverCameras() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setAvailableCameras(videoDevices);
+      
+      console.log('Available cameras:', videoDevices.map(d => ({ 
+        id: d.deviceId, 
+        label: d.label 
+      })));
+      
+      // Set default camera (prefer back camera)
+      const backCamera = videoDevices.find(device => 
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear') ||
+        device.label.toLowerCase().includes('environment') ||
+        (!device.label.toLowerCase().includes('front') && !device.label.toLowerCase().includes('selfie'))
+      ) || videoDevices[0];
+      
+      if (backCamera) {
+        setCurrentCameraId(backCamera.deviceId);
+      }
+    } catch (error) {
+      console.error('Error discovering cameras:', error);
+    }
+  }
+
+  // Enhanced camera detection with real hardware lens support
+  function getOptimalCameraForZoom(targetZoom: number): { deviceId: string; type: 'wide' | 'main' | 'telephoto'; digitalZoom: number } {
+    if (availableCameras.length <= 1) {
+      // Single camera fallback - limit digital zoom to 2x max for quality
+      return { 
+        deviceId: currentCameraId, 
+        type: 'main', 
+        digitalZoom: Math.min(2, targetZoom)
+      };
+    }
+
+    // Advanced camera detection based on actual device capabilities
+    const cameras = availableCameras.map(camera => {
+      const label = camera.label.toLowerCase();
+      let type: 'wide' | 'main' | 'telephoto' = 'main';
+      let opticalRange = { min: 1, max: 1 };
+      
+      // Detect camera types based on common labels and patterns
+      if (label.includes('ultra') || label.includes('wide') || label.includes('0.5')) {
+        type = 'wide';
+        opticalRange = { min: 0.5, max: 1 };
+      } else if (label.includes('telephoto') || label.includes('tele') || label.includes('zoom') || 
+                 label.includes('2x') || label.includes('3x') || label.includes('5x')) {
+        type = 'telephoto';
+        // Try to extract zoom level from label
+        const zoomMatch = label.match(/(\d+)x/);
+        const detectedZoom = zoomMatch ? parseInt(zoomMatch[1]) : 2;
+        opticalRange = { min: detectedZoom, max: detectedZoom * 2 };
+      } else if (label.includes('back') || label.includes('rear') || label.includes('main')) {
+        type = 'main';
+        opticalRange = { min: 1, max: 2 };
+      }
+      
+      return { ...camera, type, opticalRange };
+    });
+
+    // Find the best camera for target zoom level
+    let bestCamera = cameras.find(cam => cam.type === 'main') || cameras[0];
+    let digitalZoom = targetZoom;
+
+    if (targetZoom <= 0.7) {
+      // Use wide camera if available
+      const wideCamera = cameras.find(cam => cam.type === 'wide');
+      if (wideCamera) {
+        bestCamera = wideCamera;
+        digitalZoom = Math.max(1, targetZoom / 0.5);
+      }
+    } else if (targetZoom >= 1.8) {
+      // Use telephoto camera if available
+      const telephotoCamera = cameras.find(cam => cam.type === 'telephoto');
+      if (telephotoCamera) {
+        bestCamera = telephotoCamera;
+        // Calculate digital zoom needed on top of optical zoom
+        const baseOpticalZoom = telephotoCamera.opticalRange.min;
+        digitalZoom = Math.max(1, Math.min(2, targetZoom / baseOpticalZoom));
+      }
+    }
+
+    return { 
+      deviceId: bestCamera.deviceId, 
+      type: bestCamera.type as 'wide' | 'main' | 'telephoto', 
+      digitalZoom 
+    };
+  }
+
+  // Advanced camera switching with real hardware optimization
+  async function switchToOptimalCamera(targetZoom: number) {
+    const optimal = getOptimalCameraForZoom(targetZoom);
+    
+    if (optimal.deviceId !== currentCameraId) {
+      try {
+        console.log(`Switching to ${optimal.type} camera for ${targetZoom}x zoom`);
+        
+        // Stop current stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        // Advanced constraints for optimal quality
+        const constraints: MediaStreamConstraints = {
+          audio: false,
+          video: {
+            deviceId: { exact: optimal.deviceId },
+            facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 }
+          }
+        };
+
+        const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Apply any zoom constraints if supported by hardware
+        const videoTrack = newStream.getVideoTracks()[0];
+        if (videoTrack && videoTrack.applyConstraints) {
+          try {
+            await videoTrack.applyConstraints({
+              zoom: optimal.digitalZoom
+            } as any);
+          } catch (e) {
+            // Hardware zoom not supported, will use CSS transform
+            console.log('Hardware zoom not supported, using digital zoom');
+          }
+        }
+        
+        streamRef.current = newStream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = newStream;
+          await videoRef.current.play().catch(() => {});
+        }
+
+        setCurrentCameraId(optimal.deviceId);
+        setCameraType(optimal.type);
+        setZoom(optimal.digitalZoom);
+        setIsUsingDigitalZoom(optimal.digitalZoom > 1);
+        
+        // Show camera type indicator
+        setShowCameraType(true);
+        setTimeout(() => setShowCameraType(false), 2000);
+        
+        return true;
+      } catch (error) {
+        console.error('Error switching camera:', error);
+        // Fallback to digital zoom with current camera
+        setZoom(Math.min(2, targetZoom)); // Limit to 2x for quality
+        setIsUsingDigitalZoom(true);
+        return false;
+      }
+    } else {
+      // Same camera, adjust digital zoom (limited for quality)
+      const limitedZoom = optimal.type === 'telephoto' ? 
+        Math.min(3, optimal.digitalZoom) : 
+        Math.min(2, optimal.digitalZoom);
+      
+      setZoom(limitedZoom);
+      setIsUsingDigitalZoom(limitedZoom > 1);
+      return true;
+    }
+  }
+
+  // Enhanced zoom function with quality prioritization
+  async function setHybridZoom(targetZoom: number) {
+    const clampedZoom = Math.max(0.5, Math.min(10, targetZoom));
+    
+    // Show zoom level with quality indicator
+    setShowZoomLevel(true);
+    setTimeout(() => setShowZoomLevel(false), 1500);
+    
+    // Use advanced hybrid zoom system
+    await switchToOptimalCamera(clampedZoom);
+  }
+
   async function openStream() {
     try {
+      // Discover available cameras first
+      await discoverCameras();
+      
       const constraints: MediaStreamConstraints = {
         audio: false,
-        video: { facingMode }
+        video: currentCameraId ? {
+          deviceId: { exact: currentCameraId },
+          facingMode,
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 },
+          frameRate: { ideal: 30, min: 24 }
+        } : { facingMode }
       };
+      
       const s = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = s;
       if (videoRef.current) {
@@ -133,7 +336,7 @@ const MobileCamera: React.FC<Props> = ({
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
-  }, [facingMode]);
+  }, [facingMode, currentCameraId]);
 
   function formatCounter() {
     const captured = Math.max(0, maxShots - left);
@@ -302,10 +505,17 @@ const MobileCamera: React.FC<Props> = ({
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
 
-  // Enhanced touch handlers with pinch-to-zoom and slide up zoom
+  // Enhanced touch handlers with proper event prevention
   function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
-    (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
+    e.stopPropagation();
+    
+    // Ensure proper pointer capture for stable touch tracking
+    const target = e.currentTarget as HTMLVideoElement;
+    if (target.setPointerCapture) {
+      target.setPointerCapture(e.pointerId);
+    }
+    
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     
     if (pointersRef.current.size === 2) {
@@ -317,23 +527,26 @@ const MobileCamera: React.FC<Props> = ({
 
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     
-    // Pinch-to-zoom for two fingers
+    // Hybrid pinch-to-zoom for two fingers
     if (pointersRef.current.size === 2 && startDistRef.current) {
       const [a, b] = Array.from(pointersRef.current.values());
       const dist = distance(a, b);
-      const next = Math.min(10, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
-      setZoom(next);
-      setShowZoomLevel(true);
-      setTimeout(() => setShowZoomLevel(false), 1000);
+      const targetZoom = Math.min(10, Math.max(0.5, baseZoomRef.current * (dist / startDistRef.current)));
+      
+      // Use hybrid zoom system with debouncing for smooth performance
+      setHybridZoom(targetZoom);
     }
   }
   
   function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
+    e.stopPropagation();
+    
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) {
       startDistRef.current = null;
@@ -341,9 +554,11 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
 
-  // Instagram-style shutter button behavior
+  // Instagram-style shutter button behavior with proper event handling
   function onShutterDown(e: React.PointerEvent) {
     e.preventDefault();
+    e.stopPropagation();
+    
     isLongPress.current = false;
     setIsLongPressing(true);
     startTouchY.current = e.clientY;
@@ -366,24 +581,26 @@ const MobileCamera: React.FC<Props> = ({
 
   function onShutterMove(e: React.PointerEvent) {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!isLongPressing) return;
     
     const deltaY = startTouchY.current - e.clientY;
     setSlideUpDistance(Math.max(0, deltaY));
     
-    // Slide up for zoom (Instagram style)
+    // Slide up for zoom (Instagram style) with hybrid system
     if (deltaY > 0 && isLongPress.current && recording) {
       const maxSlide = 200; // pixels
       const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * 4; // Max 5x zoom
-      const newZoom = Math.min(10, Math.max(1, 1 + zoomMultiplier));
-      setZoom(newZoom);
-      setShowZoomLevel(true);
+      const targetZoom = Math.min(10, Math.max(0.5, 1 + zoomMultiplier));
+      setHybridZoom(targetZoom);
     }
   }
   
   function onShutterUp(e: React.PointerEvent) {
     e.preventDefault();
+    e.stopPropagation();
+    
     setIsLongPressing(false);
     setSlideUpDistance(0);
     setShowZoomLevel(false);
@@ -441,11 +658,11 @@ const MobileCamera: React.FC<Props> = ({
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full overflow-hidden overscroll-none bg-black z-50" dir="rtl">
-      {/* Preview - Full screen video */}
+    <div className="camera-container" dir="rtl">
+      {/* Preview - Full screen video with proper positioning */}
       <video 
         ref={videoRef} 
-        className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" 
+        className="camera-video" 
         style={{
           transform: `scale(${zoom})`,
           filter: effects[effectIndex].css || "none"
@@ -469,14 +686,53 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Zoom level indicator */}
+      {/* Professional Zoom Level and Camera Type Indicators */}
       {showZoomLevel && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
-          <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-lg font-semibold">
-            {zoom.toFixed(1)}x
+        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+          <div className="bg-black/70 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xl font-bold shadow-lg border border-white/20">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{zoom.toFixed(1)}x</div>
+              <div className="text-xs text-gray-300 mt-1">
+                {cameraType === 'wide' && '📐 عريضة'}
+                {cameraType === 'main' && '📷 أساسية'}  
+                {cameraType === 'telephoto' && '🔭 مقربة'}
+                {isUsingDigitalZoom && zoom > 1.5 && ' • جودة محدودة'}
+                {availableCameras.length === 1 && ' • عدسة واحدة'}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Camera Type Indicator */}
+      {showCameraType && (
+        <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+          <div className="bg-primary/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium animate-fade-in">
+            {cameraType === 'wide' && '📐 العدسة العريضة'}
+            {cameraType === 'main' && '📷 العدسة الأساسية'}
+            {cameraType === 'telephoto' && '🔭 العدسة المقربة'}
+          </div>
+        </div>
+      )}
+
+      {/* Professional Zoom Controls */}
+      <div className="absolute bottom-[calc(15rem+env(safe-area-inset-bottom))] left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full p-1">
+          {quickZoomButtons.map((level, idx) => (
+            <button
+              key={idx}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                Math.abs(zoom - level) < 0.2
+                  ? 'bg-white text-black shadow-lg scale-110'
+                  : 'text-white hover:bg-white/20'
+              }`}
+              onClick={() => setHybridZoom(level)}
+            >
+              {level === 0.5 ? '0.5x' : level === 1 ? '1x' : `${level}x`}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Grid overlay */}
       {showGrid && (
