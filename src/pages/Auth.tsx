@@ -160,12 +160,12 @@ const signUpGoogle = async () => {
                     <RadioGroupItem id="g-male" value="male" />
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <Label htmlFor="g-female">أنثى</Label>
-                    <RadioGroupItem id="g-female" value="female" />
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
                     <Label htmlFor="g-other">أخرى</Label>
                     <RadioGroupItem id="g-other" value="other" />
+                  </div>
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Label htmlFor="g-female">أنثى</Label>
+                    <RadioGroupItem id="g-female" value="female" />
                   </div>
                 </RadioGroup>
               </div>
