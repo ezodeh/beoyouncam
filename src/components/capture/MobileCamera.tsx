@@ -1,24 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, Zap, ZapOff } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-
-// Add camera mode class to body when component mounts
-function useCameraMode() {
-  React.useEffect(() => {
-    document.body.classList.add('camera-mode');
-    document.documentElement.classList.add('camera-mode');
-    
-    return () => {
-      document.body.classList.remove('camera-mode');
-      document.documentElement.classList.remove('camera-mode');
-    };
-  }, []);
-}
 
 interface Props {
   eventName: string;
@@ -58,40 +45,17 @@ const MobileCamera: React.FC<Props> = ({
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [zoom, setZoom] = useState<number>(1);
   const [greeting, setGreeting] = useState("");
   const navigate = useNavigate();
-
-  // Enable camera mode styling
-  useCameraMode();
-
-  // Simple Digital Zoom System
-  const [zoom, setZoom] = useState<number>(1);
-  const [showZoomLevel, setShowZoomLevel] = useState(false);
-  const [isFlashOn, setIsFlashOn] = useState(false);
-  const maxZoom = 3; // Limited to 3x for quality
-  const minZoom = 1;
 
   // Instagram-style camera states
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [recordingProgress, setRecordingProgress] = useState(0);
   const [slideUpDistance, setSlideUpDistance] = useState(0);
+  const [showZoomLevel, setShowZoomLevel] = useState(false);
   
   const maxRecordingTime = 15; // 15 seconds like Instagram
-
-  // Simple zoom levels
-  const quickZoomButtons = [1, 1.5, 2, 3];
-
-  // Pinch-to-zoom variables
-  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const startDistRef = useRef<number | null>(null);
-  const baseZoomRef = useRef<number>(1);
-  const startTouchY = useRef<number>(0);
-  const recordingTimer = useRef<number | null>(null);
-  const progressTimer = useRef<number | null>(null);
-
-  // Touch event handlers
-  const pressTimer = useRef<number | null>(null);
-  const isLongPress = useRef(false);
 
   useEffect(() => {
     if (recent.length === 0) setLeft(maxShots);
@@ -108,6 +72,18 @@ const MobileCamera: React.FC<Props> = ({
       if (n) setHint(`بعيون ${n}`);
     })();
   }, [initialName]);
+
+  // Pinch-to-zoom variables
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const startDistRef = useRef<number | null>(null);
+  const baseZoomRef = useRef<number>(1);
+  const startTouchY = useRef<number>(0);
+  const recordingTimer = useRef<number | null>(null);
+  const progressTimer = useRef<number | null>(null);
+
+  // Touch event handlers for Instagram-style behavior
+  const pressTimer = useRef<number | null>(null);
+  const isLongPress = useRef(false);
 
   const effects = [
     { name: "بدون", css: "none" },
@@ -131,50 +107,23 @@ const MobileCamera: React.FC<Props> = ({
   const [camAnim, setCamAnim] = useState(false);
   const [showEffectName, setShowEffectName] = useState<string | null>(null);
 
-  // Simple digital zoom function
-  function applyZoom(targetZoom: number) {
-    const clampedZoom = Math.max(minZoom, Math.min(maxZoom, targetZoom));
-    setZoom(clampedZoom);
-    
-    // Show zoom level indicator
-    setShowZoomLevel(true);
-    setTimeout(() => setShowZoomLevel(false), 1000);
-    
-    console.log(`🔍 Digital zoom: ${clampedZoom}x`);
-  }
-
   async function openStream() {
     try {
-      console.log('📷 Starting simple camera...');
-      
       const constraints: MediaStreamConstraints = {
         audio: false,
-        video: {
-          facingMode,
-          width: { ideal: 1920, min: 1280 },
-          height: { ideal: 1080, min: 720 },
-          frameRate: { ideal: 30, min: 24 }
-        }
+        video: { facingMode }
       };
-      
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      
+      const s = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = s;
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(console.warn);
+        videoRef.current.srcObject = s;
+        await videoRef.current.play().catch(() => {});
       }
-      
-      // Check for torch support
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      setSupportsTorch(Boolean((capabilities as any).torch));
-      
+      const track = s.getVideoTracks?.()?.[0];
+      const caps: any = track?.getCapabilities?.();
+      setSupportsTorch(Boolean(caps?.torch));
       setPermissionDenied(false);
-      console.log('✅ Simple camera started successfully');
-      
-    } catch (error) {
-      console.error('❌ Camera start failed:', error);
+    } catch (e) {
       setPermissionDenied(true);
     }
   }
@@ -182,9 +131,7 @@ const MobileCamera: React.FC<Props> = ({
   useEffect(() => {
     openStream();
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-      }
+      streamRef.current?.getTracks().forEach(t => t.stop());
     };
   }, [facingMode]);
 
@@ -337,28 +284,16 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
 
-  // Simple flash control
-  async function toggleFlash() {
+  async function applyTorch(mode: "on" | "off") {
     try {
-      if (!streamRef.current) return;
-      
-      const track = streamRef.current.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      
-      if ((capabilities as any).torch) {
-        const newFlashState = !isFlashOn;
-        await track.applyConstraints({
-          advanced: [{ torch: newFlashState } as any]
+      const track = streamRef.current?.getVideoTracks()[0];
+      if (track && 'applyConstraints' in track) {
+        await (track as any).applyConstraints({
+          advanced: [{ torch: mode === "on" }]
         });
-        setIsFlashOn(newFlashState);
-        setFlashMode(newFlashState ? "on" : "off");
-        console.log(`💡 Flash ${newFlashState ? 'ON' : 'OFF'}`);
-      } else {
-        toast({ title: "الفلاش غير مدعوم على هذا الجهاز" });
       }
-    } catch (error) {
-      console.error('Flash error:', error);
-      toast({ title: "خطأ في التحكم بالفلاش" });
+    } catch (_) {
+      toast({ title: "الفلاش غير مدعوم على هذا الجهاز/المتصفح" });
     }
   }
 
@@ -367,17 +302,10 @@ const MobileCamera: React.FC<Props> = ({
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
 
-  // Enhanced touch handlers with proper event prevention
+  // Enhanced touch handlers with pinch-to-zoom and slide up zoom
   function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
-    e.stopPropagation();
-    
-    // Ensure proper pointer capture for stable touch tracking
-    const target = e.currentTarget as HTMLVideoElement;
-    if (target.setPointerCapture) {
-      target.setPointerCapture(e.pointerId);
-    }
-    
+    (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     
     if (pointersRef.current.size === 2) {
@@ -389,26 +317,23 @@ const MobileCamera: React.FC<Props> = ({
 
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
-    e.stopPropagation();
     
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     
-    // Simple pinch-to-zoom for two fingers
+    // Pinch-to-zoom for two fingers
     if (pointersRef.current.size === 2 && startDistRef.current) {
       const [a, b] = Array.from(pointersRef.current.values());
       const dist = distance(a, b);
-      const targetZoom = Math.min(maxZoom, Math.max(minZoom, baseZoomRef.current * (dist / startDistRef.current)));
-      
-      // Apply simple digital zoom
-      applyZoom(targetZoom);
+      const next = Math.min(10, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
+      setZoom(next);
+      setShowZoomLevel(true);
+      setTimeout(() => setShowZoomLevel(false), 1000);
     }
   }
   
   function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {
     e.preventDefault();
-    e.stopPropagation();
-    
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) {
       startDistRef.current = null;
@@ -416,15 +341,9 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
 
-  // Instagram-style shutter button behavior with proper event handling
+  // Instagram-style shutter button behavior
   function onShutterDown(e: React.PointerEvent) {
     e.preventDefault();
-    e.stopPropagation();
-    
-    // Prevent default touch behaviors
-    const target = e.currentTarget as HTMLElement;
-    target.style.touchAction = 'none';
-    
     isLongPress.current = false;
     setIsLongPressing(true);
     startTouchY.current = e.clientY;
@@ -447,30 +366,24 @@ const MobileCamera: React.FC<Props> = ({
 
   function onShutterMove(e: React.PointerEvent) {
     e.preventDefault();
-    e.stopPropagation();
     
     if (!isLongPressing) return;
     
     const deltaY = startTouchY.current - e.clientY;
     setSlideUpDistance(Math.max(0, deltaY));
     
-    // Simple slide up for zoom during recording
+    // Slide up for zoom (Instagram style)
     if (deltaY > 0 && isLongPress.current && recording) {
       const maxSlide = 200; // pixels
-      const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * (maxZoom - 1);
-      const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1 + zoomMultiplier));
-      applyZoom(targetZoom);
+      const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * 4; // Max 5x zoom
+      const newZoom = Math.min(10, Math.max(1, 1 + zoomMultiplier));
+      setZoom(newZoom);
+      setShowZoomLevel(true);
     }
   }
   
   function onShutterUp(e: React.PointerEvent) {
     e.preventDefault();
-    e.stopPropagation();
-    
-    // Reset touch action
-    const target = e.currentTarget as HTMLElement;
-    target.style.touchAction = '';
-    
     setIsLongPressing(false);
     setSlideUpDistance(0);
     setShowZoomLevel(false);
@@ -528,121 +441,42 @@ const MobileCamera: React.FC<Props> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between p-4">
-          <Link 
-            to={`/event/${token}`}
-            className="text-white hover:text-white/80 transition-colors"
-          >
-            ← رجوع
-          </Link>
-          <h1 className="text-white font-semibold text-lg">
-            {eventName}
-          </h1>
-          <div className="w-6"></div>
-        </div>
-      </div>
-
-      <div 
-        className="camera-container" 
-        dir="rtl"
-        style={{
-          WebkitUserSelect: 'none',
-          userSelect: 'none',
-          WebkitTouchCallout: 'none',
-          WebkitTapHighlightColor: 'transparent'
-        }}
-        onContextMenu={(e) => e.preventDefault()}
-        onDragStart={(e) => e.preventDefault()}
-      >
-      {/* Preview - Full screen video with proper positioning */}
+    <div className="fixed inset-0 w-full h-full overflow-hidden overscroll-none bg-black z-50" dir="rtl">
+      {/* Preview - Full screen video */}
       <video 
         ref={videoRef} 
-        className="camera-video" 
+        className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" 
         style={{
           transform: `scale(${zoom})`,
-          filter: effects[effectIndex].css || "none",
-          WebkitUserSelect: 'none',
-          userSelect: 'none',
-          WebkitTouchCallout: 'none',
-          WebkitTapHighlightColor: 'transparent'
+          filter: effects[effectIndex].css || "none"
         }} 
         onPointerDown={onVideoPointerDown} 
         onPointerMove={onVideoPointerMove} 
         onPointerUp={onVideoPointerUp} 
         onPointerCancel={onVideoPointerUp} 
-        onContextMenu={(e) => e.preventDefault()}
-        onDragStart={(e) => e.preventDefault()}
         playsInline 
         muted 
         autoPlay 
       />
 
-      {/* Recording timer with visual feedback */}
+      {/* Recording indicator */}
       {recording && (
-        <div className="absolute top-8 right-4 z-30">
-          <div className="flex items-center gap-2 rounded-full bg-red-500/90 backdrop-blur-sm px-4 py-2 shadow-lg">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="text-white font-mono text-sm font-bold">
-              {formatTime(recordingDuration)}
-            </span>
-          </div>
-        </div>
-      )}
-      
-      {/* Slide up zoom indicator during recording */}
-      {recording && isLongPressing && slideUpDistance > 20 && (
-        <div className="absolute bottom-[calc(18rem+env(safe-area-inset-bottom))] left-1/2 transform -translate-x-1/2 z-30">
-          <div className="flex flex-col items-center text-white">
-            <div className="text-xs opacity-80 mb-2 bg-black/50 rounded-full px-3 py-1">
-              اسحب للزوم
-            </div>
-            <div className="h-12 w-1 bg-white/30 rounded-full relative overflow-hidden">
-              <div 
-                className="absolute bottom-0 w-full bg-white rounded-full transition-all duration-100"
-                style={{ 
-                  height: `${Math.min(slideUpDistance / 200 * 100, 100)}%` 
-                }}
-              />
-            </div>
-          </div>
+        <div className="absolute top-6 left-6 flex items-center gap-2 z-30">
+          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-white font-mono text-sm bg-black/30 backdrop-blur-sm rounded px-2 py-1">
+            {formatTime(recordingDuration)}
+          </span>
         </div>
       )}
 
-      {/* Enhanced Zoom Level Indicator */}
-      {(showZoomLevel || (recording && zoom > 1)) && (
-        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
-          <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xl font-bold shadow-lg border border-white/20 animate-fade-in">
-            <div className="text-center">
-              <div className="text-3xl font-bold">{zoom.toFixed(1)}x</div>
-              <div className="text-xs text-gray-300 mt-1">
-                {zoom > 2.5 ? 'جودة محدودة' : zoom > 1.5 ? 'جودة متوسطة' : 'جودة عالية'}
-              </div>
-            </div>
+      {/* Zoom level indicator */}
+      {showZoomLevel && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+          <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-lg font-semibold">
+            {zoom.toFixed(1)}x
           </div>
         </div>
       )}
-
-      {/* Simple Zoom Controls */}
-      <div className="absolute bottom-[calc(15rem+env(safe-area-inset-bottom))] left-1/2 transform -translate-x-1/2 z-20">
-        <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full p-1">
-          {quickZoomButtons.map((level, idx) => (
-            <button
-              key={idx}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                Math.abs(zoom - level) < 0.2
-                  ? 'bg-white text-black shadow-lg scale-110'
-                  : 'text-white hover:bg-white/20'
-              }`}
-              onClick={() => applyZoom(level)}
-            >
-              {level}x
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Grid overlay */}
       {showGrid && (
@@ -664,9 +498,15 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       )}
 
+      {/* Top info: event name */}
+      <div className="absolute top-6 inset-x-0 text-center">
+        <h1 className="text-2xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">
+          {eventName}
+        </h1>
+      </div>
 
       {/* Left icons column */}
-      <div className="absolute left-3 top-20 flex flex-col items-center gap-4">
+      <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
         <Button 
           size="icon" 
           variant="secondary" 
@@ -699,13 +539,13 @@ const MobileCamera: React.FC<Props> = ({
           className="rounded-full bg-background/20 backdrop-blur-md border-white/30" 
           aria-label="فلاش" 
           disabled={!supportsTorch} 
-          onClick={toggleFlash}
+          onClick={() => {
+            const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
+            setFlashMode(next);
+            if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
+          }}
         >
-          {isFlashOn ? (
-            <Zap className="h-5 w-5 text-yellow-400" />
-          ) : (
-            <ZapOff className="h-5 w-5 text-white" />
-          )}
+          <Flashlight className={`h-5 w-5 text-white ${flashMode === 'on' ? 'text-yellow-400' : ''}`} />
         </Button>
 
         <Button 
@@ -992,7 +832,6 @@ const MobileCamera: React.FC<Props> = ({
           )}
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 };
