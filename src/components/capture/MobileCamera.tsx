@@ -177,7 +177,7 @@ const MobileCamera: React.FC<Props> = ({
         url: URL.createObjectURL(file),
         type: "image" as const
       }, ...r].slice(0, 20));
-      setViewerIndex(0);
+      // لا نعرض الصورة تلقائياً
       setLeft(newLeft);
       toast({
         title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
@@ -228,7 +228,7 @@ const MobileCamera: React.FC<Props> = ({
           url: URL.createObjectURL(file),
           type: "video" as const
         }, ...r].slice(0, 20));
-        setViewerIndex(0);
+        // لا نعرض الفيديو تلقائياً
         setLeft(newLeft);
         toast({
           title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
@@ -315,11 +315,14 @@ const MobileCamera: React.FC<Props> = ({
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
   function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
+    e.preventDefault(); // منع أي حدث افتراضي مثل التنزيل
+    
     (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
     pointersRef.current.set(e.pointerId, {
       x: e.clientX,
       y: e.clientY
     });
+    
     if (pointersRef.current.size === 2) {
       const [a, b] = Array.from(pointersRef.current.values());
       startDistRef.current = distance(a, b);
@@ -327,11 +330,14 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
+    e.preventDefault(); // منع السحب والحدث الافتراضي
+    
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, {
       x: e.clientX,
       y: e.clientY
     });
+    
     if (pointersRef.current.size === 2 && startDistRef.current) {
       const [a, b] = Array.from(pointersRef.current.values());
       const dist = distance(a, b);
@@ -339,7 +345,9 @@ const MobileCamera: React.FC<Props> = ({
       setZoom(next);
     }
   }
+  
   function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {
+    e.preventDefault(); // منع الحدث الافتراضي
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) {
       startDistRef.current = null;
@@ -347,24 +355,45 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
 
-  // Long-press logic
+  // Long-press logic للفيديو
   const pressTimer = useRef<number | null>(null);
+  const isLongPress = useRef(false);
+  
   function onShutterDown(e: React.PointerEvent) {
-    if (!supportsVideo) return; // simple: only video when supported
+    e.preventDefault(); // منع الحدث الافتراضي مثل التنزيل
+    isLongPress.current = false;
+    
+    if (!supportsVideo) {
+      // إذا لم يدعم الفيديو، التقط صورة مباشرة
+      capturePhoto();
+      return;
+    }
+    
     pressTimer.current = window.setTimeout(() => {
+      isLongPress.current = true;
       startVideoRecording();
-    }, 150);
+    }, 300); // زيادة الوقت لتجنب التشغيل غير المقصود
   }
+  
   function onShutterUp(e: React.PointerEvent) {
+    e.preventDefault(); // منع الحدث الافتراضي
+    
     if (recording) {
+      // إذا كان يسجل فيديو، أوقف التسجيل
       stopVideoRecording();
     } else {
       if (pressTimer.current) {
         clearTimeout(pressTimer.current);
         pressTimer.current = null;
-        capturePhoto();
+        
+        // إذا لم يكن ضغط طويل، التقط صورة
+        if (!isLongPress.current) {
+          capturePhoto();
+        }
       }
     }
+    
+    isLongPress.current = false;
   }
   if (permissionDenied) {
     return <div className="relative w-full h-[calc(100dvh-48px)] grid place-items-center px-4 pb-[env(safe-area-inset-bottom)]" dir="rtl">
