@@ -65,6 +65,7 @@ export default function EventAlbum() {
   const [personalAlbums, setPersonalAlbums] = useState<any[]>([]);
   const [showCongratsDialog, setShowCongratsDialog] = useState(false);
   const [activeCongrat, setActiveCongrat] = useState<any | null>(null);
+  const [congratsIndex, setCongratIndex] = useState(0);
 
   useEffect(() => {
     // Dummy congratulations
@@ -188,13 +189,13 @@ export default function EventAlbum() {
         <section className="container mx-auto px-4 py-6">
           <Tabs defaultValue="photos" className="w-full">
             <TabsList className="grid grid-cols-3 w-full max-w-xl rounded-full mx-auto">
-              <TabsTrigger value="photos" aria-label="الصور" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
-                <Images className="h-5 w-5" />
-                <span className="hidden sm:inline">الصور</span>
-              </TabsTrigger>
               <TabsTrigger value="congratulations" aria-label="المباركات" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Heart className="h-5 w-5" />
                 <span className="hidden sm:inline">المباركات</span>
+              </TabsTrigger>
+              <TabsTrigger value="photos" aria-label="الصور" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
+                <Images className="h-5 w-5" />
+                <span className="hidden sm:inline">الصور</span>
               </TabsTrigger>
               <TabsTrigger value="albums" aria-label="ألبومات بالعيون" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Users className="h-5 w-5" />
@@ -230,7 +231,12 @@ export default function EventAlbum() {
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" dir="rtl">
                   {congratulations.map((cong) => (
-                    <Card key={cong.id} className="cursor-pointer" onClick={() => { setActiveCongrat(cong); setShowCongratsDialog(true); }}>
+                    <Card key={cong.id} className="cursor-pointer" onClick={() => { 
+                      const idx = congratulations.findIndex(c => c.id === cong.id);
+                      setCongratIndex(idx);
+                      setActiveCongrat(cong); 
+                      setShowCongratsDialog(true); 
+                    }}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
@@ -239,7 +245,7 @@ export default function EventAlbum() {
                           <div className="flex-1 text-right">
                             <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
                             <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message}</p>
-                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA')}</span>
+                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -247,9 +253,9 @@ export default function EventAlbum() {
                   ))}
                 </div>
 
-                {/* زر عائم لإضافة مباركة */}
+                {/* زر عائم لإضافة مباركة - يسار الشاشة */}
                 <button
-                  className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
+                  className="fixed bottom-20 left-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
                   onClick={() => setShowCongratsDialog(true)}
                   aria-label="إضافة مباركة"
                 >
@@ -274,15 +280,44 @@ export default function EventAlbum() {
                   </DialogContent>
                 </Dialog>
 
-                {/* نافذة عرض نص المباركة كاملاً */}
-                <Dialog open={!!activeCongrat} onOpenChange={(o) => { if (!o) setActiveCongrat(null); }}>
+                {/* نافذة عرض نص المباركة كاملاً مع تنقّل */}
+                <Dialog open={!!activeCongrat} onOpenChange={(o) => { if (!o) { setActiveCongrat(null); setCongratIndex(0); } }}>
                   <DialogContent className="sm:max-w-lg" dir="rtl">
                     <DialogHeader>
-                      <DialogTitle>{activeCongrat?.sender_name}</DialogTitle>
+                      <DialogTitle className="flex items-center justify-between">
+                        <span>{activeCongrat?.sender_name}</span>
+                        <span className="text-sm text-muted-foreground">{congratsIndex + 1} / {congratulations.length}</span>
+                      </DialogTitle>
                     </DialogHeader>
-                    <div className="text-right text-foreground leading-relaxed">
+                    <div className="text-right text-foreground leading-relaxed min-h-[80px]">
                       {activeCongrat?.message}
                     </div>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const newIndex = (congratsIndex - 1 + congratulations.length) % congratulations.length;
+                          setCongratIndex(newIndex);
+                          setActiveCongrat(congratulations[newIndex]);
+                        }}
+                        disabled={congratulations.length <= 1}
+                      >
+                        السابق
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const newIndex = (congratsIndex + 1) % congratulations.length;
+                          setCongratIndex(newIndex);
+                          setActiveCongrat(congratulations[newIndex]);
+                        }}
+                        disabled={congratulations.length <= 1}
+                      >
+                        التالي
+                      </Button>
+                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>

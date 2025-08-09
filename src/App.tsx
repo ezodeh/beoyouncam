@@ -27,6 +27,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Settings from "./pages/Settings";
 import Scanner from "./pages/Scanner";
+import BillingHistory from "./pages/BillingHistory";
 import Auth from "./pages/Auth";
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/scanner" element={<Scanner />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/billing" element={<BillingHistory />} />
             <Route path="/admin" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

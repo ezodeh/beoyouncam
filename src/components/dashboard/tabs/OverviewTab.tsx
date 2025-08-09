@@ -173,7 +173,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ البداية</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}
+            {eventData?.start_at ? new Date(eventData.start_at).toLocaleString() : '—'}
           </CardContent>
         </Card>
         <Card>
@@ -181,7 +181,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ الانتهاء</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}
+            {eventData?.end_at ? new Date(eventData.end_at).toLocaleString() : '—'}
           </CardContent>
         </Card>
       </div>
@@ -212,8 +212,8 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   <Image className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-base font-bold">عرض الألبوم</div>
-                  <div className="text-[11px] text-muted-foreground">افتح الألبوم العام</div>
+                  <div className="text-base font-bold">عرض</div>
+                  <div className="text-[11px] text-muted-foreground">الألبوم العام</div>
                 </div>
               </div>
             </CardContent>
@@ -228,6 +228,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="flex items-center gap-2 text-sm">
               <QrCode className="h-5 w-5" />
               نشر الألبوم
+              {eventData?.published_at && new Date(eventData.published_at) > new Date() && (
+                <span className="text-xs text-muted-foreground block">
+                  سيُنشر بعد: {Math.ceil((new Date(eventData.published_at).getTime() - Date.now()) / (1000 * 60 * 60))} ساعة
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center p-3">
@@ -247,7 +252,34 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url; a.download = `event-${token}-qr.svg`; a.click(); URL.revokeObjectURL(url);
-              }}>تنزيل (SVG)</Button>
+              }}>SVG</Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+                if (!svg) return;
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                const img = document.createElement("img");
+                const serializer = new XMLSerializer();
+                const source = serializer.serializeToString(svg);
+                const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                img.onload = () => {
+                  canvas.width = img.naturalWidth || 72;
+                  canvas.height = img.naturalHeight || 72;
+                  ctx.drawImage(img, 0, 0);
+                  canvas.toBlob((pngBlob) => {
+                    if (pngBlob) {
+                      const pngUrl = URL.createObjectURL(pngBlob);
+                      const a = document.createElement("a");
+                      a.href = pngUrl; a.download = `event-${token}-qr.png`; a.click();
+                      URL.revokeObjectURL(pngUrl);
+                    }
+                  });
+                  URL.revokeObjectURL(url);
+                };
+                img.src = url;
+              }}>PNG</Button>
               <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم</Button>
             </div>
           </CardContent>
