@@ -41,7 +41,6 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
   const downloadQrSvg = () => {
     const svg = document.querySelector<SVGSVGElement>(`#${svgId}`);
     if (!svg) {
-      // Shouldn't happen since we render a hidden SVG below
       toast({ title: "تعذّر العثور على الباركود", variant: "destructive" });
       return;
     }
@@ -57,7 +56,60 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast({ title: "تم تنزيل الباركود" });
+    toast({ title: "تم تنزيل الباركود بصيغة SVG عالية الجودة" });
+  };
+
+  const downloadQrPng = () => {
+    const svg = document.querySelector<SVGSVGElement>(`#${svgId}`);
+    if (!svg) {
+      toast({ title: "تعذّر العثور على الباركود", variant: "destructive" });
+      return;
+    }
+
+    // Create a high-resolution canvas
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set high resolution (4x for crisp quality)
+    const scale = 4;
+    const size = 512; // Base size
+    canvas.width = size * scale;
+    canvas.height = size * scale;
+    
+    // Scale the context for high DPI
+    ctx.scale(scale, scale);
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    
+    const img = document.createElement("img");
+    img.onload = () => {
+      // Fill white background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw the QR code
+      ctx.drawImage(img, 0, 0, size, size);
+      
+      // Convert to PNG and download
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `event-${event.token}-qr-hd.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(svgUrl);
+        toast({ title: "تم تنزيل الباركود بجودة عالية PNG" });
+      }, "image/png", 1.0);
+    };
+    
+    img.src = svgUrl;
   };
 
   const webShare = async () => {
@@ -230,12 +282,19 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
                 )}
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">النشر</div>
                 <DropdownMenuItem onClick={() => setQrOpen(true)} className="cursor-pointer">
+                  <QrCode className="h-4 w-4" />
                   عرض الباركود
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={downloadQrSvg} className="cursor-pointer">
-                  تنزيل الباركود (SVG)
+                  <Download className="h-4 w-4" />
+                  تنزيل SVG (فائق الجودة)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={downloadQrPng} className="cursor-pointer">
+                  <Download className="h-4 w-4" />
+                  تنزيل PNG (عالي الدقة)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
+                  <Share2 className="h-4 w-4" />
                   نسخ رابط المشاركة
                 </DropdownMenuItem>
                 {isOwner && (
@@ -265,9 +324,9 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
         </div>
       </div>
 
-      {/* Hidden QR for download purposes */}
+      {/* Hidden QR for download purposes - High resolution */}
       <div className="sr-only">
-        <QRCode id={svgId} value={shareUrl} size={192} />
+        <QRCode id={svgId} value={shareUrl} size={512} level="H" />
       </div>
 
       {/* Dialog for QR preview */}
@@ -277,13 +336,19 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
             <DialogTitle>باركود المناسبة</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4">
-            <QRCode id={svgId} value={shareUrl} size={240} />
-            <div className="flex gap-2">
-              <button onClick={downloadQrSvg} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm">
-                <Download className="h-4 w-4" /> تنزيل
+            <QRCode value={shareUrl} size={240} level="H" />
+            <div className="flex gap-2 mt-4">
+              <button onClick={downloadQrSvg} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
+                <Download className="h-4 w-4" />
+                SVG (فائق)
               </button>
-              <button onClick={copyLink} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm">
-                <Share2 className="h-4 w-4" /> نسخ الرابط
+              <button onClick={downloadQrPng} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
+                <Download className="h-4 w-4" />
+                PNG (عالي)
+              </button>
+              <button onClick={copyLink} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
+                <Share2 className="h-4 w-4" />
+                نسخ رابط
               </button>
             </div>
           </div>
