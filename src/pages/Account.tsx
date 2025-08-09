@@ -124,7 +124,7 @@ export default function Account() {
             {ownEvents.length === 0 && joinedEvents.length === 0 ? (
               <section className="text-center max-w-2xl mx-auto py-12">
                 <div className="mb-8">
-                  <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+                  <div className="w-40 h-40 mx-auto mb-6 flex items-center justify-center">
                     <img 
                       src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" 
                       alt="من عيونكم" 
