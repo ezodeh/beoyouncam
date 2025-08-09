@@ -80,15 +80,15 @@ const signUpGoogle = async () => {
             </TabsContent>
 <TabsContent value="signup" className="mt-4 grid gap-3">
               <Label className="text-right">البريد الإلكتروني</Label>
-              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
+              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
               <Label className="text-right">كلمة المرور</Label>
-              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" />
+              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" className="text-right" />
 
               <Label className="text-right">الهاتف</Label>
-              <Input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" />
+              <Input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" className="text-right" />
 
               <Label className="text-right">البلد</Label>
-              <Input type="text" value={country} onChange={(e)=>setCountry(e.target.value)} placeholder="السعودية" />
+              <Input type="text" value={country} onChange={(e)=>setCountry(e.target.value)} placeholder="السعودية" className="text-right" />
 
               <div className="grid gap-2">
                 <Label className="text-right">النوع</Label>
@@ -109,7 +109,7 @@ const signUpGoogle = async () => {
               </div>
 
               <Label className="text-right">تاريخ الميلاد</Label>
-              <Input type="date" value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} />
+              <Input type="date" value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} className="text-right" />
 
               <label className="flex items-center gap-2 text-sm mt-1 justify-end">
                 <span>أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
