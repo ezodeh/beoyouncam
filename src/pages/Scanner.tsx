@@ -15,12 +15,12 @@ export default function Scanner() {
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="w-full max-w-lg grid gap-4">
           <h1 className="text-2xl font-bold text-center">ماسح الباركود</h1>
-          <div className="relative w-full aspect-square max-w-sm sm:max-w-md md:max-w-lg mx-auto rounded-lg overflow-hidden border border-border bg-muted">
+          <div className="relative w-full aspect-square max-w-xs sm:max-w-sm md:max-w-md mx-auto rounded-lg overflow-hidden border border-border bg-muted">
             <QRScanner
               constraints={{ 
                 facingMode: { exact: "environment" },
-                width: { ideal: 1024 },
-                height: { ideal: 1024 }
+                width: { ideal: 720 },
+                height: { ideal: 720 }
               }}
               onScan={(detected: any[]) => {
                 const value = detected?.[0]?.rawValue as string | undefined;
@@ -48,16 +48,42 @@ export default function Scanner() {
                   height: "100%",
                   display: "flex",
                   justifyContent: "center",
-                  alignItems: "center"
+                  alignItems: "center",
+                  position: "relative"
                 },
                 video: {
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
-                  transform: "scaleX(-1)" // Mirror the video for better UX
+                  objectFit: "cover"
                 }
               }}
             />
+            
+            {/* QR Scanner Overlay with Rainbow Gradient */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div className="relative w-48 h-48">
+                {/* Corner brackets with gradient */}
+                <div className="absolute top-0 left-0 w-8 h-8">
+                  <div className="w-full h-1 bg-brand-gradient rounded-full"></div>
+                  <div className="w-1 h-full bg-brand-gradient rounded-full"></div>
+                </div>
+                <div className="absolute top-0 right-0 w-8 h-8">
+                  <div className="w-full h-1 bg-brand-gradient rounded-full"></div>
+                  <div className="w-1 h-full bg-brand-gradient rounded-full ml-auto"></div>
+                </div>
+                <div className="absolute bottom-0 left-0 w-8 h-8">
+                  <div className="w-1 h-full bg-brand-gradient rounded-full"></div>
+                  <div className="w-full h-1 bg-brand-gradient rounded-full mt-auto"></div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-8 h-8">
+                  <div className="w-1 h-full bg-brand-gradient rounded-full ml-auto"></div>
+                  <div className="w-full h-1 bg-brand-gradient rounded-full mt-auto"></div>
+                </div>
+                
+                {/* Scanning line animation */}
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-gradient animate-pulse shadow-lg opacity-80"></div>
+              </div>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground text-center">وجّه الكاميرا نحو رمز الـ QR لفتح الرابط.</p>
         </div>
