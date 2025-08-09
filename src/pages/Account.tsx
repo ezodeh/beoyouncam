@@ -219,20 +219,6 @@ export default function Account() {
                   </Link>
                 ))}
               </div>
-              <div className="mt-6 flex items-center gap-3">
-                <Link to="/scanner" className="inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2 hover-scale">ماسح QR</Link>
-                <Link to="/settings" className="inline-flex rounded-full bg-secondary text-secondary-foreground px-6 py-2 hover-scale">إعدادات الحساب</Link>
-              </div>
-
-              <section className="mt-10">
-                <h2 className="text-2xl font-bold mb-3">خيارات الحساب</h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <a href="mailto:support@manyoyonkom.app" className="rounded-full px-4 py-2 border text-center hover:shadow-elevated">Feedback (تواصل معنا)</a>
-                  <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("سجل الفوترة: سيتم إظهاره قريبًا")}>سجل الفوترة</button>
-                  <button className="rounded-full px-4 py-2 border hover:shadow-elevated" onClick={() => alert("تم تعطيل الحساب مؤقتًا")}>تعطيل الحساب</button>
-                  <button className="rounded-full px-4 py-2 border border-destructive text-destructive hover:shadow-elevated" onClick={() => { if (confirm("هل أنت متأكد من حذف الحساب؟")) { supabase.auth.signOut(); alert("تم إرسال طلب حذف الحساب"); window.location.href = "/"; }}}>حذف الحساب</button>
-                </div>
-              </section>
             </section>
           </>
         )}
