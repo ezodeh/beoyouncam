@@ -98,6 +98,47 @@ export type Database = {
         }
         Relationships: []
       }
+      media_submissions: {
+        Row: {
+          created_at: string
+          event_token: string
+          file_name: string
+          file_path: string
+          id: string
+          media_type: string
+          metadata: Json | null
+          participant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_token: string
+          file_name: string
+          file_path: string
+          id?: string
+          media_type: string
+          metadata?: Json | null
+          participant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_token?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          media_type?: string
+          metadata?: Json | null
+          participant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_submissions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participants: {
         Row: {
           consent: boolean

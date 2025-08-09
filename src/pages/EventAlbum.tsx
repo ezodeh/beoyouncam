@@ -14,7 +14,7 @@ import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, S
 import { supabase } from "@/integrations/supabase/client";
 import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
-interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string }
+interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; }
 
 
 export default function EventAlbum() {
@@ -126,16 +126,47 @@ export default function EventAlbum() {
       setLoadingMedia(true);
       try {
         const prefix = `events/${token}`;
+        
+        // جلب الملفات من التخزين
         const { data: files, error } = await supabase.storage
           .from("event-media")
           .list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "asc" } as any });
         if (error) throw error;
-        const items: MediaItem[] = (files || []).filter((f: any) => !String(f.name || "").startsWith(".")).map((f: any) => {
-          const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${f.name}`);
-          const ext = String(f.name || "").split(".").pop()?.toLowerCase() || "";
-          const type: "image" | "video" = ["jpg","jpeg","png","webp","gif","heic","heif","avif"].includes(ext) ? "image" : "video";
-          return { url: pub.publicUrl, type, createdAt: (f as any).created_at ?? null, name: f.name };
+
+        // جلب معلومات المشاركين مع الملفات
+        const { data: mediaSubmissions } = await supabase
+          .from("media_submissions")
+          .select(`
+            file_name,
+            participants!inner (
+              name
+            )
+          `)
+          .eq("event_token", token);
+
+        // إنشاء خريطة لربط أسماء الملفات بأسماء المشاركين
+        const participantMap = new Map();
+        mediaSubmissions?.forEach(submission => {
+          participantMap.set(submission.file_name, submission.participants.name);
         });
+
+        const items: MediaItem[] = (files || [])
+          .filter((f: any) => !String(f.name || "").startsWith("."))
+          .map((f: any) => {
+            const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${f.name}`);
+            const ext = String(f.name || "").split(".").pop()?.toLowerCase() || "";
+            const type: "image" | "video" = ["jpg","jpeg","png","webp","gif","heic","heif","avif"].includes(ext) ? "image" : "video";
+            const participantName = participantMap.get(f.name) || "مشارك";
+            
+            return { 
+              url: pub.publicUrl, 
+              type, 
+              createdAt: (f as any).created_at ?? null, 
+              name: f.name,
+              participantName
+            };
+          });
+          
         items.sort((a,b)=> (a.createdAt && b.createdAt) ? (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) : a.name.localeCompare(b.name));
         setMedia(items);
       } catch (_) {
@@ -237,14 +268,18 @@ export default function EventAlbum() {
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
                     {imageItems.map((it, idx) => (
-                      <button
-                        key={it.name + idx}
-                        className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
-                        onClick={() => setLightboxIndex(idx)}
-                        aria-label={`عرض الصورة رقم ${idx + 1}`}
-                      >
-                        <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
-                      </button>
+                      <div key={it.name + idx} className="relative">
+                        <button
+                          className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring w-full"
+                          onClick={() => setLightboxIndex(idx)}
+                          aria-label={`عرض الصورة رقم ${idx + 1}`}
+                        >
+                          <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <p className="text-white text-xs text-right font-medium">{it.participantName}</p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -398,7 +433,7 @@ export default function EventAlbum() {
           
           {/* اسم المصور */}
           <div className="absolute bottom-6 right-6 bg-black/70 text-white px-3 py-2 rounded-lg">
-            <p className="font-nastaliq text-lg">بعيون: مجهول</p>
+            <p className="font-nastaliq text-lg">بعيون: {imageItems[lightboxIndex].participantName}</p>
           </div>
 
           <div className="absolute inset-y-0 start-0 z-10 flex items-center p-4">

@@ -287,16 +287,43 @@ const MobileCamera: React.FC<Props> = ({
   }, [recording, countdown]);
   async function uploadFile(file: File, kind: "image" | "video") {
     const ext = file.name.split(".").pop() || (kind === "image" ? "jpg" : "webm");
-    const path = `events/${token}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = `events/${token}/${filename}`;
+    
     try {
-      const {
-        error
-      } = await supabase.storage.from("event-media").upload(path, file, {
+      // رفع الملف إلى التخزين
+      const { error: uploadError } = await supabase.storage.from("event-media").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type
       });
-      if (error) throw error;
+      if (uploadError) throw uploadError;
+
+      // البحث عن معرف المشارك
+      const participantName = localStorage.getItem(`participantName:${token}`) || "";
+      const { data: participant } = await supabase
+        .from("participants")
+        .select("id")
+        .eq("event_token", token)
+        .ilike("name", participantName)
+        .maybeSingle();
+
+      // ربط الملف بالمشارك في قاعدة البيانات
+      if (participant?.id) {
+        await supabase.from("media_submissions").insert({
+          event_token: token,
+          participant_id: participant.id,
+          file_path: path,
+          file_name: filename,
+          media_type: kind,
+          metadata: {
+            uploaded_from: "camera",
+            original_name: file.name,
+            size: file.size
+          }
+        });
+      }
+
       toast({
         title: "تم الرفع ✅"
       });
