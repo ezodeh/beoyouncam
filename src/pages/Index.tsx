@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { PlusCircle, Camera, ArrowRight } from "lucide-react";
+import WelcomeTour from "@/components/onboarding/WelcomeTour";
 
 const Index = () => {
   const [session, setSession] = useState(null);
@@ -14,7 +15,7 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    document.title = "من عيونكم — ألبوم صور وفيديو جماعي";
+    document.title = "عيون cam — ألبوم صور وفيديو جماعي";
   }, []);
 
   useEffect(() => {
@@ -53,37 +54,9 @@ const Index = () => {
       <main className="flex-1">
         <Hero />
         
-        {/* Onboarding for new users */}
+        {/* Welcome tour for new users */}
         {showOnboarding && session && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" dir="rtl">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle className="text-center">أهلاً بك في "من عيونكم"! 🎉</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-center">
-                <p className="text-muted-foreground">
-                  اصنع ألبوم جماعي لمناسبتك واجمع كل الذكريات في مكان واحد
-                </p>
-                <div className="space-y-3">
-                  <Button asChild className="w-full" size="lg">
-                    <Link to="/create-event" onClick={closeOnboarding}>
-                      <PlusCircle className="h-5 w-5 ml-2" />
-                      أنشئ مناسبتك الآن
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full" size="lg">
-                    <Link to="/scanner" onClick={closeOnboarding}>
-                      <Camera className="h-5 w-5 ml-2" />
-                      افتح الكاميرا للمشاركة
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" onClick={closeOnboarding} className="w-full">
-                    إغلاق
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <WelcomeTour onClose={closeOnboarding} />
         )}
 
         {/* Empty state for authenticated users with no events */}

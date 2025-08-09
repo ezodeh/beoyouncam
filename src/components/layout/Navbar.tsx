@@ -41,7 +41,7 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
           {/* Logo and Menu in same row */}
           <div className="flex items-center justify-between py-3">
             <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
-              <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
+              <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-8 w-auto" loading="eager" />
             </Link>
             
             {userName ? (
@@ -102,7 +102,7 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
         <div className="hidden sm:flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
-              <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-9 w-auto" loading="eager" />
+              <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-9 w-auto" loading="eager" />
             </Link>
           </div>
           

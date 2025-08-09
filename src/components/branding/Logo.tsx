@@ -38,7 +38,7 @@ const Logo: React.FC<LogoProps> = ({
   title,
 }) => {
   const src = srcMap[variant];
-  const aria = title || "شعار من عيونكم";
+  const aria = title || "شعار عيون cam";
 
   // Brand composition: icon (right) + text (left) for RTL
   if (variant === "brand") {
@@ -47,7 +47,7 @@ const Logo: React.FC<LogoProps> = ({
     return (
       <span role="img" aria-label={aria} className={(className ? className + " " : "") + "inline-flex items-center gap-2 leading-none"}>
         <img src={iconSrc} alt="" aria-hidden="true" loading="lazy" style={{ height, width: "auto" }} />
-        <span className="font-extrabold font-nastaliq text-xl md:text-2xl">من عيونكم</span>
+        <span className="font-extrabold font-nastaliq text-xl md:text-2xl">عيون cam</span>
       </span>
     );
   }

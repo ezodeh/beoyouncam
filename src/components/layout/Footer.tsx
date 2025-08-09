@@ -31,7 +31,7 @@ const Footer = () => {
 
       {/* Mobile minimal */}
       <div className="md:hidden px-4 py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} من عيونكم — كل الحقوق محفوظة
+        © {new Date().getFullYear()} عيون cam — كل الحقوق محفوظة
       </div>
       <div className="brand-strip w-full" aria-hidden />
     </footer>

@@ -78,13 +78,13 @@ const signIn = async () => {
   setLoading(true);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   setLoading(false);
-  if (!error) navigate("/"); else alert(error.message);
+  if (!error) navigate("/account"); else alert(error.message);
 };
 
 const signUp = async () => {
   if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
   setLoading(true);
-  const redirectUrl = `${window.location.origin}/`;
+  const redirectUrl = `${window.location.origin}/account`;
   const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
   setLoading(false);
   if (error) { alert(error.message); return; }
@@ -100,7 +100,7 @@ const signUp = async () => {
 };
 
 const signInGoogle = async () => {
-  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/` } });
+  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
 };
 
 const signUpGoogle = async () => {
@@ -109,7 +109,7 @@ const signUpGoogle = async () => {
     const pending = { phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
     localStorage.setItem("pendingProfile", JSON.stringify(pending));
   } catch {}
-  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/` } });
+  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
 };
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
