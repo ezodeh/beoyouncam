@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,11 +78,12 @@ const MobileCamera: React.FC<Props> = ({
   const [recordingProgress, setRecordingProgress] = useState(0);
   const [slideUpDistance, setSlideUpDistance] = useState(0);
   const [showZoomLevel, setShowZoomLevel] = useState(false);
+  const [showQualityWarning, setShowQualityWarning] = useState(false);
   
   const maxRecordingTime = 15; // 15 seconds like Instagram
 
-  // Zoom levels configuration
-  const zoomLevels = [0.5, 1, 2, 5, 10];
+  // Improved zoom levels configuration
+  const zoomLevels = [0.5, 1, 1.5, 2, 3, 5, 8, 10];
   const quickZoomButtons = [0.5, 1, 2, 5];
 
   useEffect(() => {
@@ -115,6 +116,8 @@ const MobileCamera: React.FC<Props> = ({
 
   const effects = [
     { name: "بدون", css: "none" },
+    { name: "أبيض وأسود", css: "grayscale(1) contrast(1.1)" },
+    { name: "لمعة", css: "brightness(1.3) saturate(1.4) contrast(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.3))" },
     { name: "المغرب - فاس", css: "saturate(1.4) contrast(1.1) hue-rotate(10deg)" },
     { name: "الجزائر - القصبة", css: "contrast(1.15) brightness(1.02) saturate(1.2)" },
     { name: "تونس - قرطاج", css: "sepia(0.25) saturate(1.15) brightness(1.05)" },
@@ -311,6 +314,12 @@ const MobileCamera: React.FC<Props> = ({
     // Show zoom level with quality indicator
     setShowZoomLevel(true);
     setTimeout(() => setShowZoomLevel(false), 1500);
+    
+    // Show quality warning for high zoom levels
+    if (clampedZoom > 3) {
+      setShowQualityWarning(true);
+      setTimeout(() => setShowQualityWarning(false), 3000);
+    }
     
     // Use advanced hybrid zoom system
     await switchToOptimalCamera(clampedZoom);
@@ -675,6 +684,27 @@ const MobileCamera: React.FC<Props> = ({
 
   return (
     <div className="camera-container" dir="rtl">
+      {/* Camera Header */}
+      <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/70 via-black/30 to-transparent">
+        <div className="flex items-center justify-between p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/20 rounded-full p-2"
+            onClick={() => navigate(-1)}
+            aria-label="العودة"
+          >
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+          
+          <h1 className="text-lg font-bold text-white text-center flex-1 px-4 truncate">
+            {eventName}
+          </h1>
+          
+          <div className="w-9 h-9"></div> {/* Spacer for symmetry */}
+        </div>
+      </div>
+
       {/* Preview - Full screen video with proper positioning */}
       <video 
         ref={videoRef} 
@@ -691,6 +721,16 @@ const MobileCamera: React.FC<Props> = ({
         muted 
         autoPlay 
       />
+
+      {/* Quality Warning */}
+      {showQualityWarning && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 animate-fade-in">
+          <div className="bg-orange-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-center shadow-lg border border-orange-400/30">
+            <div className="text-sm font-medium">⚠️ تحذير جودة</div>
+            <div className="text-xs text-orange-100 mt-1">الجودة تقل مع الزوم العالي</div>
+          </div>
+        </div>
+      )}
 
       {/* Recording indicator */}
       {recording && (
@@ -770,15 +810,9 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Top info: event name */}
-      <div className="absolute top-6 inset-x-0 text-center">
-        <h1 className="text-2xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">
-          {eventName}
-        </h1>
-      </div>
 
       {/* Left icons column */}
-      <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
+      <div className="absolute left-3 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col items-center gap-4">
         <Button 
           size="icon" 
           variant="secondary" 
