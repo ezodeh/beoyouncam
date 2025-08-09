@@ -30,14 +30,22 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   }, [eventData?.start_at, eventData?.end_at]);
 
   useEffect(() => {
-    // Fetch stats
+    // Fetch real stats
     const fetchStats = async () => {
-      const participantsRes = await supabase.from("participants").select("*", { count: 'exact' }).eq("event_token", token);
+      const [participantsRes, blessingsRes, photosRes] = await Promise.all([
+        supabase.from("participants").select("*", { count: 'exact' }).eq("event_token", token),
+        supabase.from("blessings").select("*", { count: 'exact' }).eq("event_token", token),
+        supabase.storage.from("event-media").list(`events/${token}`, { limit: 1000 })
+      ]);
+
+      const photoCount = photosRes.data?.filter(file => 
+        file.name.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)
+      ).length || 0;
 
       setStats({
         participants: participantsRes.count || 0,
-        photos: 8, // Dummy data
-        messages: 12 // Dummy data
+        photos: photoCount,
+        messages: blessingsRes.count || 0
       });
     };
 

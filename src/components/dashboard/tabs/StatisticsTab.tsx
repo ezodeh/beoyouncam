@@ -26,19 +26,23 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
 
   const fetchStatistics = async () => {
     try {
-      // Fetch participants only (photos and messages tables don't exist yet)
-      const participantsRes = await supabase.from("participants").select("created_at").eq("event_token", token);
+      // Fetch real data from database
+      const [participantsRes, blessingsRes, photosRes] = await Promise.all([
+        supabase.from("participants").select("created_at").eq("event_token", token),
+        supabase.from("blessings").select("created_at").eq("event_token", token),
+        supabase.storage.from("event-media").list(`events/${token}`, { limit: 1000 })
+      ]);
       
       const participants = participantsRes.data || [];
-      const photos = Array(8).fill(null).map((_, i) => ({ created_at: new Date(Date.now() - i * 86400000).toISOString() })); // Dummy data
-      const messages = Array(12).fill(null).map((_, i) => ({ created_at: new Date(Date.now() - i * 86400000).toISOString() })); // Dummy data
+      const blessings = blessingsRes.data || [];
+      const photos = photosRes.data?.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) || [];
 
       // Calculate total stats
       setTotalStats({
         participants: participants.length,
         photos: photos.length,
-        messages: messages.length,
-        engagement: participants.length > 0 ? Math.round(((photos.length + messages.length) / participants.length) * 100) / 100 : 0
+        messages: blessings.length,
+        engagement: participants.length > 0 ? Math.round(((photos.length + blessings.length) / participants.length) * 100) / 100 : 0
       });
 
       // Group by day for daily stats
@@ -50,8 +54,11 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
 
       const dailyData = last7Days.map(date => {
         const dayParticipants = participants.filter(p => p.created_at.startsWith(date)).length;
-        const dayPhotos = photos.filter(p => p.created_at.startsWith(date)).length;
-        const dayMessages = messages.filter(m => m.created_at.startsWith(date)).length;
+        const dayPhotos = photos.filter(p => {
+          const photoDate = new Date(p.created_at || p.updated_at || '').toISOString().split('T')[0];
+          return photoDate === date;
+        }).length;
+        const dayMessages = blessings.filter(m => m.created_at.startsWith(date)).length;
 
         return {
           date: new Date(date).toLocaleDateString('ar-SA', { weekday: 'short' }),
@@ -64,9 +71,12 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
       setDailyStats(dailyData);
 
       // Participation breakdown
+      const activeParticipants = Math.min(participants.length, photos.length + blessings.length);
+      const inactiveParticipants = Math.max(0, participants.length - activeParticipants);
+      
       const participationBreakdown = [
-        { name: 'مشاركين نشطين', value: Math.min(participants.length, photos.length + messages.length) },
-        { name: 'مشاركين غير نشطين', value: Math.max(0, participants.length - (photos.length + messages.length)) }
+        { name: 'مشاركين نشطين', value: activeParticipants },
+        { name: 'مشاركين غير نشطين', value: inactiveParticipants }
       ];
 
       setParticipationData(participationBreakdown);
