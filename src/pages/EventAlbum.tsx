@@ -27,9 +27,12 @@ export default function EventAlbum() {
   const eventName = new URLSearchParams(location.search).get("title") || "ألبوم المناسبة";
   const navigate = useNavigate();
 
+  const [title, setTitle] = useState<string>(eventName);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+
   useEffect(() => {
-    document.title = `الألبوم — ${eventName} — من عيونكم`;
-  }, [eventName]);
+    document.title = `الألبوم — ${title} — من عيونكم`;
+  }, [title]);
 
   // تأكيد المرور بشاشة المقدمة أولاً
   useEffect(() => {
@@ -43,9 +46,14 @@ export default function EventAlbum() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data } = await supabase.from("events").select("is_private, published_at, title").eq("token", token).maybeSingle();
+      const { data } = await supabase.from("events").select("is_private, published_at, title, cover_url").eq("token", token).maybeSingle();
       if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventName)}`);
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(title)}`);
+        return;
+      }
+      if (data) {
+        setTitle(data.title || eventName);
+        setCoverUrl(data.cover_url || null);
       }
     })();
   }, [token]);
@@ -122,8 +130,8 @@ export default function EventAlbum() {
         <header className="relative">
           <figure className="h-44 sm:h-56 md:h-64 w-full overflow-hidden">
             <img
-              src={coverImg}
-              alt="غلاف المناسبة"
+              src={coverUrl || coverImg}
+              alt={`غلاف ${title}`}
               className="h-full w-full object-cover"
               loading="lazy"
             />
@@ -137,7 +145,7 @@ export default function EventAlbum() {
           </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {eventName}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {title}</h1>
               <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>

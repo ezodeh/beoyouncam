@@ -444,7 +444,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
           <Textarea value={greeting} onChange={(e)=>setGreeting(e.target.value)} placeholder="اكتب تهنئة قصيرة للعروسين…" />
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="secondary" onClick={() => setShowRecent(true)}>حذف بعض اللقطات</Button>
-            <Button onClick={() => navigate(`/event/${token}/final-submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
+            <Button onClick={() => navigate(`/event/${token}/submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

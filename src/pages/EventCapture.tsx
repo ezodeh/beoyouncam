@@ -1,18 +1,37 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useParams, useLocation } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import DesktopGate from "@/components/capture/DesktopGate";
 import MobileCamera from "@/components/capture/MobileCamera";
+import { supabase } from "@/integrations/supabase/client";
 
 const EventCapture = () => {
   const { token } = useParams();
   const location = useLocation();
-  const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+  const initialName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+
+  const [title, setTitle] = useState<string>(initialName);
+  const [maxShots, setMaxShots] = useState<number>(120);
 
   useEffect(() => {
-    document.title = `التقاط — ${eventName} — من عيونكم`;
-  }, [eventName]);
+    document.title = `التقاط — ${title} — من عيونكم`;
+  }, [title]);
+
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      const { data } = await supabase
+        .from("events")
+        .select("max_shots, title")
+        .eq("token", token)
+        .maybeSingle();
+      if (data) {
+        setTitle(data.title || initialName);
+        if (typeof data.max_shots === "number") setMaxShots(Math.max(1, data.max_shots));
+      }
+    })();
+  }, [token]);
 
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
@@ -26,7 +45,7 @@ const EventCapture = () => {
         {!isMobile ? (
           <DesktopGate />
         ) : (
-          <MobileCamera token={token || ""} eventName={eventName} maxShots={70} />
+          <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} />
         )}
       </main>
       <Footer />

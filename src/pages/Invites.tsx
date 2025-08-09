@@ -1,33 +1,18 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function Invites() {
   const { token } = useParams();
   const url = typeof window !== "undefined" ? `${window.location.origin}/event/${token}/welcome` : "";
-  const [country, setCountry] = useState<string>("+962");
-  const [localPhone, setLocalPhone] = useState<string>("");
   const [emails, setEmails] = useState<string>("");
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => { document.title = "دعوة الضيوف — من عيونكم"; }, []);
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("events").select("country_code").eq("token", token).maybeSingle();
-      if (data?.country_code) setCountry(data.country_code);
-    })();
-  }, [token]);
 
-  const fullPhone = useMemo(() => {
-    const sanitized = localPhone.trim().replace(/\D+/g, "");
-    if (!sanitized) return "";
-    const withoutZero = sanitized.replace(/^0+/, "");
-    return `${country}${withoutZero}`;
-  }, [localPhone, country]);
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(url); alert("تم نسخ رابط المناسبة"); } catch (_) {}
@@ -42,12 +27,6 @@ export default function Invites() {
     const body = encodeURIComponent(`تفضّلوا بالانضمام ومشاركة الصور:\n${url}`);
     const bcc = encodeURIComponent(emails);
     window.location.href = `mailto:?subject=${subject}&body=${body}&bcc=${bcc}`;
-  };
-  const shareWhatsApp = () => {
-    if (!fullPhone) return;
-    const text = encodeURIComponent(`تفضّل شاركنا صورك وفيديوهاتك بالمناسبة:\n${url}`);
-    const digits = fullPhone.replace(/\D+/g, "");
-    window.open(`https://wa.me/${digits}?text=${text}`, "_blank");
   };
   const downloadQR = async () => {
     const svg = svgRef.current;
@@ -93,14 +72,6 @@ export default function Invites() {
             <Button variant="secondary" onClick={downloadQR} className="rounded-full">تنزيل الباركود</Button>
           </div>
 
-          <div className="grid gap-3 text-right mb-6">
-            <label className="text-sm">أرسل عبر واتساب</label>
-            <div className="flex gap-2">
-              <input className="flex-1 rounded-md border border-border bg-background px-3 py-2" dir="ltr" placeholder="5XXXXXXX" value={localPhone} onChange={(e)=>setLocalPhone(e.target.value)} />
-              <input className="w-28 rounded-md border border-border bg-background px-3 py-2" dir="ltr" value={country} onChange={(e)=>setCountry(e.target.value)} />
-            </div>
-            <Button onClick={shareWhatsApp} className="rounded-full">إرسال واتساب</Button>
-          </div>
 
           <div className="grid gap-3 text-right">
             <label className="text-sm">مشاركة عبر البريد (افصل بين الإيميلات بفاصلة)</label>

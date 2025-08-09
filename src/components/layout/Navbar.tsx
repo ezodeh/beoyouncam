@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import { PlusCircle, QrCode } from "lucide-react";
+import { PlusCircle, QrCode, Settings, LogOut } from "lucide-react";
 interface NavbarProps { compact?: boolean; fullBleed?: boolean }
 const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -46,6 +46,12 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
               </Button>
               <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="مسح رمز QR">
                 <Link to="/scanner"><QrCode className="h-5 w-5" /></Link>
+              </Button>
+              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إعدادات الحساب">
+                <Link to="/settings"><Settings className="h-5 w-5" /></Link>
+              </Button>
+              <Button variant="ghost" size="icon" className="rounded-full" aria-label="تسجيل الخروج" onClick={signOut}>
+                <LogOut className="h-5 w-5" />
               </Button>
               <ThemeToggle />
             </div>
