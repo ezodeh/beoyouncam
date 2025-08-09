@@ -432,6 +432,7 @@ export default function CreateEvent() {
         published_at: publicationAt,
         country_code: organizerCountry,
         calendar_type: calendarType,
+        enable_video: enableVideo,
       });
       if (insErr) throw insErr;
 

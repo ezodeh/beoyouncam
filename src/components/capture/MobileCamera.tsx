@@ -10,6 +10,7 @@ interface Props {
   eventName: string;
   token: string;
   maxShots?: number; // default 120
+  enableVideo?: boolean; // default true
 }
 type LocalItem = {
   url: string;
@@ -18,7 +19,8 @@ type LocalItem = {
 const MobileCamera: React.FC<Props> = ({
   eventName,
   token,
-  maxShots = 120
+  maxShots = 120,
+  enableVideo = true
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -193,7 +195,7 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
   async function startVideoRecording() {
-    if (!supportsVideo) return;
+    if (!supportsVideo || !enableVideo) return;
     if (left <= 0) {
       toast({
         title: "انتهى عدد اللقطات"
@@ -350,7 +352,7 @@ const MobileCamera: React.FC<Props> = ({
   // Long-press logic
   const pressTimer = useRef<number | null>(null);
   function onShutterDown(e: React.PointerEvent) {
-    if (!supportsVideo) return; // simple: only video when supported
+    if (!supportsVideo || !enableVideo) return; // تعطيل الفيديو إذا لم يكن مفعلاً
     pressTimer.current = window.setTimeout(() => {
       startVideoRecording();
     }, 150);
@@ -425,7 +427,7 @@ const MobileCamera: React.FC<Props> = ({
       }} aria-label="تبديل الكاميرا">
           <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
-        {supportsVideo && <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
+        {supportsVideo && enableVideo && <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
             <GridIcon className="h-5 w-5" />
           </Button>}
         <Button size="icon" variant="secondary" className="rounded-full" aria-label="فلاش" disabled={!supportsTorch} onClick={() => {

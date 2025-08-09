@@ -13,6 +13,7 @@ const EventCapture = () => {
 
   const [title, setTitle] = useState<string>(initialName);
   const [maxShots, setMaxShots] = useState<number>(120);
+  const [enableVideo, setEnableVideo] = useState<boolean>(true);
 
   useEffect(() => {
     document.title = `التقاط — ${title} — من عيونكم`;
@@ -23,12 +24,13 @@ const EventCapture = () => {
       if (!token) return;
       const { data } = await supabase
         .from("events")
-        .select("max_shots, title")
+        .select("max_shots, title, enable_video")
         .eq("token", token)
         .maybeSingle();
       if (data) {
         setTitle(data.title || initialName);
         if (typeof data.max_shots === "number") setMaxShots(Math.max(1, data.max_shots));
+        if (typeof data.enable_video === "boolean") setEnableVideo(data.enable_video);
       }
     })();
   }, [token]);
@@ -45,7 +47,7 @@ const EventCapture = () => {
         {!isMobile ? (
           <DesktopGate />
         ) : (
-          <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} />
+          <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} enableVideo={enableVideo} />
         )}
       </main>
       <Footer />

@@ -48,6 +48,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           description: string | null
+          enable_video: boolean
           end_at: string | null
           expected_guests: number
           is_private: boolean
@@ -65,6 +66,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          enable_video?: boolean
           end_at?: string | null
           expected_guests?: number
           is_private?: boolean
@@ -82,6 +84,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          enable_video?: boolean
           end_at?: string | null
           expected_guests?: number
           is_private?: boolean
