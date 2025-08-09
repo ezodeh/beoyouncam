@@ -17,13 +17,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
-  const [gender, setGender] = useState<"male"|"female"|"other">("male");
+  const [gender, setGender] = useState<"male"|"female"|"other">("female");
   const [birthdate, setBirthdate] = useState<string>("");
   const navigate = useNavigate();
 
   const countries = [
-    "السعودية", "الإمارات العربية المتحدة", "قطر", "الكويت", "البحرين", "عُمان",
-    "الأردن", "لبنان", "فلسطين", "سوريا", "العراق", "مصر", "ليبيا", "تونس", 
+    "فلسطين", "السعودية", "الإمارات العربية المتحدة", "قطر", "الكويت", "البحرين", "عُمان",
+    "الأردن", "لبنان", "سوريا", "العراق", "مصر", "ليبيا", "تونس", 
     "الجزائر", "المغرب", "السودان", "الصومال", "جيبوتي", "موريتانيا", "اليمن"
   ];
 
@@ -50,6 +50,7 @@ export default function Auth() {
         "Jordan": "الأردن",
         "Lebanon": "لبنان",
         "Palestine": "فلسطين",
+        "Israel": "فلسطين", // إسرائيل = فلسطين المحتلة
         "Syria": "سوريا",
         "Iraq": "العراق",
         "Egypt": "مصر",
@@ -161,8 +162,12 @@ const signUpGoogle = async () => {
               </Select>
 
               <div className="grid gap-2">
-                <Label className="text-right">النوع</Label>
+                <Label className="text-right">الجنس</Label>
                 <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4 justify-end">
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Label htmlFor="g-female">أنثى</Label>
+                    <RadioGroupItem id="g-female" value="female" />
+                  </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Label htmlFor="g-male">ذكر</Label>
                     <RadioGroupItem id="g-male" value="male" />
@@ -170,10 +175,6 @@ const signUpGoogle = async () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Label htmlFor="g-other">أخرى</Label>
                     <RadioGroupItem id="g-other" value="other" />
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <Label htmlFor="g-female">أنثى</Label>
-                    <RadioGroupItem id="g-female" value="female" />
                   </div>
                 </RadioGroup>
               </div>
@@ -183,7 +184,7 @@ const signUpGoogle = async () => {
 
               <label className="flex items-center gap-2 text-sm mt-1 justify-start">
                 <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
-                <span>أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
+                <span dir="rtl">أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
               </label>
 
               <Button className="w-full rounded-full" disabled={loading || !agree} onClick={signUp}>إنشاء حساب</Button>
