@@ -7,11 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const dummyPhotos = new Array(18).fill(0).map((_, i) => ({ id: i + 1 }));
-const dummyMessages = [
-  { id: 1, name: "خالد", text: "مبارك وربي يتمّم لكم على خير!" },
-  { id: 2, name: "ليلى", text: "أيامكم كلها فرح وسعادة" },
-];
 
 export default function EventAlbumByEyes() {
   const { token, name } = useParams();
@@ -20,46 +15,15 @@ export default function EventAlbumByEyes() {
     document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
 
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const mediaItems: { type: "image" | "video"; src: string; alt?: string }[] = dummyPhotos.map((_, i) => ({
-    type: "image",
-    src: coverImg,
-    alt: `صورة ${i + 1} بعيون ${name}`,
-  }));
   const [shareCount, setShareCount] = useState(0);
 
-  const openAt = (i: number) => setLightboxIndex(i);
-  const close = () => setLightboxIndex(null);
-  const prev = () => setLightboxIndex((idx) => (idx === null ? idx : (idx - 1 + mediaItems.length) % mediaItems.length));
-  const next = () => setLightboxIndex((idx) => (idx === null ? idx : (idx + 1) % mediaItems.length));
-
-  useEffect(() => {
-    if (lightboxIndex === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightboxIndex, mediaItems.length]);
-
-  const { toast } = useToast();
-  const personName = name ?? "";
   const sharePage = async () => {
     const url = window.location.href;
     const title = `بعيون ${name} — من عيونكم`;
     if ((navigator as any).share) {
-      try {
-        await (navigator as any).share({ title, url });
-        setShareCount((c) => c + 1);
-      } catch (_) {}
+      try { await (navigator as any).share({ title, url }); setShareCount((c)=>c+1); } catch(_){}
     } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setShareCount((c) => c + 1);
-        toast({ title: "تم نسخ رابط المشاركة" });
-      } catch (_) {}
+      try { await navigator.clipboard.writeText(url); setShareCount((c)=>c+1); toast({ title: "تم نسخ رابط المشاركة" }); } catch(_){}
     }
   };
 

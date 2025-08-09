@@ -12,14 +12,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-const dummyMessages = [
-  { id: 1, name: "خالد", text: "ألف مبروك وربنا يتمّم على خير!", at: "قبل ساعتين" },
-  { id: 2, name: "محمد", text: "يا رب أيامكم كلها فرح وسعادة.", at: "أمس" },
-  { id: 3, name: "سارة", text: "ابتسامات لا تنتهي!", at: "منذ 3 أيام" },
-];
+// سنجلب الوسائط من التخزين بدل البيانات التجريبية
+interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string }
 
-const dummyAlbums = ["خالد", "محمد", "سارة", "ليلى", "نور"]; // بعيون ...
-const dummyPhotos = new Array(15).fill(0).map((_, i) => ({ id: i + 1, by: dummyAlbums[i % dummyAlbums.length] }));
 
 export default function EventAlbum() {
   const { token } = useParams();
@@ -58,68 +53,71 @@ export default function EventAlbum() {
     })();
   }, [token]);
 
-  // مباركات
-  const [isBlessingOpen, setBlessingOpen] = useState(false);
-  const [blessingName, setBlessingName] = useState("");
-  const [blessingText, setBlessingText] = useState("");
-  const [blessingViewerIndex, setBlessingViewerIndex] = useState<number | null>(null);
-  const nextBlessing = () => setBlessingViewerIndex((i) => (i === null ? null : (i + 1) % dummyMessages.length));
-  const prevBlessing = () => setBlessingViewerIndex((i) => (i === null ? null : (i - 1 + dummyMessages.length) % dummyMessages.length));
+  // وسائط الألبوم من التخزين
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState<boolean>(true);
   const { toast } = useToast();
 
-// عارض الصور (فول سكرين)
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      setLoadingMedia(true);
+      try {
+        const prefix = `events/${token}`;
+        const { data: files, error } = await supabase.storage
+          .from("event-media")
+          .list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "asc" } as any });
+        if (error) throw error;
+        const items: MediaItem[] = (files || []).filter((f: any) => !String(f.name || "").startsWith(".")).map((f: any) => {
+          const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${f.name}`);
+          const ext = String(f.name || "").split(".").pop()?.toLowerCase() || "";
+          const type: "image" | "video" = ["jpg","jpeg","png","webp","gif","heic","heif","avif"].includes(ext) ? "image" : "video";
+          return { url: pub.publicUrl, type, createdAt: (f as any).created_at ?? null, name: f.name };
+        });
+        items.sort((a,b)=> (a.createdAt && b.createdAt) ? (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) : a.name.localeCompare(b.name));
+        setMedia(items);
+      } catch (_) {
+        toast({ title: "تعذّر تحميل الوسائط" });
+      } finally {
+        setLoadingMedia(false);
+      }
+    })();
+  }, [token]);
+
+  // عارض الصور (فول سكرين)
+  const imageItems = media.filter((m)=>m.type === "image");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const images = dummyPhotos.map(() => coverImg); // مؤقتًا نفس الصورة كعنصر توضيحي
   const closeLightbox = () => setLightboxIndex(null);
-  const nextImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx + 1) % images.length));
-  const prevImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx - 1 + images.length) % images.length));
+  const nextImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx + 1) % imageItems.length));
+  const prevImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx - 1 + imageItems.length) % imageItems.length));
   // سوايب رأسي مثل تيكتوك
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const handleTouchStart = (e: any) => {
-    setTouchStartY(e.touches?.[0]?.clientY ?? null);
-  };
+  const handleTouchStart = (e: any) => { setTouchStartY(e.touches?.[0]?.clientY ?? null); };
   const handleTouchEnd = (e: any) => {
     if (touchStartY === null) return;
     const dy = (e.changedTouches?.[0]?.clientY ?? touchStartY) - touchStartY;
-    if (Math.abs(dy) > 50) {
-      if (dy < 0) nextImage();
-      else prevImage();
-    }
+    if (Math.abs(dy) > 50) { if (dy < 0) nextImage(); else prevImage(); }
     setTouchStartY(null);
   };
 
   const shareCurrent = async () => {
     if (lightboxIndex === null) return;
-    const owner = (dummyPhotos as Array<{ id: number; by: string }>)[lightboxIndex]?.by;
     const shareUrl = window.location.href;
-    const title = `${eventName} — بعيون ${owner}`;
-    const text = `لقطة جميلة من ${owner}`;
+    const t = `الألبوم — ${title}`;
     if ((navigator as any).share) {
-      try {
-        await (navigator as any).share({ title, text, url: shareUrl });
-      } catch (_) {
-        // user cancelled
-      }
+      try { await (navigator as any).share({ title: t, url: shareUrl }); } catch (_) {}
     } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "تم نسخ رابط المشاركة" });
-      } catch (_) {}
+      try { await navigator.clipboard.writeText(shareUrl); toast({ title: "تم نسخ رابط المشاركة" }); } catch (_) {}
     }
   };
 
   const shareAlbum = async () => {
     const shareUrl = window.location.href;
-    const title = `الألبوم — ${eventName}`;
+    const t = `الألبوم — ${title}`;
     if ((navigator as any).share) {
-      try {
-        await (navigator as any).share({ title, url: shareUrl });
-      } catch (_) {}
+      try { await (navigator as any).share({ title: t, url: shareUrl }); } catch (_) {}
     } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "تم نسخ رابط المشاركة" });
-      } catch (_) {}
+      try { await navigator.clipboard.writeText(shareUrl); toast({ title: "تم نسخ رابط المشاركة" }); } catch (_) {}
     }
   };
 
@@ -153,171 +151,33 @@ export default function EventAlbum() {
 
         <section className="container mx-auto px-4 py-6">
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className="grid grid-cols-3 w-full max-w-md rounded-full mx-auto">
-              <TabsTrigger value="congrats" aria-label="المباركات">
-                <PartyPopper className="h-5 w-5" />
-                <span className="sr-only">المباركات</span>
-              </TabsTrigger>
+            <TabsList className="grid grid-cols-1 w-full max-w-xs rounded-full mx-auto">
               <TabsTrigger value="photos" aria-label="الصور">
                 <Images className="h-5 w-5" />
                 <span className="sr-only">الصور</span>
               </TabsTrigger>
-              <TabsTrigger value="albums" aria-label="الألبومات">
-                <SquareStack className="h-5 w-5" />
-                <span className="sr-only">الألبومات</span>
-              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="congrats" className="mt-6 pb-32">
-              <div className="grid gap-3 max-w-3xl mx-auto">
-                {dummyMessages.map((m, idx) => (
-                  <Card
-                    key={m.id}
-                    className="bg-card border border-border cursor-pointer"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setBlessingViewerIndex(idx)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="text-right">
-                        <div className="font-nastaliq font-semibold">{m.name}</div>
-                        <p
-                          className="mt-2 text-sm leading-7 text-foreground/90"
-                          style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
-                        >
-                          {m.text}
-                        </p>
-                        <div className="mt-1 text-xs text-muted-foreground text-left">{m.at}</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* زر إضافة مباركة */}
-               <div className="fixed bottom-28 sm:bottom-32 md:bottom-36 left-4 sm:left-6 z-50 pointer-events-none">
-                 <Button
-                   onClick={() => setBlessingOpen(true)}
-                   className="h-14 w-14 rounded-full shadow-lg pointer-events-auto"
-                   aria-label="أضف مباركة"
-                 >
-                   <Plus className="h-6 w-6" />
-                 </Button>
-               </div>
-
-              {/* Dialog إضافة مباركة */}
-              <Dialog open={isBlessingOpen} onOpenChange={setBlessingOpen}>
-                <DialogContent dir="rtl" className="sm:max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>إضافة مباركة</DialogTitle>
-                    <DialogDescription>اكتب رسالتك الجميلة مع اسمك.</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm mb-1">المباركة</label>
-                      <Textarea
-                        value={blessingText}
-                        onChange={(e) => setBlessingText(e.target.value)}
-                        placeholder="اكتب المباركة هنا..."
-                        rows={5}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm mb-1">الاسم</label>
-                      <Input
-                        value={blessingName}
-                        onChange={(e) => setBlessingName(e.target.value)}
-                        placeholder="الاسم"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter className="gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setBlessingOpen(false)}
-                    >
-                      إلغاء
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setBlessingOpen(false);
-                        setBlessingName("");
-                        setBlessingText("");
-                        toast({ title: "تم نشر المباركة" });
-                      }}
-                    >
-                      نشر
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              {/* Dialog عرض المباركة كاملة مع تنقل */}
-              <Dialog open={blessingViewerIndex !== null} onOpenChange={(open) => setBlessingViewerIndex(open ? (blessingViewerIndex ?? 0) : null)}>
-                <DialogContent dir="rtl" className="sm:max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle className="font-nastaliq">
-                      {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].name : ""}
-                    </DialogTitle>
-                    <DialogDescription className="text-left">
-                      {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].at : ""}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="text-right whitespace-pre-wrap leading-8">
-                    {blessingViewerIndex !== null ? dummyMessages[blessingViewerIndex].text : ""}
-                  </div>
-                  <DialogFooter className="w-full flex items-center justify-between">
-                    <Button variant="ghost" onClick={prevBlessing} aria-label="السابق">
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                    <div className="text-xs text-muted-foreground">
-                      {blessingViewerIndex !== null ? String(blessingViewerIndex + 1).padStart(2, "0") : "00"}/{dummyMessages.length}
-                    </div>
-                    <Button variant="ghost" onClick={nextBlessing} aria-label="التالي">
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </TabsContent>
-
             <TabsContent value="photos" className="mt-6">
-              <div className="max-w-4xl mx-auto">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-                  {dummyPhotos.map((p, idx) => (
-                    <button
-                      key={p.id}
-                      className="aspect-square overflow-hidden rounded-md border border-border bg-muted"
-                      onClick={() => setLightboxIndex(idx)}
-                      aria-label={`عرض الصورة رقم ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="albums" className="mt-6">
-              <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {dummyAlbums.map((name, i) => (
-                  <Link
-                    key={i}
-                    to={`/album/${token}/by/${encodeURIComponent(name)}`}
-                    aria-label={`ألبوم بعيون ${name}`}
-                    className={`${i === dummyAlbums.length - 1 && dummyAlbums.length % 3 === 1 ? "md:col-start-3" : ""}`}
-                  >
-                    <Card className="bg-card border border-border hover:shadow-elevated transition-shadow" role="link">
-                      <CardContent className="p-0">
-                        <div className="relative aspect-video rounded-md bg-muted overflow-hidden">
-                          <div className="absolute top-2 right-2 rounded-full bg-background/80 text-foreground shadow px-3 py-1 font-nastaliq text-sm">
-                            بعيون {name}
-                          </div>
-                        </div>
-                        <div className="p-4">
-                          <p className="text-sm text-muted-foreground text-right">اسم المناسبة من صور وفيديو الاسم تاع المستخدم الي وثّق</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+              <div className="max-w-5xl mx-auto">
+                {loadingMedia ? (
+                  <div className="text-center text-sm text-muted-foreground py-10">جارٍ تحميل الصور…</div>
+                ) : imageItems.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-10">لا توجد صور بعد</div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
+                    {imageItems.map((it, idx) => (
+                      <button
+                        key={it.name + idx}
+                        className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+                        onClick={() => setLightboxIndex(idx)}
+                        aria-label={`عرض الصورة رقم ${idx + 1}`}
+                      >
+                        <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -349,24 +209,10 @@ export default function EventAlbum() {
             <Share2 className="h-6 w-6" />
           </button>
 
-          <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{images.length}</div>
+          <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{imageItems.length}</div>
 
           <div className="h-full w-full flex items-center justify-center p-4">
-            <img src={images[lightboxIndex!]} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
-          </div>
-
-          {/* شريط معلومات سفلي على طريقة تيكتوك */}
-          <div className="absolute inset-x-0 bottom-0 p-4 z-20">
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-black/0" />
-            <div className="relative flex items-center justify-between">
-              <Link
-                to={`/album/${token}/by/${encodeURIComponent((dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by)}`}
-                className="rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5"
-                aria-label={`اذهب لألبوم بعيون ${(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}`}
-              >
-                <span className="text-base md:text-lg font-nastaliq">بعيون {(dummyPhotos as Array<{id:number;by:string}>)[lightboxIndex].by}</span>
-              </Link>
-            </div>
+            <img src={imageItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
           </div>
 
           <div className="absolute inset-y-0 start-0 z-10 flex items-center p-4">
