@@ -144,7 +144,12 @@ export default function EventWelcome() {
       await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.href,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          scopes: 'openid email profile'
         }
       });
     } catch (_) {}
@@ -174,17 +179,44 @@ export default function EventWelcome() {
           session
         }
       } = await supabase.auth.getSession();
-      if (has || session) {
-        if (session) {
-          try {
-            await supabase.from("participants").insert({
-              event_token: token,
-              method: "google",
-              user_id: session.user.id
-            });
-          } catch (_) {}
+      
+      if (session?.user) {
+        // Auto-fill form with user data from Google/auth
+        const userData = session.user;
+        const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
+        const userEmail = userData.email || "";
+        
+        if (fullName) setName(fullName);
+        if (userEmail) setEmail(userEmail);
+        
+        // If user is logged in and we have their data, try to add them as participant
+        try {
+          await supabase.from("participants").insert({
+            event_token: token,
+            method: "google",
+            user_id: session.user.id,
+            name: fullName || "مستخدم",
+            email: userEmail
+          });
           localStorage.setItem(`participant:${token}`, "1");
+          localStorage.setItem(`participantName:${token}`, fullName || "مستخدم");
+          
+          // If we have all needed data, go directly to camera
+          if (fullName && userEmail) {
+            goToCamera();
+            return;
+          }
+        } catch (_) {
+          // Participant might already exist, check if we can proceed
+          if (has) {
+            goToCamera();
+            return;
+          }
         }
+      }
+      
+      // If already registered locally, proceed
+      if (has) {
         goToCamera();
       }
     })();

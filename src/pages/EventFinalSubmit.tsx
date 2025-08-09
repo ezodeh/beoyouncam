@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,10 +21,21 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+// Default congratulations messages
+const defaultBlessings = [
+  "مبروك وألف مبروك! 🎉",
+  "بارك الله لكم في هذه المناسبة السعيدة 💙",
+  "أجمل التهاني والتبريكات ❤️",
+  "كل عام وأنتم بخير وسعادة 🌟",
+  "تهانينا القلبية لكم في هذا اليوم المميز 🎊",
+  "أطيب التمنيات بالسعادة والتوفيق 🌹"
+];
+
 export default function EventFinalSubmit() {
   const { token } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
   useEffect(() => {
     document.title = "تسليم الألبوم — عيون cam";
@@ -33,8 +44,47 @@ export default function EventFinalSubmit() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({ 
+    resolver: zodResolver(schema),
+    defaultValues: {
+      blessing: defaultBlessings[Math.floor(Math.random() * defaultBlessings.length)]
+    }
+  });
+
+  // Auto-fill user data if logged in
+  useEffect(() => {
+    if (isUserDataLoaded) return;
+    
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          const userData = session.user;
+          const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
+          const userEmail = userData.email || "";
+          const userPhone = userData.user_metadata?.phone || userData.phone || "";
+          
+          if (fullName) setValue("name", fullName);
+          if (userEmail) setValue("email", userEmail);
+          if (userPhone) setValue("phone", userPhone);
+        }
+        
+        // Check if participant exists for this event to get stored data
+        const storedName = localStorage.getItem(`participantName:${token}`);
+        if (storedName && !session?.user?.user_metadata?.full_name) {
+          setValue("name", storedName);
+        }
+        
+        setIsUserDataLoaded(true);
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        setIsUserDataLoaded(true);
+      }
+    })();
+  }, [setValue, token, isUserDataLoaded]);
 
   async function onSubmit(values: FormData) {
     // هنا يمكن إرسال القيم إلى الـ API لتخزين تفاصيل التسليم
