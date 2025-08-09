@@ -35,15 +35,12 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
       <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} px-4`}>
         {/* Mobile Layout - Stacked */}
         <div className="md:hidden">
-          {/* First row - Logo */}
-          <div className="flex items-center justify-center py-3 border-b border-border/50">
+          {/* Logo and Menu in same row */}
+          <div className="flex items-center justify-between py-3">
             <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
               <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
             </Link>
-          </div>
-          
-          {/* Second row - Menu/Auth */}
-          <div className="flex items-center justify-end py-3">
+            
             {userName ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -51,37 +48,40 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                     <MoreVertical className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-background border border-border shadow-lg z-50">
                   <DropdownMenuItem asChild>
-                    <Link to="/create-event" className="inline-flex items-center gap-2 w-full">
+                    <Link to="/create-event" className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
                       <PlusCircle className="h-4 w-4" />
                       إنشاء مناسبة
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/scanner" className="inline-flex items-center gap-2 w-full">
+                    <Link to="/scanner" className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
                       <QrCode className="h-4 w-4" />
                       ماسح QR
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/settings" className="inline-flex items-center gap-2 w-full">
+                    <Link to="/settings" className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
                       <Settings className="h-4 w-4" />
                       إعدادات الحساب
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center justify-between w-full">
-                    <span>الوضع الليلي</span>
-                    <ThemeToggle />
+                  <DropdownMenuItem asChild>
+                    <div className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                      <div className="h-4 w-4" /> {/* spacer */}
+                      <span className="flex-1">الوضع الليلي</span>
+                      <ThemeToggle />
+                    </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2 w-full text-destructive focus:text-destructive">
+                  <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2 w-full px-2 py-2 text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer">
                     <LogOut className="h-4 w-4" />
                     تسجيل الخروج
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild variant="hero" size="sm" className="px-8" aria-label="تسجيل الدخول">
+              <Button asChild variant="hero" size="sm" className="px-6" aria-label="تسجيل الدخول">
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
             )}
