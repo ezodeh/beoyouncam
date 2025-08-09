@@ -12,7 +12,7 @@ export default function Account() {
   const [joinedEvents, setJoinedEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
-    document.title = "حسابي — من عيونكم";
+    document.title = "حسابي — عيون cam";
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const uid = session?.user.id || null;
@@ -127,7 +127,7 @@ export default function Account() {
                   <div className="w-48 h-48 mx-auto mb-6 flex items-center justify-center">
                     <img 
                       src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" 
-                      alt="من عيونكم" 
+                      alt="عيون cam" 
                       className="w-full h-full object-contain"
                     />
                   </div>
@@ -137,7 +137,7 @@ export default function Account() {
                   </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
                   <div className="p-6 border rounded-xl hover:shadow-lg transition-shadow">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                       <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,6 +171,27 @@ export default function Account() {
                       className="inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground px-6 py-2 hover:bg-secondary/90 transition-colors"
                     >
                       مسح الرمز
+                    </Link>
+                  </div>
+
+                  <div className="p-6 border rounded-xl hover:shadow-lg transition-shadow">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        <rect x="9" y="9" width="6" height="6" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m9 12 2 2 4-4"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-xl mb-2">ماسح QR</h3>
+                    <p className="text-muted-foreground mb-4">
+                      استخدم ماسح الرمز للدخول لأي مناسبة بسرعة وسهولة
+                    </p>
+                    <Link
+                      to="/scanner"
+                      className="inline-flex items-center justify-center rounded-full bg-accent text-accent-foreground px-6 py-2 hover:bg-accent/90 transition-colors"
+                    >
+                      فتح الماسح
                     </Link>
                   </div>
                 </div>
