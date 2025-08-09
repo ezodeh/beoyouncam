@@ -109,9 +109,6 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                 <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إنشاء مناسبة جديدة">
                   <Link to="/create-event"><PlusCircle className="h-5 w-5" /></Link>
                 </Button>
-                <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="مسح رمز QR">
-                  <Link to="/scanner"><QrCode className="h-5 w-5" /></Link>
-                </Button>
                 <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إعدادات الحساب">
                   <Link to="/settings"><Settings className="h-5 w-5" /></Link>
                 </Button>
