@@ -20,6 +20,7 @@ const EventCapture = () => {
   }, [title]);
 
   useEffect(() => {
+    console.log("🔧 EventCapture: Loading event data for token:", token);
     (async () => {
       if (!token) return;
       const { data } = await supabase
@@ -27,6 +28,7 @@ const EventCapture = () => {
         .select("max_shots, title, enable_video")
         .eq("token", token)
         .maybeSingle();
+      console.log("🔧 EventCapture: Event data loaded:", data);
       if (data) {
         setTitle(data.title || initialName);
         if (typeof data.max_shots === "number") setMaxShots(Math.max(1, data.max_shots));
@@ -39,6 +41,9 @@ const EventCapture = () => {
   const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
   const isNarrow = typeof window !== "undefined" ? window.innerWidth < 900 : false;
   const isMobile = isMobileUA && isNarrow;
+  
+  console.log("📱 EventCapture: Device detection - UA:", ua);
+  console.log("📱 EventCapture: isMobileUA:", isMobileUA, "isNarrow:", isNarrow, "isMobile:", isMobile);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

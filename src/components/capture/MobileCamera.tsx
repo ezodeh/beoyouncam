@@ -118,6 +118,12 @@ const MobileCamera: React.FC<Props> = ({
   const [greeting, setGreeting] = useState("");
   const navigate = useNavigate();
   async function openStream() {
+    console.log("🎥 MobileCamera: Attempting to open camera stream...");
+    console.log("🎥 MobileCamera: facingMode:", facingMode);
+    console.log("🎥 MobileCamera: enableVideo:", enableVideo);
+    console.log("🎥 MobileCamera: navigator.mediaDevices:", !!navigator.mediaDevices);
+    console.log("🎥 MobileCamera: getUserMedia support:", !!navigator.mediaDevices?.getUserMedia);
+    
     try {
       const constraints: MediaStreamConstraints = {
         audio: false,
@@ -125,17 +131,27 @@ const MobileCamera: React.FC<Props> = ({
           facingMode
         }
       };
+      console.log("🎥 MobileCamera: Requesting camera with constraints:", constraints);
+      
       const s = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("🎥 MobileCamera: Camera stream obtained successfully:", s);
+      
       streamRef.current = s;
       if (videoRef.current) {
+        console.log("🎥 MobileCamera: Setting video element source...");
         videoRef.current.srcObject = s;
-        await videoRef.current.play().catch(() => {});
+        await videoRef.current.play().catch((playError) => {
+          console.error("🎥 MobileCamera: Video play error:", playError);
+        });
+        console.log("🎥 MobileCamera: Video playing successfully");
       }
-      const track = s.getVideoTracks?.()[0];
+      const track = s.getVideoTracks?.()?.[0];
       const caps: any = track?.getCapabilities?.();
       setSupportsTorch(Boolean(caps?.torch));
       setPermissionDenied(false);
+      console.log("🎥 MobileCamera: Camera setup complete");
     } catch (e) {
+      console.error("🎥 MobileCamera: Camera access error:", e);
       setPermissionDenied(true);
     }
   }
@@ -154,7 +170,9 @@ const MobileCamera: React.FC<Props> = ({
     return String(n).padStart(2, "0");
   }
   async function capturePhoto() {
+    console.log("📸 MobileCamera: Capture photo attempt, left shots:", left);
     if (left <= 0) {
+      console.log("📸 MobileCamera: No shots left");
       toast({
         title: "انتهى عدد اللقطات"
       });
@@ -352,20 +370,30 @@ const MobileCamera: React.FC<Props> = ({
   // Long-press logic
   const pressTimer = useRef<number | null>(null);
   function onShutterDown(e: React.PointerEvent) {
-    if (!supportsVideo || !enableVideo) return; // تعطيل الفيديو إذا لم يكن مفعلاً
+    console.log("🎯 MobileCamera: Shutter pressed - enableVideo:", enableVideo, "supportsVideo:", supportsVideo);
+    if (!supportsVideo || !enableVideo) {
+      // إذا كان الفيديو معطل، التقط صورة مباشرة
+      console.log("📸 MobileCamera: Video disabled, capturing photo immediately");
+      capturePhoto();
+      return;
+    }
     pressTimer.current = window.setTimeout(() => {
       startVideoRecording();
     }, 150);
   }
   function onShutterUp(e: React.PointerEvent) {
+    console.log("🎯 MobileCamera: Shutter released - recording:", recording, "pressTimer:", !!pressTimer.current, "enableVideo:", enableVideo);
     if (recording) {
+      console.log("📹 MobileCamera: Stopping video recording");
       stopVideoRecording();
     } else {
       if (pressTimer.current) {
+        console.log("📸 MobileCamera: Taking photo from timer");
         clearTimeout(pressTimer.current);
         pressTimer.current = null;
         capturePhoto();
       }
+      // إذا كان الفيديو معطل، فالصورة تم التقاطها في onShutterDown
     }
   }
   if (permissionDenied) {
