@@ -90,27 +90,29 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className="relative h-40 md:h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <defs>
-                    <linearGradient id="attendanceGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" />
-                      <stop offset="100%" stopColor="hsl(var(--accent))" />
-                    </linearGradient>
-                  </defs>
-                  <Pie
-                    data={[{ name: 'حضور', value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100)) }, { name: 'متبق', value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants) }]}
-                    dataKey="value"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                  >
-                    <Cell fill="url(#attendanceGrad)" />
-                    <Cell fill="hsl(var(--muted-foreground) / 0.2)" />
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+            <Link to={`/manage/${token}?tab=participants`} className="relative h-40 md:h-48 block cursor-pointer">
+              <div className="absolute inset-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      <linearGradient id="attendanceGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" />
+                      </linearGradient>
+                    </defs>
+                    <Pie
+                      data={[{ name: 'حضور', value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100)) }, { name: 'متبق', value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants) }]}
+                      dataKey="value"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={2}
+                    >
+                      <Cell fill="url(#attendanceGrad)" />
+                      <Cell fill="hsl(var(--muted-foreground) / 0.2)" />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-xl font-bold">
@@ -119,7 +121,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   <div className="text-xs text-muted-foreground">الحضور</div>
                 </div>
               </div>
-            </div>
+            </Link>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="inline-block h-3 w-3 rounded-full" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))' }} />
@@ -196,16 +198,24 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           </CardHeader>
           <CardContent className="text-center">
             <div className="bg-white p-3 rounded-lg inline-block mb-3">
-              <QRCode value={eventUrl} size={96} />
+              <div id="overview-qr-wrap">
+                <QRCode id="overview-qr" value={eventUrl} size={112} />
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-3">
-              اعرض هذا الرمز للضيوف للدخول المباشر
-            </p>
-            <Button variant="outline" size="sm" onClick={() => {
-              navigator.clipboard.writeText(eventUrl);
-            }}>
-              نسخ الرابط
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(eventUrl)}>نسخ الرابط</Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+                if (!svg) return;
+                const serializer = new XMLSerializer();
+                const source = serializer.serializeToString(svg);
+                const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `event-${token}-qr.svg`; a.click(); URL.revokeObjectURL(url);
+              }}>تنزيل الباركود (SVG)</Button>
+              <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم بالكانفا</Button>
+            </div>
           </CardContent>
         </Card>
 
