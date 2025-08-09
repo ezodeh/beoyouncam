@@ -36,6 +36,23 @@ function DateTimeField({
   error?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  
+  // Extract current time values
+  const currentHour = value ? value.getHours().toString().padStart(2, '0') : '09';
+  const currentMinute = value ? value.getMinutes().toString().padStart(2, '0') : '00';
+  
+  const handleTimeChange = (hour: string, minute: string) => {
+    const base = value ?? new Date();
+    const next = new Date(base);
+    next.setHours(parseInt(hour, 10));
+    next.setMinutes(parseInt(minute, 10));
+    onChange(next);
+  };
+
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).filter((_, i) => i % 5 === 0); // Every 5 minutes
+
   return (
     <div className="grid gap-1.5">
       <div className="flex items-center justify-between">
@@ -60,20 +77,67 @@ function DateTimeField({
             selected={value ?? undefined}
             onSelect={(d) => onChange(d ?? null)}
             initialFocus
+            className="pointer-events-auto"
           />
           <div className="mt-3 flex items-center gap-2">
-            <Input
-              aria-label="الوقت"
-              type="time"
-              onChange={(e) => {
-                const [h, m] = e.target.value.split(":").map(Number);
-                const base = value ?? new Date();
-                const next = new Date(base);
-                if (!Number.isNaN(h)) next.setHours(h);
-                if (!Number.isNaN(m)) next.setMinutes(m);
-                onChange(next);
-              }}
-            />
+            {/* Mobile-friendly time picker */}
+            <Drawer open={timePickerOpen} onOpenChange={setTimePickerOpen}>
+              <DrawerHeader className="hidden" />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setTimePickerOpen(true)}
+                className="flex-1"
+              >
+                {currentHour}:{currentMinute}
+              </Button>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>اختر الوقت</DrawerTitle>
+                </DrawerHeader>
+                <div className="px-4 pb-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">الساعة</Label>
+                      <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                        {hours.map((hour) => (
+                          <Button
+                            key={hour}
+                            variant={currentHour === hour ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleTimeChange(hour, currentMinute)}
+                            className="text-sm"
+                          >
+                            {hour}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">الدقيقة</Label>
+                      <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                        {minutes.map((minute) => (
+                          <Button
+                            key={minute}
+                            variant={currentMinute === minute ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleTimeChange(currentHour, minute)}
+                            className="text-sm"
+                          >
+                            {minute}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button className="w-full">تأكيد</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
             <Button size="sm" variant="secondary" onClick={() => setOpen(false)}>
               موافق
             </Button>
@@ -107,7 +171,7 @@ function Pill({ selected, children, onClick, disabled = false }: any) {
 export default function CreateEvent() {
   // SEO
   useEffect(() => {
-    document.title = "إنشاء مناسبة — من عيونكم";
+    document.title = "إنشاء مناسبة — عيون cam";
     const desc = "أنشئ مناسبة وادعُ ضيوفك لمشاركة الصور والفيديو — سريع وسهل.";
     let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
     if (!meta) {
