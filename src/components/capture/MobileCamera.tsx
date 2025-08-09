@@ -7,6 +7,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 
+// Add camera mode class to body when component mounts
+function useCameraMode() {
+  React.useEffect(() => {
+    document.body.classList.add('camera-mode');
+    document.documentElement.classList.add('camera-mode');
+    
+    return () => {
+      document.body.classList.remove('camera-mode');
+      document.documentElement.classList.remove('camera-mode');
+    };
+  }, []);
+}
+
 interface Props {
   eventName: string;
   token: string;
@@ -48,6 +61,9 @@ const MobileCamera: React.FC<Props> = ({
   const [zoom, setZoom] = useState<number>(1);
   const [greeting, setGreeting] = useState("");
   const navigate = useNavigate();
+
+  // Enable camera mode styling
+  useCameraMode();
 
   // Professional Hybrid Zoom System
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
