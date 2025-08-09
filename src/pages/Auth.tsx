@@ -71,10 +71,10 @@ const signUpGoogle = async () => {
               <TabsTrigger value="signup">تسجيل حساب</TabsTrigger>
             </TabsList>
             <TabsContent value="signin" className="mt-4 grid gap-3">
-              <Label>البريد الإلكتروني</Label>
-              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
-              <Label>كلمة المرور</Label>
-              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" />
+              <Label className="text-right">البريد الإلكتروني</Label>
+              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
+              <Label className="text-right">كلمة المرور</Label>
+              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" className="text-right" />
 <Button className="w-full rounded-full" disabled={loading} onClick={signIn}>دخول</Button>
 <Button variant="secondary" className="w-full rounded-full" onClick={signInGoogle}>المتابعة بـ Google</Button>
             </TabsContent>
