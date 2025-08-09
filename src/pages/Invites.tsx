@@ -97,23 +97,40 @@ export default function Invites() {
               variant="outline" 
               className="rounded-full w-full"
               onClick={async () => {
-                if ('NDEFWriter' in window) {
-                  try {
-                    const ndef = new (window as any).NDEFWriter();
-                    await ndef.write({
-                      records: [{ recordType: "url", data: url }]
-                    });
-                    alert("جاهز للمشاركة عبر NFC - قرب الهاتف من هاتف آخر");
-                  } catch (error) {
-                    alert("NFC غير مدعوم على هذا الجهاز");
+                // Check if we're on HTTPS
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                  alert("مشاركة NFC تحتاج HTTPS - استخدم النسخة المنشورة من التطبيق");
+                  return;
+                }
+
+                // Check for NFC support
+                if (!('NDEFWriter' in window)) {
+                  alert("NFC غير مدعوم على هذا المتصفح. يعمل فقط على Chrome Android");
+                  return;
+                }
+
+                try {
+                  const ndef = new (window as any).NDEFWriter();
+                  await ndef.write({
+                    records: [{ recordType: "url", data: url }]
+                  });
+                  alert("✅ تم تفعيل NFC! قرب الهاتف من هاتف آخر يدعم NFC");
+                } catch (error: any) {
+                  if (error.name === 'NotAllowedError') {
+                    alert("يرجى السماح باستخدام NFC في إعدادات المتصفح");
+                  } else if (error.name === 'NotSupportedError') {
+                    alert("هذا الجهاز لا يدعم NFC");
+                  } else {
+                    alert("خطأ في تفعيل NFC: " + error.message);
                   }
-                } else {
-                  alert("NFC غير مدعوم على هذا المتصفح");
                 }
               }}
             >
-              مشاركة عبر NFC
+              📱 مشاركة عبر NFC
             </Button>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              يعمل على Chrome Android + HTTPS فقط
+            </p>
           </div>
         </div>
       </main>
