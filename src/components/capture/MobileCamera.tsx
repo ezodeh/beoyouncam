@@ -391,9 +391,9 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       </div>;
   }
-  return <div className="relative w-full h-[calc(100dvh-48px)] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
-      {/* Preview */}
-    <video ref={videoRef} className="absolute inset-0 w-full h-full object-contain bg-black touch-none will-change-transform" style={{
+  return <div className="fixed inset-0 w-full h-full overflow-hidden overscroll-none bg-black z-50" dir="rtl">
+      {/* Preview - Full screen video */}
+    <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" style={{
       transform: `scale(${zoom})`,
       filter: effects[effectIndex].css || "none"
     }} onPointerDown={onVideoPointerDown} onPointerMove={onVideoPointerMove} onPointerUp={onVideoPointerUp} onPointerCancel={onVideoPointerUp} playsInline muted autoPlay />
@@ -407,8 +407,8 @@ const MobileCamera: React.FC<Props> = ({
           </div>
         </div>}
 
-      {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center">
-          <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
+      {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center z-30">
+          <div className="rounded-full bg-background/90 backdrop-blur-sm border border-border px-4 py-2 text-sm animate-fade-in font-medium shadow-lg">{showEffectName}</div>
         </div>}
 
       {/* Top info: hint + event name + counters */}
@@ -416,32 +416,32 @@ const MobileCamera: React.FC<Props> = ({
         <h1 className="text-2xl font-bold font-nastaliq tracking-tight">{eventName}</h1>
       </div>
 
-      {/* Left icons column */}
+      {/* Left icons column - Enhanced visibility */}
       <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
-        <Button size="icon" variant="secondary" className="rounded-full" onClick={() => {
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" onClick={() => {
         setCamAnim(true);
         setTimeout(() => setCamAnim(false), 400);
         setFacingMode(m => m === "user" ? "environment" : "user");
       }} aria-label="تبديل الكاميرا">
-          <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
+          <Camera className={`h-5 w-5 text-white transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
-        {supportsVideo && <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
-            <GridIcon className="h-5 w-5" />
+        {supportsVideo && <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
+            <GridIcon className={`h-5 w-5 text-white ${showGrid ? 'text-primary' : ''}`} />
           </Button>}
-        <Button size="icon" variant="secondary" className="rounded-full" aria-label="فلاش" disabled={!supportsTorch} onClick={() => {
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="فلاش" disabled={!supportsTorch} onClick={() => {
         const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
         setFlashMode(next);
         if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
       }}>
-          <Flashlight className="h-5 w-5" />
+          <Flashlight className={`h-5 w-5 text-white ${flashMode === 'on' ? 'text-yellow-400' : ''}`} />
         </Button>
-        <Button size="icon" variant="secondary" className="rounded-full" aria-label="إيفكتس" onClick={() => {
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="فلاتر وإيفكتس" onClick={() => {
         const next = (effectIndex + 1) % effects.length;
         setEffectIndex(next);
         setShowEffectName(effects[next].name);
         setTimeout(() => setShowEffectName(null), 1200);
       }}>
-          <Sparkles className="h-5 w-5" />
+          <Sparkles className="h-5 w-5 text-white" />
         </Button>
       </div>
 
@@ -539,8 +539,8 @@ const MobileCamera: React.FC<Props> = ({
           </DialogHeader>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {recent.length === 0 && <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>}
-            {recent.map((item, idx) => <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer" onClick={() => setViewerIndex(idx)}>
-                {item.type === "image" ? <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" /> : <video src={item.url} className="w-full h-24 object-cover" controls />}
+            {recent.map((item, idx) => <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform" onClick={() => setViewerIndex(idx)}>
+                {item.type === "image" ? <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" /> : <video src={item.url} className="w-full h-24 object-cover" />}
                   <button className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" aria-label="حذف" onClick={e => {
               e.stopPropagation();
               setRecent(r => r.filter((_, i) => i !== idx));
@@ -556,7 +556,7 @@ const MobileCamera: React.FC<Props> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Fullscreen viewer */}
+      {/* Fullscreen viewer - Only show on click/select */}
       <Dialog open={viewerIndex !== null} onOpenChange={o => {
       if (!o) setViewerIndex(null);
     }}>
