@@ -174,10 +174,6 @@ export default function Account() {
                     </Link>
                   </div>
                 </div>
-
-                <div className="text-sm text-muted-foreground">
-                  <p>💡 نصيحة: يمكنك إنشاء مناسبات لأفراحك، أعياد ميلادك، رحلاتك وأي مناسبة تريد توثيقها!</p>
-                </div>
               </section>
             ) : (
               <>
