@@ -75,9 +75,10 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                         themeToggleButton.click();
                       }
                     }}>
-                      <div className="h-4 w-4" /> {/* spacer for alignment */}
-                      <span className="flex-1">الوضع الليلي</span>
-                      <ThemeToggle />
+                      <div className="h-4 w-4 flex items-center justify-center">
+                        <ThemeToggle />
+                      </div>
+                      <span>الوضع الليلي</span>
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2 w-full px-2 py-2 text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer">
