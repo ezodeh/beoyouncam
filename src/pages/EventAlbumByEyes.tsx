@@ -7,15 +7,53 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
+// Dummy data - will be replaced with real data from Supabase
+const dummyPhotos = [
+  { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 },
+  { id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }
+];
+
+const dummyMessages = [
+  { id: 1, name: "أحمد", text: "مبارك عليكم العرس وعقبال مليون سنة سعيدة" },
+  { id: 2, name: "فاطمة", text: "الله يتمم عليكم بخير وعافية" },
+  { id: 3, name: "محمد", text: "عقبال الفرحة القادمة إن شاء الله" }
+];
+
+const mediaItems = [
+  { id: 1, src: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png", alt: "صورة من المناسبة 1", type: "image" },
+  { id: 2, src: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png", alt: "صورة من المناسبة 2", type: "image" },
+  { id: 3, src: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png", alt: "صورة من المناسبة 3", type: "image" },
+  { id: 4, src: "/lovable-uploads/3abf2523-09b8-4264-b731-d9f044049749.png", alt: "صورة من المناسبة 4", type: "image" },
+  { id: 5, src: "/lovable-uploads/6ff975c7-0141-4e6b-9d33-48024a875e58.png", alt: "صورة من المناسبة 5", type: "image" },
+  { id: 6, src: "/lovable-uploads/d215095f-b0af-4ffe-a216-0e23507e61f7.png", alt: "صورة من المناسبة 6", type: "image" },
+  { id: 7, src: "/lovable-uploads/e635fc05-a945-415e-9dae-80f972c792cf.png", alt: "صورة من المناسبة 7", type: "image" },
+  { id: 8, src: "/lovable-uploads/feffbd15-6f18-425a-baed-b8539b349521.png", alt: "صورة من المناسبة 8", type: "image" },
+  { id: 9, src: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png", alt: "صورة من المناسبة 9", type: "image" },
+  { id: 10, src: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png", alt: "صورة من المناسبة 10", type: "image" },
+  { id: 11, src: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png", alt: "صورة من المناسبة 11", type: "image" },
+  { id: 12, src: "/lovable-uploads/3abf2523-09b8-4264-b731-d9f044049749.png", alt: "صورة من المناسبة 12", type: "image" }
+];
+
 
 export default function EventAlbumByEyes() {
   const { token, name } = useParams();
+  const { toast } = useToast();
 
   useEffect(() => {
     document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
 
   const [shareCount, setShareCount] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  
+  // Extract person name from URL or use fallback
+  const personName = name || "الضيف";
+
+  // Lightbox functions
+  const openAt = (index: number) => setLightboxIndex(index);
+  const close = () => setLightboxIndex(null);
+  const prev = () => setLightboxIndex(prev => prev === null ? null : prev > 0 ? prev - 1 : mediaItems.length - 1);
+  const next = () => setLightboxIndex(prev => prev === null ? null : prev < mediaItems.length - 1 ? prev + 1 : 0);
 
   const sharePage = async () => {
     const url = window.location.href;
