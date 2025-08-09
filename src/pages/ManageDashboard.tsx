@@ -11,7 +11,7 @@ const ManageDashboard = () => {
   const [eventData, setEventData] = useState<any>(null);
 
   useEffect(() => {
-    document.title = "لوحة التحكم — من عيونكم";
+    document.title = "لوحة التحكم بالمناسبة — من عيونكم";
   }, []);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const ManageDashboard = () => {
       <Navbar compact />
       <main className="flex-1 container mx-auto py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-extrabold mb-2">لوحة التحكم الشاملة</h1>
+          <h1 className="text-3xl font-extrabold mb-2">لوحة التحكم بالمناسبة</h1>
           <p className="text-muted-foreground">
             {eventData?.title || "مناسبة جديدة"} • رمز الإدارة: {token}
           </p>

@@ -63,6 +63,8 @@ export default function EventAlbum() {
   const [newCongratulation, setNewCongratulation] = useState("");
   const [senderName, setSenderName] = useState("");
   const [personalAlbums, setPersonalAlbums] = useState<any[]>([]);
+  const [showCongratsDialog, setShowCongratsDialog] = useState(false);
+  const [activeCongrat, setActiveCongrat] = useState<any | null>(null);
 
   useEffect(() => {
     // Dummy congratulations
@@ -178,7 +180,7 @@ export default function EventAlbum() {
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {title}</h1>
-              <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
+              
             </div>
           </div>
         </header>
@@ -186,15 +188,15 @@ export default function EventAlbum() {
         <section className="container mx-auto px-4 py-6">
           <Tabs defaultValue="photos" className="w-full">
             <TabsList className="grid grid-cols-3 w-full max-w-xl rounded-full mx-auto">
-              <TabsTrigger value="photos" aria-label="الصور" className="flex items-center gap-2">
+              <TabsTrigger value="photos" aria-label="الصور" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Images className="h-5 w-5" />
                 <span className="hidden sm:inline">الصور</span>
               </TabsTrigger>
-              <TabsTrigger value="congratulations" aria-label="المباركات" className="flex items-center gap-2">
+              <TabsTrigger value="congratulations" aria-label="المباركات" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Heart className="h-5 w-5" />
                 <span className="hidden sm:inline">المباركات</span>
               </TabsTrigger>
-              <TabsTrigger value="albums" aria-label="ألبومات بالعيون" className="flex items-center gap-2">
+              <TabsTrigger value="albums" aria-label="ألبومات بالعيون" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Users className="h-5 w-5" />
                 <span className="hidden sm:inline">ألبومات بالعيون</span>
               </TabsTrigger>
@@ -225,23 +227,10 @@ export default function EventAlbum() {
 
             <TabsContent value="congratulations" className="mt-6">
               <div className="space-y-6 max-w-3xl mx-auto">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 justify-end" dir="rtl">
-                      <MessageSquare className="h-5 w-5" />
-                      إضافة مباركة جديدة
-                    </h3>
-                    <div className="space-y-4" dir="rtl">
-                      <Input placeholder="اسمك" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="text-right" />
-                      <Textarea placeholder="اكتب مباركتك هنا..." value={newCongratulation} onChange={(e) => setNewCongratulation(e.target.value)} className="text-right min-h-[100px]" />
-                      <Button onClick={addCongratulation} className="w-full">إرسال المباركة</Button>
-                    </div>
-                  </CardContent>
-                </Card>
 
-                <div className="space-y-4" dir="rtl">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" dir="rtl">
                   {congratulations.map((cong) => (
-                    <Card key={cong.id}>
+                    <Card key={cong.id} className="cursor-pointer" onClick={() => { setActiveCongrat(cong); setShowCongratsDialog(true); }}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
@@ -249,7 +238,7 @@ export default function EventAlbum() {
                           </div>
                           <div className="flex-1 text-right">
                             <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
-                            <p className="text-muted-foreground mt-1 leading-relaxed">{cong.message}</p>
+                            <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message}</p>
                             <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA')}</span>
                           </div>
                         </div>
@@ -257,6 +246,45 @@ export default function EventAlbum() {
                     </Card>
                   ))}
                 </div>
+
+                {/* زر عائم لإضافة مباركة */}
+                <button
+                  className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
+                  onClick={() => setShowCongratsDialog(true)}
+                  aria-label="إضافة مباركة"
+                >
+                  <Plus className="h-6 w-6" />
+                </button>
+
+                {/* نافذة إضافة مباركة */}
+                <Dialog open={showCongratsDialog} onOpenChange={setShowCongratsDialog}>
+                  <DialogContent className="sm:max-w-md" dir="rtl">
+                    <DialogHeader>
+                      <DialogTitle>إضافة مباركة</DialogTitle>
+                      <DialogDescription>اكتب اسمك ورسالتك اللطيفة</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <Input placeholder="اسمك" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="text-right" />
+                      <Textarea placeholder="اكتب مباركتك هنا..." value={newCongratulation} onChange={(e) => setNewCongratulation(e.target.value)} className="text-right min-h-[120px]" />
+                      <div className="flex gap-2">
+                        <Button className="flex-1" onClick={() => { addCongratulation(); setShowCongratsDialog(false); }}>إرسال</Button>
+                        <Button variant="outline" className="flex-1" onClick={() => setShowCongratsDialog(false)}>إلغاء</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* نافذة عرض نص المباركة كاملاً */}
+                <Dialog open={!!activeCongrat} onOpenChange={(o) => { if (!o) setActiveCongrat(null); }}>
+                  <DialogContent className="sm:max-w-lg" dir="rtl">
+                    <DialogHeader>
+                      <DialogTitle>{activeCongrat?.sender_name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="text-right text-foreground leading-relaxed">
+                      {activeCongrat?.message}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </TabsContent>
 
@@ -269,7 +297,7 @@ export default function EventAlbum() {
                         <img src={album.latest_photo} alt={`ألبوم ${album.person_name}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
                       </div>
                       <div className="text-center" dir="rtl">
-                        <h3 className="font-semibold text-foreground">{album.person_name}</h3>
+                        <h3 className="font-semibold text-foreground">بعيون {album.person_name}</h3>
                         <p className="text-sm text-muted-foreground">{album.photo_count} صورة</p>
                         <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => window.open(`/album/${token}/${encodeURIComponent(album.person_name)}`, '_blank')}>
                           <ExternalLink className="h-3 w-3 ml-1" />

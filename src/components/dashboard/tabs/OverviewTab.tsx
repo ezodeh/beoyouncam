@@ -100,7 +100,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         </div>
         <div className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-2">
           <div className="text-white">
-            <h2 className="text-base font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
+            <h2 className="text-base font-bold font-nastaliq">{eventData?.title || "مناسبة جديدة"}</h2>
             {eventData?.start_at && (
               <div className="flex items-center gap-1 text-white/90">
                 <Clock className="h-4 w-4" />
@@ -186,7 +186,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         </Card>
       </div>
 
-      {/* Photos + Album link */}
+      {/* Photos + Album link (same size & same icon style) */}
       <div className="grid grid-cols-2 gap-2">
         <Link to={`/manage/${token}?tab=album`} className="block">
           <Card>
@@ -197,7 +197,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 </div>
                 <div>
                   <div className="text-base font-bold">{stats.photos}</div>
-                  <div className="text-[11px] text-muted-foreground">عدد التذكريات</div>
+                  <div className="text-[11px] text-muted-foreground">عدد الذكريات</div>
                 </div>
               </div>
             </CardContent>
@@ -207,9 +207,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <Link to={`/album/${token}`} className="block">
           <Card>
             <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">عرض الألبوم</div>
-                <Image className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Image className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-base font-bold">عرض الألبوم</div>
+                  <div className="text-[11px] text-muted-foreground">افتح الألبوم العام</div>
+                </div>
               </div>
             </CardContent>
           </Card>

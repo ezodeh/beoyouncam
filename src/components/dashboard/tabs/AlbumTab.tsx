@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Trash2, Download, Eye } from "lucide-react";
+import { Image, Trash2, Download, Eye, EyeOff, Star } from "lucide-react";
 
 interface Photo {
   id: string;
