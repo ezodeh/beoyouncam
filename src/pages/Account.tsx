@@ -107,6 +107,7 @@ export default function Account() {
                     linkTo={`/album/${e.token}/intro`}
                     subtitle="اذهب إلى المقدمة"
                     isOwner
+                    isPast
                   />
                 ))}
               </div>
@@ -137,6 +138,7 @@ export default function Account() {
                     event={e as any}
                     linkTo={`/album/${e.token}/intro`}
                     subtitle="اذهب إلى المقدمة"
+                    isPast
                   />
                 ))}
               </div>

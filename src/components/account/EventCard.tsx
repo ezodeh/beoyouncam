@@ -18,9 +18,10 @@ interface EventCardProps {
   linkTo: string;
   subtitle: string;
   isOwner?: boolean;
+  isPast?: boolean;
 }
 
-export default function EventCard({ event, linkTo, subtitle, isOwner }: EventCardProps) {
+export default function EventCard({ event, linkTo, subtitle, isOwner, isPast }: EventCardProps) {
   const { toast } = useToast();
   const [qrOpen, setQrOpen] = useState(false);
   const svgId = `qr-svg-${event.token}`;
@@ -84,82 +85,109 @@ export default function EventCard({ event, linkTo, subtitle, isOwner }: EventCar
         </div>
       </Link>
 
-      {/* Quick Actions - always visible */}
+      {/* Quick Actions - visible for current events; past events show only more menu */}
       <div className="p-3 pt-0 border-t">
         <div className="flex items-center justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              to={`/album/${event.token}`}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-              title="زيارة الألبوم"
-            >
-              <Image className="h-4 w-4" />
-              <span>الألبوم</span>
-            </Link>
-            <Link
-              to={`/event/${event.token}/camera`}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-              title="فتح الكاميرا"
-            >
-              <Camera className="h-4 w-4" />
-              <span>الكاميرا</span>
-            </Link>
-            <button
-              onClick={webShare}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-              title="مشاركة الرابط"
-            >
-              <Share2 className="h-4 w-4" />
-              <span>مشاركة</span>
-            </button>
-            {/* نشر */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
-                  <QrCode className="h-4 w-4" />
-                  <span>نشر</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-48 z-50">
-                <DropdownMenuItem onClick={() => setQrOpen(true)} className="cursor-pointer">
-                  عرض الباركود
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={downloadQrSvg} className="cursor-pointer">
-                  تنزيل الباركود (SVG)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
-                  نسخ رابط المشاركة
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {isOwner && (
+          {/* Left actions */}
+          {!isPast ? (
+            <div className="flex flex-wrap items-center gap-3">
               <Link
-                to={`/manage/${event.token}`}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                title="إعدادات"
+                to={`/album/${event.token}`}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                title="زيارة الألبوم"
               >
-                <Settings className="h-4 w-4" />
-                <span>إعدادات</span>
+                <Image className="h-4 w-4" />
+                <span>الألبوم</span>
               </Link>
-            )}
-            {/* قائمة المزيد: تضم وضع الداكن */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="inline-flex items-center justify-center rounded-full border px-2 py-1" title="المزيد">
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-44 z-50">
-                <div className="px-2 py-1.5 text-xs text-muted-foreground">المظهر</div>
-                <div className="px-2 pb-2">
-                  <ThemeToggle />
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              <Link
+                to={`/event/${event.token}/camera`}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                title="فتح الكاميرا"
+              >
+                <Camera className="h-4 w-4" />
+                <span>الكاميرا</span>
+              </Link>
+              <button
+                onClick={webShare}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                title="مشاركة الرابط"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>مشاركة</span>
+              </button>
+              {/* إعدادات (نفس النمط والحجم) */}
+              {isOwner && (
+                <Link
+                  to={`/manage/${event.token}`}
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                  title="إعدادات"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>إعدادات</span>
+                </Link>
+              )}
+              {/* نشر */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                    <QrCode className="h-4 w-4" />
+                    <span>نشر</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-48 z-50">
+                  <DropdownMenuItem onClick={() => setQrOpen(true)} className="cursor-pointer">
+                    عرض الباركود
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={downloadQrSvg} className="cursor-pointer">
+                    تنزيل الباركود (SVG)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
+                    نسخ رابط المشاركة
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {/* Right side: more menu always */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="inline-flex items-center justify-center rounded-full border px-2 py-1" title="المزيد">
+                <MoreVertical className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-52 z-50">
+              {/* For all: theme toggle */}
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">المظهر</div>
+              <div className="px-2 pb-2">
+                <ThemeToggle />
+              </div>
+              {isOwner && (
+                <>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">إدارة الألبوم</div>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/manage/${event.token}`}>إدارة الخصوصية</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => toast({ title: "تنزيل الألبوم", description: "ميزة قيد التطوير" })} className="cursor-pointer">
+                    تنزيل الألبوم
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => toast({ title: "إلغاء المشاركة", description: "ميزة قيد التطوير" })} className="cursor-pointer">
+                    إلغاء المشاركة
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/manage/${event.token}`}>وصول الضيوف</Link>
+                  </DropdownMenuItem>
+                  {isPast && (
+                    <DropdownMenuItem onClick={() => toast({ title: "حذف الألبوم", description: "يرجى التأكيد لاحقًا", variant: "destructive" })} className="cursor-pointer text-destructive">
+                      حذف الألبوم
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
