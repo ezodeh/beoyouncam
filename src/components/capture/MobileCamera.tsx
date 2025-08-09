@@ -240,6 +240,20 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
       const dist = distance(a, b);
       const next = Math.min(6, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
       setZoom(next);
+      
+      // Apply zoom to video stream during recording if supported
+      if (recording && streamRef.current) {
+        const videoTrack = streamRef.current.getVideoTracks()[0];
+        if (videoTrack && videoTrack.applyConstraints) {
+          // Try to apply zoom constraint (experimental feature)
+          videoTrack.applyConstraints({
+            // @ts-ignore - zoom is experimental
+            advanced: [{ zoom: next }]
+          }).catch(() => {
+            // Fallback to CSS transform only
+          });
+        }
+      }
     }
   }
   function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {

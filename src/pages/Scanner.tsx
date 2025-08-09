@@ -18,7 +18,7 @@ export default function Scanner() {
           <div className="relative w-full aspect-square max-w-sm sm:max-w-md md:max-w-lg mx-auto rounded-lg overflow-hidden border border-border bg-muted">
             <QRScanner
               constraints={{ 
-                facingMode: "environment",
+                facingMode: { exact: "environment" },
                 width: { ideal: 1024 },
                 height: { ideal: 1024 }
               }}
