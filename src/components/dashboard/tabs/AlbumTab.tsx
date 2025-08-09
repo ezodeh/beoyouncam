@@ -77,14 +77,22 @@ export function AlbumTab({ token }: AlbumTabProps) {
       
       if (error) throw error;
       
-      // Remove from local state
+      // Remove from local state immediately
       setPhotos(prev => prev.filter(p => p.id !== photoId));
       toast({ title: "تم حذف الصورة نهائياً" });
+      
+      // Refresh photos list after deletion
+      setTimeout(() => {
+        fetchPhotos();
+      }, 500);
     } catch (error) {
+      console.error("Delete error:", error);
       toast({
         title: "فشل في حذف الصورة",
         variant: "destructive"
       });
+      // Refresh photos list in case of error to show current state
+      fetchPhotos();
     }
   };
 

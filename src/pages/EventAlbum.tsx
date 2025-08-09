@@ -357,7 +357,7 @@ export default function EventAlbum() {
             <TabsContent value="albums" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 <div className="col-span-full text-center text-sm text-muted-foreground py-10">
-                  هذه الميزة قيد التطوير - ستتمكن قريباً من عرض ألبومات المشاركين الفردية
+                  لا توجد ألبومات بعيون الأحباب حتى الآن
                 </div>
               </div>
             </TabsContent>

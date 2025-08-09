@@ -192,6 +192,70 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
           </Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-red-600">المنطقة الخطرة</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+            <h4 className="font-semibold text-destructive mb-2">حذف المناسبة نهائياً</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              سيتم حذف جميع البيانات والصور والمباركات المرتبطة بهذه المناسبة نهائياً. هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+            <Button 
+              variant="destructive" 
+              onClick={async () => {
+                if (!confirm("هل أنت متأكد من حذف هذه المناسبة نهائياً؟ سيتم حذف جميع البيانات والصور والمباركات.")) return;
+                if (!confirm("هذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد تماماً؟")) return;
+                
+                try {
+                  // Delete all photos from storage
+                  const { data: files } = await supabase.storage
+                    .from("event-media")
+                    .list(`events/${token}`, { limit: 1000 });
+                  
+                  if (files && files.length > 0) {
+                    const filePaths = files.map(file => `events/${token}/${file.name}`);
+                    await supabase.storage.from("event-media").remove(filePaths);
+                  }
+                  
+                  // Delete cover image if exists
+                  if (eventData?.cover_url) {
+                    const coverPath = eventData.cover_url.split('/').pop();
+                    if (coverPath) {
+                      await supabase.storage.from("event-media").remove([coverPath]);
+                    }
+                  }
+                  
+                  // Delete blessings
+                  await supabase.from("blessings").delete().eq("event_token", token);
+                  
+                  // Delete participants
+                  await supabase.from("participants").delete().eq("event_token", token);
+                  
+                  // Delete the event
+                  const { error } = await supabase.from("events").delete().eq("token", token);
+                  
+                  if (error) throw error;
+                  
+                  toast({ title: "تم حذف المناسبة نهائياً" });
+                  
+                  // Redirect to account page
+                  window.location.href = "/account";
+                } catch (error) {
+                  toast({
+                    title: "فشل في حذف المناسبة",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              حذف المناسبة نهائياً
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
