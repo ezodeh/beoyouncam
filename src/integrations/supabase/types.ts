@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           description: string | null
           end_at: string | null
+          expected_guests: number
           is_private: boolean
           max_shots: number
           owner_id: string | null
@@ -36,6 +37,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          expected_guests?: number
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          expected_guests?: number
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null

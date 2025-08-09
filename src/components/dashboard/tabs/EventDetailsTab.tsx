@@ -21,6 +21,7 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
   const [startAt, setStartAt] = useState(eventData?.start_at ? eventData.start_at.slice(0, 16) : "");
   const [endAt, setEndAt] = useState(eventData?.end_at ? eventData.end_at.slice(0, 16) : "");
   const [maxShots, setMaxShots] = useState(eventData?.max_shots || 120);
+  const [expectedGuests, setExpectedGuests] = useState<number>(eventData?.expected_guests ?? 100);
   const [coverUrl, setCoverUrl] = useState(eventData?.cover_url || "");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,13 +34,13 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
     try {
       const fileName = `cover-${token}-${Date.now()}.${file.name.split('.').pop()}`;
       const { data, error } = await supabase.storage
-        .from('event-covers')
+        .from('event-media')
         .upload(fileName, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('event-covers')
+        .from('event-media')
         .getPublicUrl(fileName);
 
       setCoverUrl(publicUrl);
@@ -65,6 +66,7 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
           start_at: startAt ? new Date(startAt).toISOString() : null,
           end_at: endAt ? new Date(endAt).toISOString() : null,
           max_shots: Math.max(1, Number(maxShots) || 1),
+          expected_guests: Math.max(0, Number(expectedGuests) || 0),
           cover_url: coverUrl || null,
         })
         .eq("token", token);
@@ -170,6 +172,17 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
               min={1} 
               value={maxShots} 
               onChange={(e) => setMaxShots(Number(e.target.value))} 
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="expectedGuests">عدد الضيوف المتوقع</Label>
+            <Input
+              id="expectedGuests"
+              type="number"
+              min={0}
+              value={expectedGuests}
+              onChange={(e) => setExpectedGuests(Number(e.target.value))}
             />
           </div>
 
