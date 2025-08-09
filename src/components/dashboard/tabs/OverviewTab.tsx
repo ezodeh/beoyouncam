@@ -173,7 +173,13 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ البداية</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}
+            {eventData?.start_at ? new Date(eventData.start_at).toLocaleDateString('ar-SA-u-ca-islamic', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : '—'}
           </CardContent>
         </Card>
         <Card>
@@ -181,7 +187,13 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ الانتهاء</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}
+            {eventData?.end_at ? new Date(eventData.end_at).toLocaleDateString('ar-SA-u-ca-islamic', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : '—'}
           </CardContent>
         </Card>
       </div>

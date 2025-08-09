@@ -245,7 +245,11 @@ export default function EventAlbum() {
                           <div className="flex-1 text-right">
                             <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
                             <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message}</p>
-                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA')}</span>
+                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA-u-ca-islamic', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric'
+                            })}</span>
                           </div>
                         </div>
                       </CardContent>
