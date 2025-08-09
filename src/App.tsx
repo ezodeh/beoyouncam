@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,81 +32,44 @@ import BillingHistory from "./pages/BillingHistory";
 import Auth from "./pages/Auth";
 const queryClient = new QueryClient();
 
-const App = () => {
-  // منع Context Menu على مستوى التطبيق
-  useEffect(() => {
-    const preventContextMenu = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const preventDragStart = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const preventSelectStart = (e: Event) => {
-      // السماح بالتحديد في input و textarea فقط
-      const target = e.target as HTMLElement;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
-        return true;
-      }
-      e.preventDefault();
-      return false;
-    };
-
-    // إضافة المستمعين
-    document.addEventListener('contextmenu', preventContextMenu);
-    document.addEventListener('dragstart', preventDragStart);
-    document.addEventListener('selectstart', preventSelectStart);
-
-    // تنظيف المستمعين عند إلغاء التحميل
-    return () => {
-      document.removeEventListener('contextmenu', preventContextMenu);
-      document.removeEventListener('dragstart', preventDragStart);
-      document.removeEventListener('selectstart', preventSelectStart);
-    };
-  }, []);
-
-  return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/choose-plan" element={<ChoosePlan />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/create-event" element={<CreateEvent />} />
-              <Route path="/event/:token" element={<EventCapture />} />
-              <Route path="/event/:token/welcome" element={<EventWelcome />} />
-              <Route path="/event/:token/soon" element={<EventSoon />} />
-              <Route path="/event/:token/ended" element={<EventEnded />} />
-              <Route path="/event/:token/camera" element={<EventCamera />} />
-              <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
-              <Route path="/event/:token/submit-success" element={<EventSubmitSuccess />} />
-              <Route path="/gallery/:token" element={<Gallery />} />
-              <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
-              <Route path="/album/:token" element={<EventAlbum />} />
-              <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
-              <Route path="/event/:token/invites" element={<Invites />} />
-              <Route path="/manage/:token" element={<ManageDashboard />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/scanner" element={<Scanner />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/billing" element={<BillingHistory />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  );
-};
+const App = () => (
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/choose-plan" element={<ChoosePlan />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/create-event" element={<CreateEvent />} />
+            <Route path="/event/:token" element={<EventCapture />} />
+            <Route path="/event/:token/welcome" element={<EventWelcome />} />
+            <Route path="/event/:token/soon" element={<EventSoon />} />
+            <Route path="/event/:token/ended" element={<EventEnded />} />
+            <Route path="/event/:token/camera" element={<EventCamera />} />
+            <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
+            <Route path="/event/:token/submit-success" element={<EventSubmitSuccess />} />
+            <Route path="/gallery/:token" element={<Gallery />} />
+            <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
+            <Route path="/album/:token" element={<EventAlbum />} />
+            <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
+            <Route path="/event/:token/invites" element={<Invites />} />
+            <Route path="/manage/:token" element={<ManageDashboard />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/scanner" element={<Scanner />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/billing" element={<BillingHistory />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
+);
 
 export default App;
