@@ -87,7 +87,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast }: 
 
       {/* Quick Actions - visible for current events; past events show only more menu */}
       <div className="p-3 pt-0 border-t">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between min-h-10">
           <div className={`flex flex-wrap items-center gap-3 ${isPast ? 'invisible' : ''}`}>
             <Link
               to={`/album/${event.token}`}
