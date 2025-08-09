@@ -79,41 +79,41 @@ const signUpGoogle = async () => {
 <Button variant="secondary" className="w-full rounded-full" onClick={signInGoogle}>المتابعة بـ Google</Button>
             </TabsContent>
 <TabsContent value="signup" className="mt-4 grid gap-3">
-              <Label>البريد الإلكتروني</Label>
+              <Label className="text-right">البريد الإلكتروني</Label>
               <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" />
-              <Label>كلمة المرور</Label>
+              <Label className="text-right">كلمة المرور</Label>
               <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" />
 
-              <Label>الهاتف</Label>
+              <Label className="text-right">الهاتف</Label>
               <Input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" />
 
-              <Label>البلد</Label>
+              <Label className="text-right">البلد</Label>
               <Input type="text" value={country} onChange={(e)=>setCountry(e.target.value)} placeholder="السعودية" />
 
               <div className="grid gap-2">
-                <Label>النوع</Label>
-                <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4">
+                <Label className="text-right">النوع</Label>
+                <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4 justify-end">
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem id="g-male" value="male" />
                     <Label htmlFor="g-male">ذكر</Label>
+                    <RadioGroupItem id="g-male" value="male" />
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem id="g-female" value="female" />
                     <Label htmlFor="g-female">أنثى</Label>
+                    <RadioGroupItem id="g-female" value="female" />
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem id="g-other" value="other" />
                     <Label htmlFor="g-other">أخرى</Label>
+                    <RadioGroupItem id="g-other" value="other" />
                   </div>
                 </RadioGroup>
               </div>
 
-              <Label>تاريخ الميلاد</Label>
+              <Label className="text-right">تاريخ الميلاد</Label>
               <Input type="date" value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} />
 
-              <label className="flex items-center gap-2 text-sm mt-1">
-                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
+              <label className="flex items-center gap-2 text-sm mt-1 justify-end">
                 <span>أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
+                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
               </label>
 
               <Button className="w-full rounded-full" disabled={loading || !agree} onClick={signUp}>إنشاء حساب</Button>
