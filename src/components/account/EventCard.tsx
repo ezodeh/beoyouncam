@@ -71,13 +71,13 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set high resolution (4x for crisp quality)
-    const scale = 4;
-    const size = 512; // Base size
-    canvas.width = size * scale;
+    // Set ultra high resolution (8x for maximum quality)
+    const scale = 8;
+    const size = 1024; // Larger base size (1024x1024)
+    canvas.width = size * scale;  // Final: 8192x8192 pixels
     canvas.height = size * scale;
     
-    // Scale the context for high DPI
+    // Scale the context for ultra high DPI
     ctx.scale(scale, scale);
     
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -99,13 +99,13 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `event-${event.token}-qr-hd.png`;
+        a.download = `event-${event.token}-qr-ultra-hd.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
         URL.revokeObjectURL(svgUrl);
-        toast({ title: "تم تنزيل الباركود بجودة عالية PNG" });
+        toast({ title: "تم تنزيل الباركود بجودة فائقة PNG (8K)" });
       }, "image/png", 1.0);
     };
     
@@ -291,7 +291,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={downloadQrPng} className="cursor-pointer">
                   <Download className="h-4 w-4" />
-                  تنزيل PNG (عالي الدقة)
+                  تنزيل PNG (فائق 8K)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
                   <Share2 className="h-4 w-4" />
@@ -324,9 +324,9 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
         </div>
       </div>
 
-      {/* Hidden QR for download purposes - High resolution */}
+      {/* Hidden QR for download purposes - Ultra high resolution */}
       <div className="sr-only">
-        <QRCode id={svgId} value={shareUrl} size={512} level="H" />
+        <QRCode id={svgId} value={shareUrl} size={1024} level="H" />
       </div>
 
       {/* Dialog for QR preview */}
@@ -344,7 +344,7 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
               </button>
               <button onClick={downloadQrPng} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Download className="h-4 w-4" />
-                PNG (عالي)
+                PNG (فائق 8K)
               </button>
               <button onClick={copyLink} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Share2 className="h-4 w-4" />
