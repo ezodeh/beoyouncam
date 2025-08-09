@@ -19,6 +19,16 @@ export default function Account() {
       setUserId(uid);
       if (!uid) return;
 
+      // Apply pending profile (from signup) once after first login/confirmation
+      try {
+        const pendingStr = localStorage.getItem("pendingProfile");
+        if (pendingStr) {
+          const pending = JSON.parse(pendingStr);
+          await supabase.from("profiles").upsert({ id: uid, ...pending });
+          localStorage.removeItem("pendingProfile");
+        }
+      } catch {}
+
       // Events I own
       const { data: myEvents } = await supabase
         .from("events")

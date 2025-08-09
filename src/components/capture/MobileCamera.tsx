@@ -24,7 +24,7 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
 
   const [left, setLeft] = useState<number>(maxShots);
   const initialName = typeof window !== "undefined" ? localStorage.getItem(`participantName:${token}`) : null;
-  const [hint] = useState<string>(`بعيون ${initialName || "مناسبتكم"}`);
+  const [hint, setHint] = useState<string>(`بعيون ${initialName || "مناسبتكم"}`);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [flashMode, setFlashMode] = useState<"auto" | "on" | "off">("auto");
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -39,7 +39,18 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [zoom, setZoom] = useState<number>(1);
-  useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, recent.length]);
+useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, recent.length]);
+
+  // استنتاج الاسم من جلسة المستخدم إن لم يكن في التخزين المحلي
+  useEffect(() => {
+    (async () => {
+      if (initialName) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const n = (session?.user?.user_metadata as any)?.full_name || (session?.user?.user_metadata as any)?.name || session?.user?.email;
+      if (n) setHint(`بعيون ${n}`);
+    })();
+  }, [initialName]);
+
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const startDistRef = useRef<number | null>(null);
   const baseZoomRef = useRef<number>(1);
@@ -280,9 +291,9 @@ const MobileCamera: React.FC<Props> = ({ eventName, token, maxShots = 120 }) => 
   return (
     <div className="relative w-full h-[calc(100dvh-48px)] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
       {/* Preview */}
-      <video
+<video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover touch-none will-change-transform"
+        className="absolute inset-0 w-full h-full object-contain bg-black touch-none will-change-transform"
         style={{ transform: `scale(${zoom})`, filter: effects[effectIndex].css || "none" }}
         onPointerDown={onVideoPointerDown}
         onPointerMove={onVideoPointerMove}

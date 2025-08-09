@@ -68,17 +68,33 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+<DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link to="/create-event">إنشاء مناسبة</Link>
+                      <Link to="/create-event" className="inline-flex items-center gap-2">
+                        <PlusCircle className="h-4 w-4" />
+                        إنشاء مناسبة
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/scanner">ماسح QR</Link>
+                      <Link to="/scanner" className="inline-flex items-center gap-2">
+                        <QrCode className="h-4 w-4" />
+                        ماسح QR
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/settings">إعدادات الحساب</Link>
+                      <Link to="/settings" className="inline-flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        إعدادات الحساب
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={signOut}>تسجيل الخروج</DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center justify-between">
+                      <span>الوضع الليلي</span>
+                      <ThemeToggle />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2">
+                      <LogOut className="h-4 w-4" />
+                      تسجيل الخروج
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
