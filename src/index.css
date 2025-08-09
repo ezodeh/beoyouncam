@@ -115,19 +115,26 @@
   * { @apply border-border; }
   body {
     @apply bg-background text-foreground antialiased;
-    overflow: hidden; /* منع التمرير */
-    overscroll-behavior: none; /* منع Overscroll */
-    touch-action: manipulation; /* تحسين Touch Events */
-    -webkit-overflow-scrolling: touch;
     font-family: 'Almarai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    
-    /* منع الحركة أثناء Touch Events */
+  }
+  
+  /* تثبيت خاص للصفحات العادية */
+  body:not(.camera-mode) {
+    overflow-x: hidden;
+  }
+  
+  /* تثبيت خاص للكاميرا فقط */
+  body.camera-mode {
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
     position: fixed;
     width: 100%;
     height: 100%;
   }
   
-  html {
+  html.camera-mode {
     overflow: hidden;
     overscroll-behavior: none;
     touch-action: manipulation;
