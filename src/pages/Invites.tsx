@@ -4,23 +4,33 @@ import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
 export default function Invites() {
-  const { token } = useParams();
+  const {
+    token
+  } = useParams();
   const url = typeof window !== "undefined" ? `${window.location.origin}/event/${token}/welcome` : "";
   const [emails, setEmails] = useState<string>("");
   const svgRef = useRef<SVGSVGElement | null>(null);
-
-  useEffect(() => { document.title = "دعوة الضيوف — من عيونكم"; }, []);
-
-
+  useEffect(() => {
+    document.title = "دعوة الضيوف — من عيونكم";
+  }, []);
   const copy = async () => {
-    try { await navigator.clipboard.writeText(url); alert("تم نسخ رابط المناسبة"); } catch (_) {}
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("تم نسخ رابط المناسبة");
+    } catch (_) {}
   };
   const share = async () => {
     if ((navigator as any).share) {
-      try { await (navigator as any).share({ title: "رابط المناسبة", url }); } catch (_) {}
-    } else { await copy(); }
+      try {
+        await (navigator as any).share({
+          title: "رابط المناسبة",
+          url
+        });
+      } catch (_) {}
+    } else {
+      await copy();
+    }
   };
   const shareEmail = () => {
     const subject = encodeURIComponent("دعوة للمشاركة في ألبوم المناسبة");
@@ -34,7 +44,9 @@ export default function Invites() {
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement("canvas");
     const img = new Image();
-    const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const blob = new Blob([svgData], {
+      type: "image/svg+xml;charset=utf-8"
+    });
     const urlObj = URL.createObjectURL(blob);
     img.onload = () => {
       canvas.width = img.width * 4; // upscale
@@ -53,9 +65,7 @@ export default function Invites() {
     };
     img.src = urlObj;
   };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
+  return <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar compact fullBleed />
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="text-center w-full max-w-sm">
@@ -73,16 +83,9 @@ export default function Invites() {
           </div>
 
 
-          <div className="grid gap-3 text-right">
-            <label className="text-sm">مشاركة عبر البريد (افصل بين الإيميلات بفاصلة)</label>
-            <textarea className="rounded-md border border-border bg-background px-3 py-2" rows={3} placeholder="email1@example.com, email2@example.com" value={emails} onChange={(e)=>setEmails(e.target.value)} />
-            <Button variant="outline" onClick={shareEmail} className="rounded-full">مشاركة بالبريد</Button>
-          </div>
+          
         </div>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 }
-
-
