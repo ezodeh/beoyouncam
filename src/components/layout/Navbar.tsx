@@ -28,7 +28,10 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
     supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  const signOut = async () => { 
+    await supabase.auth.signOut(); 
+    window.location.href = '/';
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
