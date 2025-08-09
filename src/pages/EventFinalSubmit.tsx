@@ -49,7 +49,7 @@ export default function EventFinalSubmit() {
     } catch (error) {
       console.error("Error saving blessing:", error);
     }
-    navigate(`/event/${token}/submit-success`);
+    navigate(`/event/${token}/submit-success${window.location.search}`);
   }
 
   return (
