@@ -247,7 +247,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           <CardContent className="text-center p-3">
             <div className="bg-white p-2 rounded-lg inline-block mb-2">
               <div id="overview-qr-wrap">
-                <QRCode id="overview-qr" value={eventUrl} size={72} />
+                <QRCode id="overview-qr" value={eventUrl} size={72} level="H" />
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -255,40 +255,70 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
               <Button variant="outline" size="sm" onClick={() => {
                 const svg = document.querySelector<SVGSVGElement>("#overview-qr");
                 if (!svg) return;
+                
+                // Clone and enhance the SVG
+                const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
+                
+                // Set larger dimensions and proper viewBox
+                const size = 1024;
+                clonedSvg.setAttribute("width", size.toString());
+                clonedSvg.setAttribute("height", size.toString());
+                clonedSvg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+                
+                // Ensure proper background
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("width", "100%");
+                rect.setAttribute("height", "100%");
+                rect.setAttribute("fill", "white");
+                clonedSvg.insertBefore(rect, clonedSvg.firstChild);
+                
                 const serializer = new XMLSerializer();
-                const source = serializer.serializeToString(svg);
+                const source = serializer.serializeToString(clonedSvg);
                 const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url; a.download = `event-${token}-qr.svg`; a.click(); URL.revokeObjectURL(url);
-              }}>SVG</Button>
+                a.href = url; a.download = `event-${token}-qr-large.svg`; a.click(); URL.revokeObjectURL(url);
+              }}>SVG (كبير)</Button>
               <Button variant="outline" size="sm" onClick={() => {
                 const svg = document.querySelector<SVGSVGElement>("#overview-qr");
                 if (!svg) return;
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
                 if (!ctx) return;
+                
+                // Set ultra high resolution (8x for maximum quality)
+                const scale = 8;
+                const size = 1024; // Larger base size (1024x1024)
+                canvas.width = size * scale;  // Final: 8192x8192 pixels
+                canvas.height = size * scale;
+                
+                // Scale the context for ultra high DPI
+                ctx.scale(scale, scale);
+                
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+                const url = URL.createObjectURL(svgBlob);
                 const img = document.createElement("img");
-                const serializer = new XMLSerializer();
-                const source = serializer.serializeToString(svg);
-                const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
                 img.onload = () => {
-                  canvas.width = img.naturalWidth || 72;
-                  canvas.height = img.naturalHeight || 72;
-                  ctx.drawImage(img, 0, 0);
+                  // Fill white background
+                  ctx.fillStyle = "#ffffff";
+                  ctx.fillRect(0, 0, size, size);
+                  
+                  // Draw the QR code
+                  ctx.drawImage(img, 0, 0, size, size);
+                  
                   canvas.toBlob((pngBlob) => {
                     if (pngBlob) {
                       const pngUrl = URL.createObjectURL(pngBlob);
                       const a = document.createElement("a");
-                      a.href = pngUrl; a.download = `event-${token}-qr.png`; a.click();
+                      a.href = pngUrl; a.download = `event-${token}-qr-ultra-hd.png`; a.click();
                       URL.revokeObjectURL(pngUrl);
                     }
-                  });
+                  }, "image/png", 1.0);
                   URL.revokeObjectURL(url);
                 };
                 img.src = url;
-              }}>PNG</Button>
+              }}>PNG (فائق 8K)</Button>
               <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم</Button>
             </div>
           </CardContent>
