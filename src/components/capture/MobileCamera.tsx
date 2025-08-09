@@ -421,6 +421,10 @@ const MobileCamera: React.FC<Props> = ({
     e.preventDefault();
     e.stopPropagation();
     
+    // Prevent default touch behaviors
+    const target = e.currentTarget as HTMLElement;
+    target.style.touchAction = 'none';
+    
     isLongPress.current = false;
     setIsLongPressing(true);
     startTouchY.current = e.clientY;
@@ -450,10 +454,10 @@ const MobileCamera: React.FC<Props> = ({
     const deltaY = startTouchY.current - e.clientY;
     setSlideUpDistance(Math.max(0, deltaY));
     
-    // Simple slide up for zoom
+    // Simple slide up for zoom during recording
     if (deltaY > 0 && isLongPress.current && recording) {
       const maxSlide = 200; // pixels
-      const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * (maxZoom - 1); // Scale to max zoom
+      const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * (maxZoom - 1);
       const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1 + zoomMultiplier));
       applyZoom(targetZoom);
     }
@@ -462,6 +466,10 @@ const MobileCamera: React.FC<Props> = ({
   function onShutterUp(e: React.PointerEvent) {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Reset touch action
+    const target = e.currentTarget as HTMLElement;
+    target.style.touchAction = '';
     
     setIsLongPressing(false);
     setSlideUpDistance(0);
@@ -520,42 +528,80 @@ const MobileCamera: React.FC<Props> = ({
   }
 
   return (
-    <div className="camera-container" dir="rtl">
+      <div 
+        className="camera-container" 
+        dir="rtl"
+        style={{
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent'
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+      >
       {/* Preview - Full screen video with proper positioning */}
       <video 
         ref={videoRef} 
         className="camera-video" 
         style={{
           transform: `scale(${zoom})`,
-          filter: effects[effectIndex].css || "none"
+          filter: effects[effectIndex].css || "none",
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent'
         }} 
         onPointerDown={onVideoPointerDown} 
         onPointerMove={onVideoPointerMove} 
         onPointerUp={onVideoPointerUp} 
         onPointerCancel={onVideoPointerUp} 
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
         playsInline 
         muted 
         autoPlay 
       />
 
-      {/* Recording indicator */}
+      {/* Recording timer with visual feedback */}
       {recording && (
-        <div className="absolute top-6 left-6 flex items-center gap-2 z-30">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-white font-mono text-sm bg-black/30 backdrop-blur-sm rounded px-2 py-1">
-            {formatTime(recordingDuration)}
-          </span>
+        <div className="absolute top-8 right-4 z-30">
+          <div className="flex items-center gap-2 rounded-full bg-red-500/90 backdrop-blur-sm px-4 py-2 shadow-lg">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="text-white font-mono text-sm font-bold">
+              {formatTime(recordingDuration)}
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Slide up zoom indicator during recording */}
+      {recording && isLongPressing && slideUpDistance > 20 && (
+        <div className="absolute bottom-[calc(18rem+env(safe-area-inset-bottom))] left-1/2 transform -translate-x-1/2 z-30">
+          <div className="flex flex-col items-center text-white">
+            <div className="text-xs opacity-80 mb-2 bg-black/50 rounded-full px-3 py-1">
+              اسحب للزوم
+            </div>
+            <div className="h-12 w-1 bg-white/30 rounded-full relative overflow-hidden">
+              <div 
+                className="absolute bottom-0 w-full bg-white rounded-full transition-all duration-100"
+                style={{ 
+                  height: `${Math.min(slideUpDistance / 200 * 100, 100)}%` 
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Simple Zoom Level Indicator */}
-      {showZoomLevel && (
+      {/* Enhanced Zoom Level Indicator */}
+      {(showZoomLevel || (recording && zoom > 1)) && (
         <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
-          <div className="bg-black/70 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xl font-bold shadow-lg border border-white/20">
+          <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xl font-bold shadow-lg border border-white/20 animate-fade-in">
             <div className="text-center">
-              <div className="text-2xl font-bold">{zoom.toFixed(1)}x</div>
+              <div className="text-3xl font-bold">{zoom.toFixed(1)}x</div>
               <div className="text-xs text-gray-300 mt-1">
-                {zoom > 2 ? 'جودة محدودة' : 'جودة جيدة'}
+                {zoom > 2.5 ? 'جودة محدودة' : zoom > 1.5 ? 'جودة متوسطة' : 'جودة عالية'}
               </div>
             </div>
           </div>
