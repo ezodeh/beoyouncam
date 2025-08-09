@@ -32,64 +32,65 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} ${compact ? "h-12" : "h-16"} px-4`}>
+      <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} px-4`}>
         {/* Mobile Layout - Stacked */}
-        <div className="md:hidden py-3">
-          <div className="flex items-center justify-between mb-2">
+        <div className="md:hidden">
+          {/* First row - Logo */}
+          <div className="flex items-center justify-center py-3 border-b border-border/50">
             <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
               <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto" loading="eager" />
             </Link>
-            {userName && (
+          </div>
+          
+          {/* Second row - Menu/Auth */}
+          <div className="flex items-center justify-center py-3">
+            {userName ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="rounded-full" aria-label="القائمة">
-                    <MoreVertical className="h-5 w-5" />
+                  <Button variant="outline" size="sm" className="rounded-full px-4" aria-label="القائمة">
+                    <MoreVertical className="h-4 w-4 ml-2" />
+                    القائمة
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="center" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to="/create-event" className="inline-flex items-center gap-2">
+                    <Link to="/create-event" className="inline-flex items-center gap-2 w-full">
                       <PlusCircle className="h-4 w-4" />
                       إنشاء مناسبة
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/scanner" className="inline-flex items-center gap-2">
+                    <Link to="/scanner" className="inline-flex items-center gap-2 w-full">
                       <QrCode className="h-4 w-4" />
                       ماسح QR
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/settings" className="inline-flex items-center gap-2">
+                    <Link to="/settings" className="inline-flex items-center gap-2 w-full">
                       <Settings className="h-4 w-4" />
                       إعدادات الحساب
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center justify-between">
+                  <DropdownMenuItem className="flex items-center justify-between w-full">
                     <span>الوضع الليلي</span>
                     <ThemeToggle />
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2 text-destructive focus:text-destructive">
+                  <DropdownMenuItem onClick={signOut} className="inline-flex items-center gap-2 w-full text-destructive focus:text-destructive">
                     <LogOut className="h-4 w-4" />
                     تسجيل الخروج
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            )}
-          </div>
-          
-          {/* Mobile Auth Button */}
-          {!userName && (
-            <div className="flex justify-center">
-              <Button asChild variant="hero" size="sm" className="w-full" aria-label="تسجيل الدخول">
+            ) : (
+              <Button asChild variant="hero" size="sm" className="px-8" aria-label="تسجيل الدخول">
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Desktop Layout - Horizontal */}
-        <div className="hidden md:flex items-center justify-between h-full">
+        <div className="hidden md:flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
               <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-9 w-auto" loading="eager" />
