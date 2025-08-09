@@ -71,7 +71,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const eventUrl = `${window.location.origin}/event/${token}`;
 
   return (
-    <div className="grid gap-3 text-right">
+    <div className="grid gap-4 text-right">
       {/* Cover with overlay actions */}
       <Card className="relative overflow-hidden rounded-xl">
         <div
@@ -88,13 +88,13 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+          <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
             التحكم بالألبوم
           </Link>
-          <Link to={`/album/${token}`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+          <Link to={`/album/${token}`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
             تعديل شاشة الألبوم
           </Link>
-          <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+          <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
             تعديل شاشة الحدث
           </Link>
         </div>
@@ -110,14 +110,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           </div>
         </div>
       </Card>
-      {/* Attendance Donut */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">الحضور</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3">
-          <div className="grid grid-cols-2 gap-3 items-center">
-            <Link to={`/manage/${token}?tab=participants`} className="relative h-32 md:h-36 block cursor-pointer">
+      {/* Compact rows: Attendance + Status, then Dates */}
+      <div className="grid grid-cols-2 gap-2">
+        <Card>
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="text-sm">الحضور</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-2">
+            <Link to={`/manage/${token}?tab=participants`} className="relative block h-28 cursor-pointer">
               <div className="absolute inset-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -130,8 +130,8 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                     <Pie
                       data={[{ name: 'حضور', value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100)) }, { name: 'متبق', value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants) }]}
                       dataKey="value"
-                      innerRadius={44}
-                      outerRadius={56}
+                      innerRadius={36}
+                      outerRadius={46}
                       paddingAngle={2}
                     >
                       <Cell fill="url(#attendanceGrad)" />
@@ -142,107 +142,93 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-base font-bold">
+                  <div className="text-sm font-bold">
                     {String(stats.participants).padStart(3, '0')}/{String(Number(eventData?.expected_guests ?? 100)).padStart(3, '0')}
                   </div>
-                  <div className="text-[11px] text-muted-foreground">الحضور</div>
+                  <div className="text-[10px] text-muted-foreground">الحضور</div>
                 </div>
               </div>
             </Link>
-            <div className="space-y-2">
-              <div className="text-[11px] text-muted-foreground">حالة المناسبة</div>
-              <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full border text-[11px]">
-                {eventStatus}
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] mt-1">
-                <div>
-                  <div className="text-muted-foreground">تاريخ البداية</div>
-                  <div>{eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">تاريخ الانتهاء</div>
-                  <div>{eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div>
-                  <div className="text-muted-foreground">اللقطات المسموحة</div>
-                  <div>{eventData?.max_shots || 120}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">عدد الصور المأخوذة</div>
-                  <div>{stats.photos}</div>
-                </div>
-              </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="text-sm">حالة المناسبة</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-2">
+            <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full border text-[11px]">
+              {eventStatus}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              اللقطات المسموحة: <span className="text-foreground">{eventData?.max_shots || 120}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Quick Stats - clickable */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        <Link to={`/manage/${token}?tab=details`} className="block">
-          <Card className="hover-scale">
-            <CardContent className="p-2">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg">
-                  <Calendar className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{eventData?.max_shots || 120}</div>
-                  <div className="text-[11px] text-muted-foreground">اللقطات المسموحة</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Card>
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="text-sm">تاريخ البداية</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-1 text-[12px]">
+            {eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="text-sm">تاريخ الانتهاء</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-1 text-[12px]">
+            {eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}
+          </CardContent>
+        </Card>
+      </div>
 
+      {/* Photos + Album link */}
+      <div className="grid grid-cols-2 gap-2">
         <Link to={`/manage/${token}?tab=album`} className="block">
-          <Card className="hover-scale">
-            <CardContent className="p-2">
+          <Card>
+            <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg">
-                  <Image className="h-4 w-4 text-primary" />
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Image className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold">{stats.photos}</div>
-                  <div className="text-[11px] text-muted-foreground">عدد الصور المأخوذة</div>
+                  <div className="text-base font-bold">{stats.photos}</div>
+                  <div className="text-[11px] text-muted-foreground">عدد التذكريات</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </Link>
 
-        <Link to={`/manage/${token}?tab=participants`} className="block">
-          <Card className="hover-scale">
-            <CardContent className="p-2">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{stats.participants}</div>
-                  <div className="text-[11px] text-muted-foreground">المشاركون</div>
-                </div>
+        <Link to={`/album/${token}`} className="block">
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium">عرض الألبوم</div>
+                <Image className="h-5 w-5 text-primary" />
               </div>
             </CardContent>
           </Card>
         </Link>
       </div>
 
-      {/* QR Code & Links */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* QR then Quick Links (stacked for mobile) */}
+      <div className="space-y-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <QrCode className="h-4 w-4" />
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <QrCode className="h-5 w-5" />
               نشر الألبوم
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center p-3">
             <div className="bg-white p-2 rounded-lg inline-block mb-2">
               <div id="overview-qr-wrap">
-                <QRCode id="overview-qr" value={eventUrl} size={88} />
+                <QRCode id="overview-qr" value={eventUrl} size={72} />
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -256,36 +242,36 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url; a.download = `event-${token}-qr.svg`; a.click(); URL.revokeObjectURL(url);
-              }}>تنزيل الباركود (SVG)</Button>
-              <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم بالكانفا</Button>
+              }}>تنزيل (SVG)</Button>
+              <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم</Button>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ExternalLink className="h-4 w-4" />
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <ExternalLink className="h-5 w-5" />
               روابط سريعة
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="p-3 space-y-2">
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/camera`}>
                 <span className="text-sm">فتح الكاميرا</span>
-                <Camera className="h-4 w-4 ml-2" />
+                <Camera className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/album/${token}`}>
                 <span className="text-sm">عرض الألبوم</span>
-                <Image className="h-4 w-4 ml-2" />
+                <Image className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/invites`}>
                 <span className="text-sm">إرسال دعوات</span>
-                <Share2 className="h-4 w-4 ml-2" />
+                <Share2 className="h-5 w-5 ml-2" />
               </Link>
             </Button>
           </CardContent>
