@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import EventCard from "@/components/account/EventCard";
-interface EventItem { token: string; title: string; cover_url: string | null; start_at: string | null; end_at: string | null; }
+interface EventItem { token: string; title: string; cover_url: string | null; start_at: string | null; end_at: string | null; published_at: string | null; }
 
 export default function Account() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export default function Account() {
       if (tokens.length) {
         const { data: evs } = await supabase
           .from("events")
-          .select("token, title, cover_url, start_at, end_at")
+          .select("token, title, cover_url, start_at, end_at, published_at")
           .in("token", tokens);
         setJoinedEvents((evs as any) || []);
       } else {
@@ -83,7 +83,7 @@ export default function Account() {
     if (tokens.length) {
       const { data: evs, error: eventsError } = await supabase
         .from("events")
-        .select("token, title, cover_url, start_at, end_at")
+        .select("token, title, cover_url, start_at, end_at, published_at")
         .in("token", tokens);
       
       if (eventsError) {
@@ -276,16 +276,19 @@ export default function Account() {
                           انضم لمناسبة
                         </Link>
                       </div>
-                    ) : (
-                      joinedCurrent.map((e) => (
-                        <EventCard
-                          key={e.token}
-                          event={e as any}
-                          linkTo={`/album/${e.token}/intro`}
-                          subtitle="اذهب إلى المقدمة"
-                        />
-                      ))
-                    )}
+                     ) : (
+                       joinedCurrent.map((e) => {
+                         const isPublished = e.published_at !== null;
+                         return (
+                           <EventCard
+                             key={e.token}
+                             event={e as any}
+                             linkTo={isPublished ? `/album/${e.token}/intro` : `/album-eyes/${e.token}`}
+                             subtitle={isPublished ? "اذهب إلى الألبوم" : "ألبومي - سيتم نشر كامل الألبوم قريباً"}
+                           />
+                         );
+                       })
+                     )}
                   </div>
                 </section>
 
@@ -293,16 +296,19 @@ export default function Account() {
                 {joinedPast.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold mb-3">تاريخ مشاركاتي</h2>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
-                      {joinedPast.map((e) => (
-                        <EventCard
-                          key={e.token}
-                          event={e as any}
-                          linkTo={`/album/${e.token}/intro`}
-                          subtitle="مناسبة منتهية"
-                          isPast
-                        />
-                      ))}
+                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
+                       {joinedPast.map((e) => {
+                         const isPublished = e.published_at !== null;
+                         return (
+                           <EventCard
+                             key={e.token}
+                             event={e as any}
+                             linkTo={isPublished ? `/album/${e.token}/intro` : `/album-eyes/${e.token}`}
+                             subtitle={isPublished ? "مناسبة منتهية" : "ألبومي - مناسبة منتهية"}
+                             isPast
+                           />
+                         );
+                       })}
                     </div>
                   </section>
                 )}
