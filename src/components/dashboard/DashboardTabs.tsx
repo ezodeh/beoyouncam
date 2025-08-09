@@ -5,6 +5,7 @@ import { ParticipantsTab } from "./tabs/ParticipantsTab";
 import { AlbumTab } from "./tabs/AlbumTab";
 import { StatisticsTab } from "./tabs/StatisticsTab";
 import { BarChart3, Users, Image, Settings, Activity } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 interface DashboardTabsProps {
   token: string;
@@ -13,8 +14,10 @@ interface DashboardTabsProps {
 }
 
 export function DashboardTabs({ token, eventData, onEventUpdate }: DashboardTabsProps) {
+  const location = useLocation();
+  const defaultTab = new URLSearchParams(location.search).get("tab") || "overview";
   return (
-    <Tabs defaultValue="overview" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-xl">
         <TabsTrigger value="overview" className="flex items-center gap-2 rounded-lg">
           <BarChart3 className="h-4 w-4" />

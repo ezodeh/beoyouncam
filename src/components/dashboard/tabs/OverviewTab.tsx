@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, Clock, QrCode, Users, Image, Share2, ExternalLink } from "lucide-react";
+import { Calendar, Clock, QrCode, Users, Image, Share2, ExternalLink, Camera } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,23 +59,23 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const eventUrl = `${window.location.origin}/event/${token}`;
 
   return (
-    <div className="grid gap-6">
-      {/* Event Status & Countdown */}
+    <div className="grid gap-4 text-right">
+      {/* Event Status & Countdown (compact) */}
       <Card className="bg-brand-gradient text-brand-foreground">
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">{eventData?.title || "مناسبة جديدة"}</h2>
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
               {eventData?.start_at && (
                 <div className="flex items-center gap-2 text-white/90">
                   <Clock className="h-4 w-4" />
-                  <span>{countdown}</span>
+                  <span className="text-sm">{countdown}</span>
                 </div>
               )}
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold">{stats.participants}</div>
-              <div className="text-white/90 text-sm">مشارك</div>
+              <div className="text-2xl font-bold">{stats.participants}</div>
+              <div className="text-white/90 text-xs">مشارك</div>
             </div>
           </div>
         </CardContent>
@@ -131,49 +131,55 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         </CardContent>
       </Card>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Image className="h-5 w-5 text-primary" />
+      {/* Quick Stats - clickable */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Link to={`/manage/${token}?tab=album`} className="block">
+          <Card className="hover-scale">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Image className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{stats.photos}</div>
+                  <div className="text-xs text-muted-foreground">صور</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.photos}</div>
-                <div className="text-sm text-muted-foreground">صورة</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
+        <Link to={`/manage/${token}?tab=participants`} className="block">
+          <Card className="hover-scale">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{stats.participants}</div>
+                  <div className="text-xs text-muted-foreground">مشاركون</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">{stats.messages}</div>
-                <div className="text-sm text-muted-foreground">مباركة</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Calendar className="h-5 w-5 text-primary" />
+        <Link to={`/manage/${token}?tab=details`} className="block">
+          <Card className="hover-scale">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{eventData?.max_shots || 120}</div>
+                  <div className="text-xs text-muted-foreground">صور مسموحة</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">{eventData?.max_shots || 120}</div>
-                <div className="text-sm text-muted-foreground">صورة مسموحة</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* QR Code & Links */}
@@ -208,22 +214,22 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link to={`/event/${token}/invites`}>
-                <Share2 className="h-4 w-4 mr-2" />
-                إرسال دعوات
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link to={`/album/${token}`}>
-                <Image className="h-4 w-4 mr-2" />
-                عرض الألبوم
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            <Button asChild variant="outline" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/camera`}>
-                <Users className="h-4 w-4 mr-2" />
-                فتح الكاميرا
+                <span className="text-sm">فتح الكاميرا</span>
+                <Camera className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full flex items-center justify-between flex-row-reverse">
+              <Link to={`/album/${token}`}>
+                <span className="text-sm">عرض الألبوم</span>
+                <Image className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full flex items-center justify-between flex-row-reverse">
+              <Link to={`/event/${token}/invites`}>
+                <span className="text-sm">إرسال دعوات</span>
+                <Share2 className="h-4 w-4 ml-2" />
               </Link>
             </Button>
           </CardContent>
