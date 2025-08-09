@@ -40,7 +40,7 @@ const EventCapture = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {!isMobile && <Navbar compact />}
+      <Navbar compact />
       <main className="flex-1">
         {!isMobile ? (
           <DesktopGate />
@@ -48,7 +48,7 @@ const EventCapture = () => {
           <MobileCamera token={token || ""} eventName={title} maxShots={maxShots} />
         )}
       </main>
-      {!isMobile && <Footer />}
+      <Footer />
     </div>
   );
 };
