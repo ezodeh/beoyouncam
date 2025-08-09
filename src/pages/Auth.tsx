@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +21,57 @@ export default function Auth() {
   const [birthdate, setBirthdate] = useState<string>("");
   const navigate = useNavigate();
 
-  useEffect(() => { document.title = "تسجيل الدخول/التسجيل — من عيونكم"; }, []);
+  const countries = [
+    "السعودية", "الإمارات العربية المتحدة", "قطر", "الكويت", "البحرين", "عُمان",
+    "الأردن", "لبنان", "فلسطين", "سوريا", "العراق", "مصر", "ليبيا", "تونس", 
+    "الجزائر", "المغرب", "السودان", "الصومال", "جيبوتي", "موريتانيا", "اليمن"
+  ];
+
+  useEffect(() => { 
+    document.title = "تسجيل الدخول/التسجيل — من عيونكم"; 
+    // تحديد البلد تلقائياً بناءً على الموقع
+    detectCountry();
+  }, []);
+
+  const detectCountry = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      const countryName = data.country_name;
+      
+      // محاولة تطابق اسم البلد مع القائمة العربية
+      const countryMap: { [key: string]: string } = {
+        "Saudi Arabia": "السعودية",
+        "United Arab Emirates": "الإمارات العربية المتحدة",
+        "Qatar": "قطر",
+        "Kuwait": "الكويت",
+        "Bahrain": "البحرين",
+        "Oman": "عُمان",
+        "Jordan": "الأردن",
+        "Lebanon": "لبنان",
+        "Palestine": "فلسطين",
+        "Syria": "سوريا",
+        "Iraq": "العراق",
+        "Egypt": "مصر",
+        "Libya": "ليبيا",
+        "Tunisia": "تونس",
+        "Algeria": "الجزائر",
+        "Morocco": "المغرب",
+        "Sudan": "السودان",
+        "Somalia": "الصومال",
+        "Djibouti": "جيبوتي",
+        "Mauritania": "موريتانيا",
+        "Yemen": "اليمن"
+      };
+      
+      const arabicCountry = countryMap[countryName];
+      if (arabicCountry) {
+        setCountry(arabicCountry);
+      }
+    } catch (error) {
+      console.log('Could not detect country automatically');
+    }
+  };
 
 const signIn = async () => {
   setLoading(true);
@@ -88,7 +139,18 @@ const signUpGoogle = async () => {
               <Input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" className="text-right" />
 
               <Label className="text-right">البلد</Label>
-              <Input type="text" value={country} onChange={(e)=>setCountry(e.target.value)} placeholder="السعودية" className="text-right" />
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="text-right">
+                  <SelectValue placeholder="اختر البلد" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border shadow-lg z-50">
+                  {countries.map((countryName) => (
+                    <SelectItem key={countryName} value={countryName} className="text-right">
+                      {countryName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <div className="grid gap-2">
                 <Label className="text-right">النوع</Label>
