@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, Zap, ZapOff } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,6 +72,12 @@ const MobileCamera: React.FC<Props> = ({
   const [isUsingDigitalZoom, setIsUsingDigitalZoom] = useState(false);
   const [maxOpticalZoom, setMaxOpticalZoom] = useState<number>(1);
   const [showCameraType, setShowCameraType] = useState(false);
+  const [cameraCapabilities, setCameraCapabilities] = useState<any>({});
+
+  // Advanced Camera States
+  const [isFlashOn, setIsFlashOn] = useState(false);
+  const [imageStabilization, setImageStabilization] = useState(false);
+  const [performanceMode, setPerformanceMode] = useState<'quality' | 'performance'>('quality');
 
   // Instagram-style camera states
   const [isLongPressing, setIsLongPressing] = useState(false);
@@ -81,9 +87,16 @@ const MobileCamera: React.FC<Props> = ({
   
   const maxRecordingTime = 15; // 15 seconds like Instagram
 
-  // Zoom levels configuration
+  // Professional zoom levels configuration
   const zoomLevels = [0.5, 1, 2, 5, 10];
   const quickZoomButtons = [0.5, 1, 2, 5];
+
+  // Performance monitoring
+  const performanceRef = useRef({
+    lastFrameTime: 0,
+    frameCount: 0,
+    fps: 0
+  });
 
   useEffect(() => {
     if (recent.length === 0) setLeft(maxShots);
@@ -109,9 +122,29 @@ const MobileCamera: React.FC<Props> = ({
   const recordingTimer = useRef<number | null>(null);
   const progressTimer = useRef<number | null>(null);
 
-  // Touch event handlers for Instagram-style behavior
+  // Touch event handlers for advanced gestures
   const pressTimer = useRef<number | null>(null);
   const isLongPress = useRef(false);
+  const gestureStartDistance = useRef<number>(0);
+  const gestureStartZoom = useRef<number>(1);
+
+  // Performance optimization
+  const monitorPerformance = useCallback(() => {
+    const now = performance.now();
+    const delta = now - performanceRef.current.lastFrameTime;
+    performanceRef.current.frameCount++;
+    
+    if (delta >= 1000) {
+      performanceRef.current.fps = Math.round((performanceRef.current.frameCount * 1000) / delta);
+      performanceRef.current.frameCount = 0;
+      performanceRef.current.lastFrameTime = now;
+      
+      if (performanceRef.current.fps < 20 && performanceMode === 'quality') {
+        console.log('🔧 Switching to performance mode due to low FPS');
+        setPerformanceMode('performance');
+      }
+    }
+  }, [performanceMode]);
 
   const effects = [
     { name: "بدون", css: "none" },
@@ -135,51 +168,59 @@ const MobileCamera: React.FC<Props> = ({
   const [camAnim, setCamAnim] = useState(false);
   const [showEffectName, setShowEffectName] = useState<string | null>(null);
 
-  // Professional Camera Discovery and Management  
-  async function discoverCameras() {
+  // Professional Camera Discovery and Management with Advanced Capabilities
+  const discoverCameras = useCallback(async () => {
     try {
+      console.log('🔍 Starting advanced camera discovery...');
+      
       // Get all video devices
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       setAvailableCameras(videoDevices);
       
-      console.log('🔍 Discovered cameras:', videoDevices.map(d => ({ 
+      console.log('📱 Discovered cameras:', videoDevices.map(d => ({ 
         id: d.deviceId.substr(0, 8), 
         label: d.label || 'Unknown Camera'
       })));
 
-      // Test each camera to get its real capabilities
-      const cameraCapabilities = [];
+      // Test each camera for advanced capabilities
+      const cameraSpecs = {};
       for (const device of videoDevices) {
         try {
           console.log(`🧪 Testing camera: ${device.label || 'Unknown'}`);
           
-          const stream = await navigator.mediaDevices.getUserMedia({
+          const testConstraints = {
             video: {
               deviceId: { exact: device.deviceId },
-              width: { ideal: 1920 },
-              height: { ideal: 1080 }
+              width: { ideal: 1920, min: 1280 },
+              height: { ideal: 1080, min: 720 },
+              frameRate: { ideal: 30, max: 60 }
             }
-          });
-          
+          };
+
+          const stream = await navigator.mediaDevices.getUserMedia(testConstraints);
           const track = stream.getVideoTracks()[0];
           const capabilities = track.getCapabilities();
           const settings = track.getSettings();
           
-          console.log(`📊 Camera capabilities:`, {
+          // Enhanced capabilities detection
+          const specs = {
             label: device.label,
             zoom: (capabilities as any).zoom,
             focusDistance: (capabilities as any).focusDistance,
+            exposureMode: (capabilities as any).exposureMode,
+            whiteBalanceMode: (capabilities as any).whiteBalanceMode,
+            torch: (capabilities as any).torch,
             resolution: `${settings.width}x${settings.height}`,
-            aspectRatio: capabilities.aspectRatio
-          });
+            frameRate: settings.frameRate,
+            aspectRatio: capabilities.aspectRatio,
+            deviceId: device.deviceId,
+            facingMode: settings.facingMode
+          };
 
-          cameraCapabilities.push({
-            device,
-            capabilities,
-            settings,
-            stream
-          });
+          cameraSpecs[device.deviceId] = specs;
+          
+          console.log(`📊 Camera specs:`, specs);
           
           // Stop the test stream
           stream.getTracks().forEach(track => track.stop());
@@ -188,111 +229,153 @@ const MobileCamera: React.FC<Props> = ({
         }
       }
 
-      return cameraCapabilities;
-    } catch (error) {
-      console.error('❌ Error discovering cameras:', error);
-      return [];
-    }
-  }
+      setCameraCapabilities(cameraSpecs);
+      
+      // Select best default camera
+      const backCameras = videoDevices.filter(device => {
+        const label = device.label.toLowerCase();
+        return label.includes('back') || 
+               label.includes('rear') || 
+               label.includes('main') ||
+               (!label.includes('front') && !label.includes('selfie') && !label.includes('user'));
+      });
 
-  // Enhanced camera detection with real hardware lens support
-  function getOptimalCameraForZoom(targetZoom: number): { deviceId: string; type: 'wide' | 'main' | 'telephoto'; realZoom: number } {
+      const selectedCamera = backCameras[0] || videoDevices[0];
+      if (selectedCamera) {
+        setCurrentCameraId(selectedCamera.deviceId);
+        console.log(`✅ Selected default camera: ${selectedCamera.label}`);
+      }
+
+      return cameraSpecs;
+    } catch (error) {
+      console.error('❌ Camera discovery failed:', error);
+      return {};
+    }
+  }, []);
+
+  // Enhanced camera detection with AI-powered lens identification
+  const getOptimalCameraForZoom = useCallback((targetZoom: number): { deviceId: string; type: 'wide' | 'main' | 'telephoto'; realZoom: number; confidence: number } => {
     if (availableCameras.length <= 1) {
       console.log(`📱 Single camera mode - Digital zoom to ${targetZoom}x`);
       return { 
         deviceId: currentCameraId, 
         type: 'main', 
-        realZoom: targetZoom
+        realZoom: Math.min(2, targetZoom), // Limit digital zoom for quality
+        confidence: 0.5
       };
     }
 
-    // Advanced camera detection based on actual labels and patterns
+    // Advanced AI-like camera detection with confidence scoring
     const cameras = availableCameras.map(camera => {
       const label = camera.label.toLowerCase();
+      const specs = cameraCapabilities[camera.deviceId] || {};
+      
       console.log(`🔍 Analyzing camera: ${camera.label}`);
       
       let type: 'wide' | 'main' | 'telephoto' = 'main';
       let nativeZoom = 1;
+      let confidence = 0.7; // Base confidence
       
-      // iPhone/iOS detection patterns
-      if (label.includes('ultra wide') || label.includes('0.5x')) {
+      // iPhone/iOS advanced detection patterns
+      if (label.includes('ultra wide') || label.includes('ultra-wide')) {
         type = 'wide';
         nativeZoom = 0.5;
-        console.log(`📐 Ultra-wide detected: ${camera.label}`);
-      } else if (label.includes('telephoto') || label.includes('2x') || label.includes('3x')) {
+        confidence = 0.95;
+        console.log(`📐 Ultra-wide detected (high confidence): ${camera.label}`);
+      } else if (label.includes('telephoto') || label.includes('2x') || label.includes('3x') || label.includes('5x')) {
         type = 'telephoto';
         const zoomMatch = label.match(/(\d+(?:\.\d+)?)x/);
         nativeZoom = zoomMatch ? parseFloat(zoomMatch[1]) : 2;
-        console.log(`🔭 Telephoto detected: ${camera.label} (${nativeZoom}x)`);
+        confidence = 0.9;
+        console.log(`🔭 Telephoto detected (high confidence): ${camera.label} (${nativeZoom}x)`);
       } else if (label.includes('wide') && !label.includes('ultra')) {
         type = 'main';
         nativeZoom = 1;
+        confidence = 0.8;
         console.log(`📷 Main wide detected: ${camera.label}`);
       }
       
-      // Android/Samsung detection patterns  
-      else if (label.includes('wide') || label.includes('ultrawide')) {
+      // Android/Samsung enhanced detection patterns
+      else if (label.includes('ultrawide') || label.includes('ultra_wide')) {
         type = 'wide';
         nativeZoom = 0.5;
-        console.log(`📐 Android wide detected: ${camera.label}`);
-      } else if (label.includes('tele') || label.includes('zoom')) {
+        confidence = 0.9;
+        console.log(`📐 Android ultrawide detected: ${camera.label}`);
+      } else if (label.includes('tele') || label.includes('zoom') || label.includes('periscope')) {
         type = 'telephoto';
-        nativeZoom = 2; // Most Android phones have 2x telephoto
-        console.log(`🔭 Android telephoto detected: ${camera.label}`);
+        // Try to extract zoom from specs or use default
+        nativeZoom = specs.zoom?.max || 2;
+        confidence = 0.85;
+        console.log(`🔭 Android telephoto detected: ${camera.label} (${nativeZoom}x)`);
       }
       
-      // Generic back camera
+      // Generic patterns with lower confidence
       else if (label.includes('back') || label.includes('rear') || label.includes('main')) {
         type = 'main';
         nativeZoom = 1;
-        console.log(`📷 Main camera detected: ${camera.label}`);
+        confidence = 0.7;
+        console.log(`📷 Generic main camera: ${camera.label}`);
       }
       
-      return { ...camera, type, nativeZoom };
+      // Use specs to improve confidence
+      if (specs.zoom && specs.zoom.max > 1) {
+        confidence += 0.1;
+      }
+      if (specs.resolution && specs.resolution.includes('1920')) {
+        confidence += 0.05;
+      }
+      
+      return { ...camera, type, nativeZoom, confidence, specs };
     });
 
     console.log(`🎯 Target zoom: ${targetZoom}x`);
 
-    // Find the best camera for target zoom level
+    // Smart camera selection based on zoom level and confidence
     let bestCamera = cameras[0];
     let realZoom = targetZoom;
+    let finalConfidence = 0;
 
     if (targetZoom <= 0.7) {
-      // Use ultra-wide camera
-      const wideCamera = cameras.find(cam => cam.type === 'wide');
-      if (wideCamera) {
-        bestCamera = wideCamera;
-        realZoom = 1; // Use optical zoom at 1x on wide camera
-        console.log(`✅ Using ultra-wide camera for ${targetZoom}x`);
+      // Prefer ultra-wide cameras
+      const wideCameras = cameras.filter(cam => cam.type === 'wide').sort((a, b) => b.confidence - a.confidence);
+      if (wideCameras.length > 0) {
+        bestCamera = wideCameras[0];
+        realZoom = 1; // Use optical at 1x on wide camera
+        finalConfidence = bestCamera.confidence;
+        console.log(`✅ Using ultra-wide camera (confidence: ${finalConfidence})`);
       }
     } else if (targetZoom >= 1.8) {
-      // Use telephoto camera
-      const telephotoCamera = cameras.find(cam => cam.type === 'telephoto');
-      if (telephotoCamera) {
-        bestCamera = telephotoCamera;
-        realZoom = Math.max(1, targetZoom / telephotoCamera.nativeZoom);
-        console.log(`✅ Using telephoto camera (${telephotoCamera.nativeZoom}x) with additional ${realZoom}x`);
+      // Prefer telephoto cameras
+      const telephotoCameras = cameras.filter(cam => cam.type === 'telephoto').sort((a, b) => b.confidence - a.confidence);
+      if (telephotoCameras.length > 0) {
+        bestCamera = telephotoCameras[0];
+        realZoom = Math.max(1, Math.min(3, targetZoom / bestCamera.nativeZoom)); // Limit digital zoom on top
+        finalConfidence = bestCamera.confidence;
+        console.log(`✅ Using telephoto camera (${bestCamera.nativeZoom}x) with additional ${realZoom}x (confidence: ${finalConfidence})`);
       } else {
-        // Fallback to main camera with limited digital zoom
-        const mainCamera = cameras.find(cam => cam.type === 'main') || cameras[0];
-        bestCamera = mainCamera;
-        realZoom = Math.min(2, targetZoom); // Limit digital zoom to 2x for quality
-        console.log(`⚠️ No telephoto - using main camera with limited digital zoom ${realZoom}x`);
+        // Fallback to main camera with quality-limited digital zoom
+        const mainCameras = cameras.filter(cam => cam.type === 'main').sort((a, b) => b.confidence - a.confidence);
+        bestCamera = mainCameras[0] || cameras[0];
+        realZoom = Math.min(2, targetZoom); // Quality limit
+        finalConfidence = bestCamera.confidence * 0.7; // Reduced confidence for digital zoom
+        console.log(`⚠️ No telephoto - using main camera with limited digital zoom ${realZoom}x (confidence: ${finalConfidence})`);
       }
     } else {
-      // Use main camera  
-      const mainCamera = cameras.find(cam => cam.type === 'main') || cameras[0];
-      bestCamera = mainCamera;
+      // Use main camera for middle range
+      const mainCameras = cameras.filter(cam => cam.type === 'main').sort((a, b) => b.confidence - a.confidence);
+      bestCamera = mainCameras[0] || cameras[0];
       realZoom = targetZoom;
-      console.log(`✅ Using main camera for ${targetZoom}x`);
+      finalConfidence = bestCamera.confidence;
+      console.log(`✅ Using main camera for ${targetZoom}x (confidence: ${finalConfidence})`);
     }
 
     return { 
       deviceId: bestCamera.deviceId, 
       type: bestCamera.type as 'wide' | 'main' | 'telephoto', 
-      realZoom 
+      realZoom,
+      confidence: finalConfidence
     };
-  }
+  }, [availableCameras, cameraCapabilities, currentCameraId]);
 
   // Advanced camera switching with real hardware optimization
   async function switchToOptimalCamera(targetZoom: number) {
@@ -426,62 +509,69 @@ const MobileCamera: React.FC<Props> = ({
 
   async function openStream() {
     try {
-      console.log('🎬 Opening camera stream...');
+      console.log('🎬 Initializing professional camera system...');
       
-      // Discover available cameras first and get their capabilities
-      const cameraCapabilities = await discoverCameras();
+      // Discover cameras and get their capabilities
+      const specs = await discoverCameras();
       
-      // Select best default camera (back camera preferred)
-      let selectedCamera = availableCameras.find(device => 
-        device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('rear') ||
-        device.label.toLowerCase().includes('main') ||
-        (!device.label.toLowerCase().includes('front') && !device.label.toLowerCase().includes('selfie'))
-      ) || availableCameras[0];
-
-      if (!selectedCamera && availableCameras.length > 0) {
-        selectedCamera = availableCameras[0];
-      }
+      // Select optimal default camera
+      let selectedCamera = availableCameras.find(device => {
+        const label = device.label.toLowerCase();
+        const isBack = label.includes('back') || label.includes('rear') || label.includes('main');
+        const isNotFront = !label.includes('front') && !label.includes('selfie') && !label.includes('user');
+        return isBack || isNotFront;
+      }) || availableCameras[0];
 
       if (selectedCamera) {
         setCurrentCameraId(selectedCamera.deviceId);
-        console.log(`📷 Selected default camera: ${selectedCamera.label}`);
+        console.log(`📷 Selected camera: ${selectedCamera.label}`);
       }
       
+      // Advanced constraints for optimal quality
       const constraints: MediaStreamConstraints = {
         audio: false,
         video: selectedCamera ? {
           deviceId: { exact: selectedCamera.deviceId },
-          facingMode,
-          width: { ideal: 1920, min: 1280 },
-          height: { ideal: 1080, min: 720 },
-          frameRate: { ideal: 30, min: 24 }
+          width: performanceMode === 'quality' ? 
+            { ideal: 1920, min: 1280 } : 
+            { ideal: 1280, min: 720 },
+          height: performanceMode === 'quality' ? 
+            { ideal: 1080, min: 720 } : 
+            { ideal: 720, min: 480 },
+          frameRate: { ideal: 30, min: 24, max: 60 },
+          facingMode
         } : { facingMode }
       };
       
       console.log('📋 Stream constraints:', constraints);
       
-      const s = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = s;
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
       
       if (videoRef.current) {
-        videoRef.current.srcObject = s;
-        await videoRef.current.play().catch(() => {});
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(console.warn);
       }
       
-      const track = s.getVideoTracks?.()?.[0];
-      const caps: any = track?.getCapabilities?.();
-      const settings = track?.getSettings?.();
+      // Get detailed capabilities
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      const settings = track.getSettings();
       
-      console.log('🎛️ Camera capabilities:', caps);
-      console.log('⚙️ Camera settings:', settings);
+      console.log('🎛️ Full camera capabilities:', capabilities);
+      console.log('⚙️ Current settings:', settings);
       
-      setSupportsTorch(Boolean(caps?.torch));
+      // Set up advanced features
+      setSupportsTorch(Boolean((capabilities as any).torch));
+      
+      // Monitor performance
+      requestAnimationFrame(monitorPerformance);
+      
       setPermissionDenied(false);
+      console.log('✅ Professional camera system initialized');
       
-      console.log('✅ Camera stream opened successfully');
-    } catch (e) {
-      console.error('❌ Failed to open camera stream:', e);
+    } catch (error) {
+      console.error('❌ Camera initialization failed:', error);
       setPermissionDenied(true);
     }
   }
@@ -489,9 +579,11 @@ const MobileCamera: React.FC<Props> = ({
   useEffect(() => {
     openStream();
     return () => {
-      streamRef.current?.getTracks().forEach(t => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
     };
-  }, [facingMode, currentCameraId]);
+  }, [facingMode, currentCameraId, performanceMode]);
 
   function formatCounter() {
     const captured = Math.max(0, maxShots - left);
