@@ -222,9 +222,9 @@ export default function EventAlbum() {
                 <Images className="h-5 w-5" />
                 <span className="hidden sm:inline">الصور</span>
               </TabsTrigger>
-              <TabsTrigger value="albums" aria-label="ألبومات بالعيون" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
+              <TabsTrigger value="albums" aria-label="بعيون الأحباب" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Users className="h-5 w-5" />
-                <span className="hidden sm:inline">ألبومات بالعيون</span>
+                <span className="hidden sm:inline">بعيون الأحباب</span>
               </TabsTrigger>
             </TabsList>
 
@@ -356,25 +356,9 @@ export default function EventAlbum() {
 
             <TabsContent value="albums" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                {personalAlbums.length === 0 ? (
-                  <div className="col-span-full text-center text-sm text-muted-foreground py-10">
-                    لا توجد ألبومات شخصية بعد
-                  </div>
-                ) : (
-                  personalAlbums.map((album) => (
-                    <Card key={album.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.open(`/album/${token}/${encodeURIComponent(album.person_name)}`, '_blank')}>
-                      <CardContent className="p-4">
-                        <div className="aspect-square rounded-lg overflow-hidden mb-3">
-                          <img src={album.latest_photo} alt={`ألبوم ${album.person_name}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
-                        </div>
-                        <div className="text-center" dir="rtl">
-                          <h3 className="font-semibold text-foreground text-sm">بعيون {album.person_name}</h3>
-                          <p className="text-sm text-muted-foreground">{album.photo_count} صورة</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
+                <div className="col-span-full text-center text-sm text-muted-foreground py-10">
+                  هذه الميزة قيد التطوير - ستتمكن قريباً من عرض ألبومات المشاركين الفردية
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -410,6 +394,11 @@ export default function EventAlbum() {
 
           <div className="h-full w-full flex items-center justify-center p-4">
             <img src={imageItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
+          </div>
+          
+          {/* اسم المصور */}
+          <div className="absolute bottom-6 right-6 bg-black/70 text-white px-3 py-2 rounded-lg">
+            <p className="font-nastaliq text-lg">بعيون: مجهول</p>
           </div>
 
           <div className="absolute inset-y-0 start-0 z-10 flex items-center p-4">
