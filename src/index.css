@@ -120,48 +120,6 @@
   }
 }
 
-/* Native Mobile App Behavior - منع السلوكيات الافتراضية للمتصفح */
-@layer base {
-  * {
-    /* منع Context Menu على كل العناصر */
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    
-    /* منع الضغط المطول والسحب */
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
-    
-    /* منع تمييز النصوص */
-    -webkit-tap-highlight-color: transparent;
-    
-    /* منع الضغط المطول على الروابط والصور */
-    -webkit-touch-callout: none;
-  }
-  
-  /* السماح بتحديد النصوص في inputs فقط */
-  input, textarea {
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-  }
-  
-  /* منع Context Menu بـ JavaScript backup */
-  body {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-}
-
 @layer utilities {
 .bg-brand-gradient { background-image: var(--gradient-brand); }
 .brand-strip { background-image: var(--gradient-brand); height: 3px; }

@@ -6,18 +6,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-
 interface Props {
   eventName: string;
   token: string;
   maxShots?: number; // default 120
 }
-
 type LocalItem = {
   url: string;
   type: "image" | "video";
 };
-
 const MobileCamera: React.FC<Props> = ({
   eventName,
   token,
@@ -34,29 +31,20 @@ const MobileCamera: React.FC<Props> = ({
   const [flashMode, setFlashMode] = useState<"auto" | "on" | "off">("auto");
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [recordingDuration, setRecordingDuration] = useState<number>(0);
+  const [countdown, setCountdown] = useState<number>(10);
   const [supportsVideo, setSupportsVideo] = useState<boolean>(typeof MediaRecorder !== "undefined");
   const [supportsTorch, setSupportsTorch] = useState<boolean>(false);
   const [showRetry, setShowRetry] = useState<{
     file?: File;
     kind?: "image" | "video";
   } | null>(null);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [zoom, setZoom] = useState<number>(1);
-  const [greeting, setGreeting] = useState("");
-  const navigate = useNavigate();
-
-  // Instagram-style camera states
-  const [isLongPressing, setIsLongPressing] = useState(false);
-  const [recordingProgress, setRecordingProgress] = useState(0);
-  const [slideUpDistance, setSlideUpDistance] = useState(0);
-  const [showZoomLevel, setShowZoomLevel] = useState(false);
-  
-  const maxRecordingTime = 15; // 15 seconds like Instagram
-
   useEffect(() => {
     if (recent.length === 0) setLeft(maxShots);
   }, [maxShots, recent.length]);
@@ -65,53 +53,75 @@ const MobileCamera: React.FC<Props> = ({
   useEffect(() => {
     (async () => {
       if (initialName) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      const n = (session?.user?.user_metadata as any)?.full_name || 
-                (session?.user?.user_metadata as any)?.name || 
-                session?.user?.email;
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
+      const n = (session?.user?.user_metadata as any)?.full_name || (session?.user?.user_metadata as any)?.name || session?.user?.email;
       if (n) setHint(`بعيون ${n}`);
     })();
   }, [initialName]);
-
-  // Pinch-to-zoom variables
-  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pointersRef = useRef<Map<number, {
+    x: number;
+    y: number;
+  }>>(new Map());
   const startDistRef = useRef<number | null>(null);
   const baseZoomRef = useRef<number>(1);
-  const startTouchY = useRef<number>(0);
-  const recordingTimer = useRef<number | null>(null);
-  const progressTimer = useRef<number | null>(null);
-
-  // Touch event handlers for Instagram-style behavior
-  const pressTimer = useRef<number | null>(null);
-  const isLongPress = useRef(false);
-
-  const effects = [
-    { name: "بدون", css: "none" },
-    { name: "المغرب - فاس", css: "saturate(1.4) contrast(1.1) hue-rotate(10deg)" },
-    { name: "الجزائر - القصبة", css: "contrast(1.15) brightness(1.02) saturate(1.2)" },
-    { name: "تونس - قرطاج", css: "sepia(0.25) saturate(1.15) brightness(1.05)" },
-    { name: "ليبيا - طرابلس", css: "grayscale(0.1) contrast(1.15)" },
-    { name: "مصر - النيل", css: "sepia(0.2) saturate(1.2) brightness(1.04)" },
-    { name: "فلسطين - القدس", css: "grayscale(0.15) contrast(1.2) brightness(1.03)" },
-    { name: "الأردن - البتراء", css: "sepia(0.35) saturate(1.15) contrast(1.05)" },
-    { name: "سوريا - الشام", css: "hue-rotate(-10deg) saturate(1.1) contrast(1.08)" },
-    { name: "لبنان - الأرز", css: "saturate(1.25) contrast(1.05)" },
-    { name: "الخليج - لؤلؤ", css: "saturate(1.05) brightness(1.06)" },
-    { name: "اليمن - صنعاء", css: "sepia(0.3) hue-rotate(5deg) contrast(1.05)" },
-    { name: "السودان - النوبة", css: "sepia(0.25) saturate(1.1)" }
-  ];
-  
+  const effects = [{
+    name: "بدون",
+    css: "none"
+  }, {
+    name: "المغرب - فاس",
+    css: "saturate(1.4) contrast(1.1) hue-rotate(10deg)"
+  }, {
+    name: "الجزائر - القصبة",
+    css: "contrast(1.15) brightness(1.02) saturate(1.2)"
+  }, {
+    name: "تونس - قرطاج",
+    css: "sepia(0.25) saturate(1.15) brightness(1.05)"
+  }, {
+    name: "ليبيا - طرابلس",
+    css: "grayscale(0.1) contrast(1.15)"
+  }, {
+    name: "مصر - النيل",
+    css: "sepia(0.2) saturate(1.2) brightness(1.04)"
+  }, {
+    name: "فلسطين - القدس",
+    css: "grayscale(0.15) contrast(1.2) brightness(1.03)"
+  }, {
+    name: "الأردن - البتراء",
+    css: "sepia(0.35) saturate(1.15) contrast(1.05)"
+  }, {
+    name: "سوريا - الشام",
+    css: "hue-rotate(-10deg) saturate(1.1) contrast(1.08)"
+  }, {
+    name: "لبنان - الأرز",
+    css: "saturate(1.25) contrast(1.05)"
+  }, {
+    name: "الخليج - لؤلؤ",
+    css: "saturate(1.05) brightness(1.06)"
+  }, {
+    name: "اليمن - صنعاء",
+    css: "sepia(0.3) hue-rotate(5deg) contrast(1.05)"
+  }, {
+    name: "السودان - النوبة",
+    css: "sepia(0.25) saturate(1.1)"
+  }];
   const [effectIndex, setEffectIndex] = useState<number>(0);
   const [preview, setPreview] = useState<LocalItem | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [camAnim, setCamAnim] = useState(false);
   const [showEffectName, setShowEffectName] = useState<string | null>(null);
-
+  const [greeting, setGreeting] = useState("");
+  const navigate = useNavigate();
   async function openStream() {
     try {
       const constraints: MediaStreamConstraints = {
         audio: false,
-        video: { facingMode }
+        video: {
+          facingMode
+        }
       };
       const s = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = s;
@@ -119,7 +129,7 @@ const MobileCamera: React.FC<Props> = ({
         videoRef.current.srcObject = s;
         await videoRef.current.play().catch(() => {});
       }
-      const track = s.getVideoTracks?.()?.[0];
+      const track = s.getVideoTracks?.()[0];
       const caps: any = track?.getCapabilities?.();
       setSupportsTorch(Boolean(caps?.torch));
       setPermissionDenied(false);
@@ -127,32 +137,25 @@ const MobileCamera: React.FC<Props> = ({
       setPermissionDenied(true);
     }
   }
-
   useEffect(() => {
     openStream();
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode]);
-
   function formatCounter() {
     const captured = Math.max(0, maxShots - left);
     return `${String(captured).padStart(2, "0")}/${String(maxShots).padStart(2, "0")}`;
   }
-
-  function formatTime(seconds: number) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-
   function pad2(n: number) {
     return String(n).padStart(2, "0");
   }
-
   async function capturePhoto() {
     if (left <= 0) {
-      toast({ title: "انتهى عدد اللقطات" });
+      toast({
+        title: "انتهى عدد اللقطات"
+      });
       return;
     }
     try {
@@ -165,14 +168,20 @@ const MobileCamera: React.FC<Props> = ({
       const ctx = canvas.getContext("2d")!;
       ctx.filter = effects[effectIndex].css || "none";
       ctx.drawImage(video, 0, 0, w, h);
-      const blob: Blob = await new Promise(resolve => 
-        canvas.toBlob(b => resolve(b!), "image/jpeg", 0.9)
-      );
-      const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
+      const blob: Blob = await new Promise(resolve => canvas.toBlob(b => resolve(b!), "image/jpeg", 0.9));
+      const file = new File([blob], `shot-${Date.now()}.jpg`, {
+        type: "image/jpeg"
+      });
       const newLeft = Math.max(0, left - 1);
-      setRecent(r => [{ url: URL.createObjectURL(file), type: "image" as const }, ...r].slice(0, 20));
+      setRecent(r => [{
+        url: URL.createObjectURL(file),
+        type: "image" as const
+      }, ...r].slice(0, 20));
+      // لا نعرض الصورة تلقائياً
       setLeft(newLeft);
-      toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
+      toast({
+        title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+      });
       try {
         await uploadFile(file, "image");
       } catch (e) {
@@ -183,130 +192,136 @@ const MobileCamera: React.FC<Props> = ({
       setShowRetry({});
     }
   }
-
   async function startVideoRecording() {
     if (!supportsVideo) return;
     if (left <= 0) {
-      toast({ title: "انتهى عدد اللقطات" });
+      toast({
+        title: "انتهى عدد اللقطات"
+      });
       return;
     }
     try {
-      const s = streamRef.current || await navigator.mediaDevices.getUserMedia({
-        video: { facingMode },
+      const s = streamRef.current || (await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode
+        },
         audio: true
-      });
+      }));
       streamRef.current = s;
-      const rec = new MediaRecorder(s, { mimeType: "video/webm;codecs=vp9,opus" });
+      const rec = new MediaRecorder(s, {
+        mimeType: "video/webm;codecs=vp9,opus"
+      });
       recorderRef.current = rec;
       chunksRef.current = [];
-      
       rec.ondataavailable = e => {
         if (e.data.size) chunksRef.current.push(e.data);
       };
-      
       rec.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" });
-        const file = new File([blob], `clip-${Date.now()}.webm`, { type: blob.type });
+        const blob = new Blob(chunksRef.current, {
+          type: "video/webm"
+        });
+        const file = new File([blob], `clip-${Date.now()}.webm`, {
+          type: blob.type
+        });
         const newLeft = Math.max(0, left - 1);
-        setRecent(r => [{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0, 20));
+        setRecent(r => [{
+          url: URL.createObjectURL(file),
+          type: "video" as const
+        }, ...r].slice(0, 20));
+        // لا نعرض الفيديو تلقائياً
         setLeft(newLeft);
-        toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
+        toast({
+          title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+        });
         try {
           await uploadFile(file, "video");
         } catch (e) {
           setLeft(n => Math.min(maxShots, n + 1));
-          setShowRetry({ file, kind: "video" });
+          setShowRetry({
+            file,
+            kind: "video"
+          });
         }
         setRecording(false);
-        setRecordingDuration(0);
-        setRecordingProgress(0);
       };
-
       rec.start();
       setRecording(true);
-      setRecordingDuration(0);
-      setRecordingProgress(0);
-      
-      // Timer for duration tracking
-      recordingTimer.current = window.setInterval(() => {
-        setRecordingDuration(prev => {
-          const next = prev + 1;
-          if (next >= maxRecordingTime) {
-            stopVideoRecording();
-          }
-          return next;
-        });
-      }, 1000);
-
-      // Progress bar animation
-      progressTimer.current = window.setInterval(() => {
-        setRecordingProgress(prev => {
-          const next = prev + (100 / (maxRecordingTime * 10));
-          return next >= 100 ? 100 : next;
-        });
-      }, 100);
-
+      setCountdown(10);
     } catch (e) {
       setShowRetry({});
     }
   }
-
   function stopVideoRecording() {
     if (recorderRef.current && recording) {
       recorderRef.current.stop();
-      if (recordingTimer.current) {
-        clearInterval(recordingTimer.current);
-        recordingTimer.current = null;
-      }
-      if (progressTimer.current) {
-        clearInterval(progressTimer.current);
-        progressTimer.current = null;
-      }
     }
   }
-
+  useEffect(() => {
+    if (!recording) return;
+    if (countdown <= 0) {
+      stopVideoRecording();
+      return;
+    }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [recording, countdown]);
   async function uploadFile(file: File, kind: "image" | "video") {
     const ext = file.name.split(".").pop() || (kind === "image" ? "jpg" : "webm");
     const path = `events/${token}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     try {
-      const { error } = await supabase.storage
-        .from("event-media")
-        .upload(path, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type
-        });
+      const {
+        error
+      } = await supabase.storage.from("event-media").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type
+      });
       if (error) throw error;
-      toast({ title: "تم الرفع ✅" });
+      toast({
+        title: "تم الرفع ✅"
+      });
     } catch (e) {
-      toast({ title: "فشل — حاول مجددًا" });
+      toast({
+        title: "فشل — حاول مجددًا"
+      });
       throw e;
     }
   }
-
   async function applyTorch(mode: "on" | "off") {
     try {
       const track = streamRef.current?.getVideoTracks()[0];
       if (track && 'applyConstraints' in track) {
         await (track as any).applyConstraints({
-          advanced: [{ torch: mode === "on" }]
+          advanced: [{
+            torch: mode === "on"
+          }]
         });
       }
     } catch (_) {
-      toast({ title: "الفلاش غير مدعوم على هذا الجهاز/المتصفح" });
+      toast({
+        title: "الفلاش غير مدعوم على هذا الجهاز/المتصفح"
+      });
     }
   }
 
-  // Distance calculation for pinch-to-zoom
-  function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
+  // Pinch-to-zoom handlers
+  function distance(a: {
+    x: number;
+    y: number;
+  }, b: {
+    x: number;
+    y: number;
+  }) {
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
-
-  // Enhanced touch handlers with pinch-to-zoom and slide up zoom
   function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
-    e.preventDefault();
+    e.preventDefault(); // منع أي حدث افتراضي مثل التنزيل
+    
     (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    pointersRef.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY
+    });
     
     if (pointersRef.current.size === 2) {
       const [a, b] = Array.from(pointersRef.current.values());
@@ -314,26 +329,25 @@ const MobileCamera: React.FC<Props> = ({
       baseZoomRef.current = zoom;
     }
   }
-
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
-    e.preventDefault();
+    e.preventDefault(); // منع السحب والحدث الافتراضي
     
     if (!pointersRef.current.has(e.pointerId)) return;
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    pointersRef.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY
+    });
     
-    // Pinch-to-zoom for two fingers
     if (pointersRef.current.size === 2 && startDistRef.current) {
       const [a, b] = Array.from(pointersRef.current.values());
       const dist = distance(a, b);
-      const next = Math.min(10, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
+      const next = Math.min(6, Math.max(1, baseZoomRef.current * (dist / startDistRef.current)));
       setZoom(next);
-      setShowZoomLevel(true);
-      setTimeout(() => setShowZoomLevel(false), 1000);
     }
   }
   
   function onVideoPointerUp(e: React.PointerEvent<HTMLVideoElement>) {
-    e.preventDefault();
+    e.preventDefault(); // منع الحدث الافتراضي
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) {
       startDistRef.current = null;
@@ -341,76 +355,48 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
 
-  // Instagram-style shutter button behavior
+  // Long-press logic للفيديو
+  const pressTimer = useRef<number | null>(null);
+  const isLongPress = useRef(false);
+  
   function onShutterDown(e: React.PointerEvent) {
-    e.preventDefault();
+    e.preventDefault(); // منع الحدث الافتراضي مثل التنزيل
     isLongPress.current = false;
-    setIsLongPressing(true);
-    startTouchY.current = e.clientY;
     
     if (!supportsVideo) {
+      // إذا لم يدعم الفيديو، التقط صورة مباشرة
       capturePhoto();
       return;
     }
     
-    // Start long press timer (300ms like Instagram)
     pressTimer.current = window.setTimeout(() => {
       isLongPress.current = true;
       startVideoRecording();
-      // Add haptic feedback if available
-      if ('vibrate' in navigator) {
-        navigator.vibrate(50);
-      }
-    }, 300);
-  }
-
-  function onShutterMove(e: React.PointerEvent) {
-    e.preventDefault();
-    
-    if (!isLongPressing) return;
-    
-    const deltaY = startTouchY.current - e.clientY;
-    setSlideUpDistance(Math.max(0, deltaY));
-    
-    // Slide up for zoom (Instagram style)
-    if (deltaY > 0 && isLongPress.current && recording) {
-      const maxSlide = 200; // pixels
-      const zoomMultiplier = Math.min(deltaY / maxSlide, 1) * 4; // Max 5x zoom
-      const newZoom = Math.min(10, Math.max(1, 1 + zoomMultiplier));
-      setZoom(newZoom);
-      setShowZoomLevel(true);
-    }
+    }, 300); // زيادة الوقت لتجنب التشغيل غير المقصود
   }
   
   function onShutterUp(e: React.PointerEvent) {
-    e.preventDefault();
-    setIsLongPressing(false);
-    setSlideUpDistance(0);
-    setShowZoomLevel(false);
+    e.preventDefault(); // منع الحدث الافتراضي
     
-    // If recording, stop it
     if (recording) {
+      // إذا كان يسجل فيديو، أوقف التسجيل
       stopVideoRecording();
-      return;
-    }
-    
-    // Clear timer if exists
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-      
-      // If not long press, take photo
-      if (!isLongPress.current) {
-        capturePhoto();
+    } else {
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current);
+        pressTimer.current = null;
+        
+        // إذا لم يكن ضغط طويل، التقط صورة
+        if (!isLongPress.current) {
+          capturePhoto();
+        }
       }
     }
     
     isLongPress.current = false;
   }
-
   if (permissionDenied) {
-    return (
-      <div className="relative w-full h-[calc(100dvh-48px)] grid place-items-center px-4 pb-[env(safe-area-inset-bottom)]" dir="rtl">
+    return <div className="relative w-full h-[calc(100dvh-48px)] grid place-items-center px-4 pb-[env(safe-area-inset-bottom)]" dir="rtl">
         <div className="text-center">
           <CameraOff className="mx-auto h-10 w-10 mb-3 opacity-70" />
           <h2 className="text-xl font-semibold mb-2">صلاحية الكاميرا مرفوضة</h2>
@@ -418,298 +404,139 @@ const MobileCamera: React.FC<Props> = ({
           <label className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 cursor-pointer">
             <ImageIcon className="h-4 w-4" />
             <span>اختيار من المعرض</span>
-            <input 
-              type="file" 
-              accept="image/*,video/*" 
-              className="hidden" 
-              onChange={e => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                if (left <= 0) {
-                  toast({ title: "وصلت حدّك" });
-                  return;
-                }
-                uploadFile(f, f.type.startsWith("video") ? "video" : "image")
-                  .then(() => setLeft(n => Math.max(0, n - 1)));
-                e.currentTarget.value = "";
-              }} 
-            />
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={e => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            if (left <= 0) {
+              toast({
+                title: "وصلت حدّك"
+              });
+              return;
+            }
+            uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft(n => Math.max(0, n - 1)));
+            e.currentTarget.value = "";
+          }} />
           </label>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="fixed inset-0 w-full h-full overflow-hidden overscroll-none bg-black z-50" dir="rtl">
+  return <div className="fixed inset-0 w-full h-full overflow-hidden overscroll-none bg-black z-50" dir="rtl">
       {/* Preview - Full screen video */}
-      <video 
-        ref={videoRef} 
-        className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" 
-        style={{
-          transform: `scale(${zoom})`,
-          filter: effects[effectIndex].css || "none"
-        }} 
-        onPointerDown={onVideoPointerDown} 
-        onPointerMove={onVideoPointerMove} 
-        onPointerUp={onVideoPointerUp} 
-        onPointerCancel={onVideoPointerUp} 
-        playsInline 
-        muted 
-        autoPlay 
-      />
-
-      {/* Recording indicator */}
-      {recording && (
-        <div className="absolute top-6 left-6 flex items-center gap-2 z-30">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-white font-mono text-sm bg-black/30 backdrop-blur-sm rounded px-2 py-1">
-            {formatTime(recordingDuration)}
-          </span>
-        </div>
-      )}
-
-      {/* Zoom level indicator */}
-      {showZoomLevel && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
-          <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-lg font-semibold">
-            {zoom.toFixed(1)}x
-          </div>
-        </div>
-      )}
+    <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" style={{
+      transform: `scale(${zoom})`,
+      filter: effects[effectIndex].css || "none"
+    }} onPointerDown={onVideoPointerDown} onPointerMove={onVideoPointerMove} onPointerUp={onVideoPointerUp} onPointerCancel={onVideoPointerUp} playsInline muted autoPlay />
 
       {/* Grid overlay */}
-      {showGrid && (
-        <div className="absolute inset-0 pointer-events-none">
+      {showGrid && <div className="absolute inset-0 pointer-events-none">
           <div className="w-full h-full grid grid-cols-3 grid-rows-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="border border-white/30" />
-            ))}
+            {Array.from({
+          length: 9
+        }).map((_, i) => <div key={i} className="border border-white/30" />)}
           </div>
-        </div>
-      )}
+        </div>}
 
-      {/* Effect name display */}
-      {showEffectName && (
-        <div className="absolute inset-0 pointer-events-none grid place-items-center z-30">
-          <div className="rounded-full bg-background/90 backdrop-blur-sm border border-border px-4 py-2 text-sm animate-fade-in font-medium shadow-lg">
-            {showEffectName}
-          </div>
-        </div>
-      )}
+      {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center z-30">
+          <div className="rounded-full bg-background/90 backdrop-blur-sm border border-border px-4 py-2 text-sm animate-fade-in font-medium shadow-lg">{showEffectName}</div>
+        </div>}
 
-      {/* Top info: event name */}
+      {/* Top info: hint + event name + counters */}
       <div className="absolute top-6 inset-x-0 text-center">
-        <h1 className="text-2xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">
-          {eventName}
-        </h1>
+        <h1 className="text-2xl font-bold font-nastaliq tracking-tight">{eventName}</h1>
       </div>
 
-      {/* Left icons column */}
+      {/* Left icons column - Enhanced visibility */}
       <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
-        <Button 
-          size="icon" 
-          variant="secondary" 
-          className="rounded-full bg-background/20 backdrop-blur-md border-white/30" 
-          onClick={() => {
-            setCamAnim(true);
-            setTimeout(() => setCamAnim(false), 400);
-            setFacingMode(m => m === "user" ? "environment" : "user");
-          }} 
-          aria-label="تبديل الكاميرا"
-        >
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" onClick={() => {
+        setCamAnim(true);
+        setTimeout(() => setCamAnim(false), 400);
+        setFacingMode(m => m === "user" ? "environment" : "user");
+      }} aria-label="تبديل الكاميرا">
           <Camera className={`h-5 w-5 text-white transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
-
-        {supportsVideo && (
-          <Button 
-            size="icon" 
-            variant="secondary" 
-            className="rounded-full bg-background/20 backdrop-blur-md border-white/30" 
-            aria-label="إظهار/إخفاء الشبكة" 
-            onClick={() => setShowGrid(v => !v)}
-          >
+        {supportsVideo && <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
             <GridIcon className={`h-5 w-5 text-white ${showGrid ? 'text-primary' : ''}`} />
-          </Button>
-        )}
-
-        <Button 
-          size="icon" 
-          variant="secondary" 
-          className="rounded-full bg-background/20 backdrop-blur-md border-white/30" 
-          aria-label="فلاش" 
-          disabled={!supportsTorch} 
-          onClick={() => {
-            const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
-            setFlashMode(next);
-            if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
-          }}
-        >
+          </Button>}
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="فلاش" disabled={!supportsTorch} onClick={() => {
+        const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
+        setFlashMode(next);
+        if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
+      }}>
           <Flashlight className={`h-5 w-5 text-white ${flashMode === 'on' ? 'text-yellow-400' : ''}`} />
         </Button>
-
-        <Button 
-          size="icon" 
-          variant="secondary" 
-          className="rounded-full bg-background/20 backdrop-blur-md border-white/30" 
-          aria-label="فلاتر وإيفكتس" 
-          onClick={() => {
-            const next = (effectIndex + 1) % effects.length;
-            setEffectIndex(next);
-            setShowEffectName(effects[next].name);
-            setTimeout(() => setShowEffectName(null), 1200);
-          }}
-        >
+        <Button size="icon" variant="secondary" className="rounded-full bg-background/20 backdrop-blur-md border-white/30" aria-label="فلاتر وإيفكتس" onClick={() => {
+        const next = (effectIndex + 1) % effects.length;
+        setEffectIndex(next);
+        setShowEffectName(effects[next].name);
+        setTimeout(() => setShowEffectName(null), 1200);
+      }}>
           <Sparkles className="h-5 w-5 text-white" />
         </Button>
       </div>
 
       {/* Counter above shutter */}
       <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(11rem+env(safe-area-inset-bottom))] z-20">
-        <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">
-          {formatCounter()}
-        </div>
+        <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
-      {/* Enhanced Instagram-style Shutter Button */}
+      {/* Shutter */}
       <div className="absolute inset-x-0 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-3">
-        <div className="relative">
-          {/* Progress ring for recording */}
-          {recording && (
-            <svg className="absolute inset-0 w-24 h-24 -rotate-90 z-10">
-              <circle
-                cx="48"
-                cy="48"
-                r="44"
-                stroke="rgba(255, 255, 255, 0.3)"
-                strokeWidth="4"
-                fill="transparent"
-              />
-              <circle
-                cx="48"
-                cy="48"
-                r="44"
-                stroke="#ef4444"
-                strokeWidth="4"
-                fill="transparent"
-                strokeDasharray={`${2 * Math.PI * 44}`}
-                strokeDashoffset={`${2 * Math.PI * 44 * (1 - recordingProgress / 100)}`}
-                className="transition-all duration-100"
-              />
-            </svg>
-          )}
-          
-          {/* Main shutter button */}
-          <div className="w-24 h-24 rounded-full p-1 bg-white/20 backdrop-blur-sm">
-            <button 
-              className={`relative w-full h-full rounded-full shadow-lg outline-none transition-all duration-200 ${
-                recording 
-                  ? "bg-red-500 scale-75" 
-                  : isLongPressing 
-                    ? "bg-white scale-110" 
-                    : "bg-white"
-              }`}
-              onPointerDown={onShutterDown}
-              onPointerMove={onShutterMove}
-              onPointerUp={onShutterUp}
-              onPointerCancel={onShutterUp}
-              disabled={left <= 0}
-              aria-label={recording ? "إيقاف التسجيل" : "التقاط"}
-            >
-              {!recording && (
-                <span 
-                  className="pointer-events-none absolute inset-0 rounded-full border-4 border-primary transition-all duration-200"
-                  style={{
-                    transform: isLongPressing ? 'scale(1.2)' : 'scale(1)'
-                  }}
-                />
-              )}
+        {recording ? <div className="w-24 h-24 rounded-full">
+            <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-brand-gradient text-brand-foreground animate-pulse" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط" />
+          </div> : <div className="w-24 h-24 rounded-full p-0 bg-brand-gradient">
+            <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-white" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط">
+              <span className="pointer-events-none absolute inset-0 rounded-full" style={{
+            boxShadow: "0 0 0 4px hsl(var(--primary)) inset"
+          }} />
             </button>
-          </div>
-        </div>
-        
-        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">
-          {hint}
-        </div>
+          </div>}
+        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
       </div>
 
       {/* Recent thumb */}
-      {recent.length > 0 && (
-        <button 
-          className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" 
-          onClick={() => setShowRecent(true)} 
-          aria-label="المعرض"
-        >
+      {recent.length > 0 && <button className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" onClick={() => setShowRecent(true)} aria-label="المعرض">
           <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
-        </button>
-      )}
+        </button>}
 
-      {/* Bottom bar */}
+      {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
       <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="mx-3 flex items-center justify-between">
-          <Link 
-            to={`/event/${token}/invites`} 
-            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border"
-          >
+          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border">
             <Users className="h-4 w-4" />
             <span>QR دعوة</span>
           </Link>
-          
           <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border cursor-pointer">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
-            <input 
-              type="file" 
-              accept="image/*,video/*" 
-              className="hidden" 
-              onChange={e => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                if (left <= 0) {
-                  toast({ title: "انتهى عدد اللقطات" });
-                  return;
-                }
-                uploadFile(f, f.type.startsWith("video") ? "video" : "image")
-                  .then(() => setLeft(n => Math.max(0, n - 1)));
-                e.currentTarget.value = "";
-              }} 
-            />
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={e => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            if (left <= 0) {
+              toast({
+                title: "انتهى عدد اللقطات"
+              });
+              return;
+            }
+            uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft(n => Math.max(0, n - 1)));
+            e.currentTarget.value = "";
+          }} />
           </label>
         </div>
       </div>
 
       {/* Limit banner */}
-      {left <= 0 && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">
-          انتهى عدد اللقطات
-        </div>
-      )}
+      {left <= 0 && <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">انتهى عدد اللقطات</div>}
 
-      {/* Dialogs */}
+      {/* Limit reached dialog */}
       <Dialog open={left <= 0}>
         <DialogContent dir="rtl">
-          <p className="text-sm text-muted-foreground mb-2">
-            يمكنك حذف بعض اللقطات أو تسليم الألبوم الآن.
-          </p>
+          
+          <p className="text-sm text-muted-foreground mb-2">يمكنك حذف بعض اللقطات أو تسليم الألبوم الآن.</p>
           <label className="text-sm mb-1">اكتب مباركة (اختياري)</label>
-          <Textarea 
-            value={greeting} 
-            onChange={e => setGreeting(e.target.value)} 
-            placeholder="اكتب تهنئة قصيرة للعروسين…" 
-          />
+          <Textarea value={greeting} onChange={e => setGreeting(e.target.value)} placeholder="اكتب تهنئة قصيرة للعروسين…" />
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="secondary" onClick={() => setShowRecent(true)}>
-              حذف بعض اللقطات
-            </Button>
-            <Button 
-              onClick={() => navigate(
-                `/event/${token}/submit${window.location.search}${
-                  greeting ? "&greeting=" + encodeURIComponent(greeting) : ""
-                }`
-              )}
-            >
-              تسليم الألبوم الآن
-            </Button>
+            <Button variant="secondary" onClick={() => setShowRecent(true)}>حذف بعض اللقطات</Button>
+            <Button onClick={() => navigate(`/event/${token}/submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -723,18 +550,12 @@ const MobileCamera: React.FC<Props> = ({
           <p className="text-sm text-muted-foreground">حاول مجددًا.</p>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setShowRetry(null)}>إلغاء</Button>
-            {showRetry?.file && showRetry?.kind && (
-              <Button 
-                onClick={async () => {
-                  try {
-                    await uploadFile(showRetry.file!, showRetry.kind!);
-                    setShowRetry(null);
-                  } catch (_) {}
-                }}
-              >
-                إعادة المحاولة
-              </Button>
-            )}
+            {showRetry?.file && showRetry?.kind && <Button onClick={async () => {
+            try {
+              await uploadFile(showRetry.file!, showRetry.kind!);
+              setShowRetry(null);
+            } catch (_) {}
+          }}>إعادة المحاولة</Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -746,35 +567,17 @@ const MobileCamera: React.FC<Props> = ({
             <DialogTitle>لقطاتي</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {recent.length === 0 && (
-              <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">
-                لا توجد لقطات بعد
-              </div>
-            )}
-            {recent.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="relative group border border-border rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform" 
-                onClick={() => setViewerIndex(idx)}
-              >
-                {item.type === "image" ? (
-                  <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" />
-                ) : (
-                  <video src={item.url} className="w-full h-24 object-cover" />
-                )}
-                <button 
-                  className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" 
-                  aria-label="حذف" 
-                  onClick={e => {
-                    e.stopPropagation();
-                    setRecent(r => r.filter((_, i) => i !== idx));
-                    setLeft(n => Math.min(maxShots, n + 1));
-                  }}
-                >
+            {recent.length === 0 && <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>}
+            {recent.map((item, idx) => <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform" onClick={() => setViewerIndex(idx)}>
+                {item.type === "image" ? <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" /> : <video src={item.url} className="w-full h-24 object-cover" />}
+                  <button className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" aria-label="حذف" onClick={e => {
+              e.stopPropagation();
+              setRecent(r => r.filter((_, i) => i !== idx));
+              setLeft(n => Math.min(maxShots, n + 1));
+            }}>
                   <Trash2 className="h-4 w-4" />
                 </button>
-              </div>
-            ))}
+              </div>)}
           </div>
           <DialogFooter>
             <Button onClick={() => setShowRecent(false)}>إغلاق</Button>
@@ -782,58 +585,32 @@ const MobileCamera: React.FC<Props> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Fullscreen viewer */}
-      <Dialog open={viewerIndex !== null} onOpenChange={o => { if (!o) setViewerIndex(null); }}>
+      {/* Fullscreen viewer - Only show on click/select */}
+      <Dialog open={viewerIndex !== null} onOpenChange={o => {
+      if (!o) setViewerIndex(null);
+    }}>
         <DialogContent dir="rtl" className="p-0 max-w-none w-[100vw] h-[100dvh]">
-          {viewerIndex !== null && recent[viewerIndex] && (
-            <div className="relative w-full h-full bg-black">
+          {viewerIndex !== null && recent[viewerIndex] && <div className="relative w-full h-full bg-black">
               <div className="absolute top-3 left-3 z-20 flex gap-2">
-                <Button variant="secondary" onClick={() => setViewerIndex(null)}>
-                  إغلاق
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => {
-                    setRecent(r => r.filter((_, i) => i !== viewerIndex));
-                    setLeft(n => Math.min(maxShots, n + 1));
-                    setViewerIndex(null);
-                  }}
-                >
-                  حذف
-                </Button>
-                <Button 
-                  onClick={() => {
-                    const a = document.createElement('a');
-                    a.href = recent[viewerIndex!].url;
-                    a.download = 'media';
-                    a.click();
-                  }}
-                >
-                  تنزيل
-                </Button>
+                <Button variant="secondary" onClick={() => setViewerIndex(null)}>إغلاق</Button>
+                <Button variant="destructive" onClick={() => {
+              setRecent(r => r.filter((_, i) => i !== viewerIndex));
+              setLeft(n => Math.min(maxShots, n + 1));
+              setViewerIndex(null);
+            }}>حذف</Button>
+                <Button onClick={() => {
+              const a = document.createElement('a');
+              a.href = recent[viewerIndex!].url;
+              a.download = 'media';
+              a.click();
+            }}>تنزيل</Button>
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                {recent[viewerIndex].type === 'image' ? (
-                  <img 
-                    src={recent[viewerIndex].url} 
-                    alt="معاينة" 
-                    className="max-w-full max-h-full object-contain" 
-                  />
-                ) : (
-                  <video 
-                    src={recent[viewerIndex].url} 
-                    className="max-w-full max-h-full object-contain" 
-                    controls 
-                    autoPlay 
-                  />
-                )}
+                {recent[viewerIndex].type === 'image' ? <img src={recent[viewerIndex].url} alt="معاينة" className="max-w-full max-h-full object-contain" /> : <video src={recent[viewerIndex].url} className="max-w-full max-h-full object-contain" controls autoPlay />}
               </div>
-            </div>
-          )}
+            </div>}
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default MobileCamera;
