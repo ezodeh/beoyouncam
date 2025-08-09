@@ -330,7 +330,7 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
-    e.preventDefault(); // منع السحب والحدث الافتراضي
+    e.preventDefault();
     
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, {
@@ -338,6 +338,7 @@ const MobileCamera: React.FC<Props> = ({
       y: e.clientY
     });
     
+    // الزوم يعمل أثناء التسجيل وبدونه
     if (pointersRef.current.size === 2 && startDistRef.current) {
       const [a, b] = Array.from(pointersRef.current.values());
       const dist = distance(a, b);
@@ -360,11 +361,10 @@ const MobileCamera: React.FC<Props> = ({
   const isLongPress = useRef(false);
   
   function onShutterDown(e: React.PointerEvent) {
-    e.preventDefault(); // منع الحدث الافتراضي مثل التنزيل
+    e.preventDefault();
     isLongPress.current = false;
     
     if (!supportsVideo) {
-      // إذا لم يدعم الفيديو، التقط صورة مباشرة
       capturePhoto();
       return;
     }
@@ -372,24 +372,26 @@ const MobileCamera: React.FC<Props> = ({
     pressTimer.current = window.setTimeout(() => {
       isLongPress.current = true;
       startVideoRecording();
-    }, 300); // زيادة الوقت لتجنب التشغيل غير المقصود
+    }, 300);
   }
   
   function onShutterUp(e: React.PointerEvent) {
-    e.preventDefault(); // منع الحدث الافتراضي
+    e.preventDefault();
     
+    // إذا كان يسجل فيديو، أوقف التسجيل بمجرد رفع الإصبع
     if (recording) {
-      // إذا كان يسجل فيديو، أوقف التسجيل
       stopVideoRecording();
-    } else {
-      if (pressTimer.current) {
-        clearTimeout(pressTimer.current);
-        pressTimer.current = null;
-        
-        // إذا لم يكن ضغط طويل، التقط صورة
-        if (!isLongPress.current) {
-          capturePhoto();
-        }
+      return;
+    }
+    
+    // إذا كان هناك timer نشط، أوقفه
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+      
+      // إذا لم يكن ضغط طويل، التقط صورة
+      if (!isLongPress.current) {
+        capturePhoto();
       }
     }
     
