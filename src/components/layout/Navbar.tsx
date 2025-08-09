@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import { PlusCircle, QrCode, Settings, LogOut } from "lucide-react";
+import { PlusCircle, QrCode, Settings, LogOut, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 interface NavbarProps { compact?: boolean; fullBleed?: boolean }
 const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -35,26 +36,53 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
         <div className="flex items-center gap-3">
           
           <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
-            <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-7 w-auto md:h-8" loading="eager" />
+            <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-8 w-auto sm:h-9" loading="eager" />
           </Link>
         </div>
         <div>
           {userName ? (
-            <div className="flex items-center gap-1.5">
-              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إنشاء مناسبة جديدة">
-                <Link to="/create-event"><PlusCircle className="h-5 w-5" /></Link>
-              </Button>
-              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="مسح رمز QR">
-                <Link to="/scanner"><QrCode className="h-5 w-5" /></Link>
-              </Button>
-              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إعدادات الحساب">
-                <Link to="/settings"><Settings className="h-5 w-5" /></Link>
-              </Button>
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="تسجيل الخروج" onClick={signOut}>
-                <LogOut className="h-5 w-5" />
-              </Button>
-              <ThemeToggle />
-            </div>
+            <>
+              {/* Desktop icons */}
+              <div className="hidden md:flex items-center gap-1.5">
+                <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إنشاء مناسبة جديدة">
+                  <Link to="/create-event"><PlusCircle className="h-5 w-5" /></Link>
+                </Button>
+                <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="مسح رمز QR">
+                  <Link to="/scanner"><QrCode className="h-5 w-5" /></Link>
+                </Button>
+                <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إعدادات الحساب">
+                  <Link to="/settings"><Settings className="h-5 w-5" /></Link>
+                </Button>
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="تسجيل الخروج" onClick={signOut}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
+                <ThemeToggle />
+              </div>
+
+              {/* Mobile menu */}
+              <div className="md:hidden flex items-center gap-2">
+                <ThemeToggle />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="rounded-full" aria-label="القائمة">
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/create-event">إنشاء مناسبة</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/scanner">ماسح QR</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings">إعدادات الحساب</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={signOut}>تسجيل الخروج</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </>
           ) : (
             <div className="flex items-center gap-2">
               <Button asChild variant="hero" size="sm" className="md:h-10 md:px-4" aria-label="تسجيل الدخول">

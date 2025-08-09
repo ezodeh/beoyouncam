@@ -25,7 +25,7 @@ export default function Settings() {
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto grid gap-6">
-          <header>
+          <header className="text-right">
             <h1 className="text-3xl font-extrabold mb-2">إعدادات الحساب</h1>
             <p className="text-sm text-muted-foreground">عدّل معلوماتك الأساسية.</p>
           </header>

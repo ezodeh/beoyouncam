@@ -3,8 +3,8 @@ import Footer from "@/components/layout/Footer";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Image, Camera, Share2, Settings } from "lucide-react";
-
+import { Image, Camera, Share2, Settings, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 interface EventItem { token: string; title: string; cover_url: string | null; start_at: string | null; end_at: string | null; }
 
 export default function Account() {
@@ -82,8 +82,8 @@ export default function Account() {
         ) : (
           <>
             <section>
-              <h2 className="text-2xl font-bold mb-3">مناسباتي الحالية</h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <h2 className="text-2xl font-bold mb-3 text-right">مناسباتي الحالية</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {ownedCurrent.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {ownedCurrent.map((e) => (
                   <div key={e.token} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
@@ -98,44 +98,69 @@ export default function Account() {
                     </Link>
                     
                     {/* Quick Control Icons */}
-                    <div className="p-3 pt-0 flex items-center justify-between border-t">
-                      <div className="flex items-center gap-2">
+                    <div className="p-3 pt-0 border-t">
+                      {/* Desktop: inline icons */}
+                      <div className="hidden md:flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Link 
+                            to={`/album/${e.token}`} 
+                            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                            title="زيارة الألبوم"
+                          >
+                            <Image className="h-3 w-3" />
+                            <span>الألبوم</span>
+                          </Link>
+                          <Link 
+                            to={`/event/${e.token}/camera`} 
+                            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                            title="فتح الكاميرا"
+                          >
+                            <Camera className="h-3 w-3" />
+                            <span>الكاميرا</span>
+                          </Link>
+                          <button 
+                            onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${e.token}`); }}
+                            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                            title="مشاركة"
+                          >
+                            <Share2 className="h-3 w-3" />
+                            <span>مشاركة</span>
+                          </button>
+                        </div>
                         <Link 
-                          to={`/album/${e.token}`} 
-                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-                          title="زيارة الألبوم"
+                          to={`/manage/${e.token}`}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          title="إدارة"
                         >
-                          <Image className="h-3 w-3" />
-                          <span>الألبوم</span>
+                          <Settings className="h-3 w-3" />
+                          <span>إدارة</span>
                         </Link>
-                        <Link 
-                          to={`/event/${e.token}/camera`} 
-                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-                          title="فتح الكاميرا"
-                        >
-                          <Camera className="h-3 w-3" />
-                          <span>الكاميرا</span>
-                        </Link>
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/event/${e.token}`);
-                            // Add toast notification here
-                          }}
-                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
-                          title="مشاركة"
-                        >
-                          <Share2 className="h-3 w-3" />
-                          <span>مشاركة</span>
-                        </button>
                       </div>
-                      <Link 
-                        to={`/manage/${e.token}`}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        title="إدارة"
-                      >
-                        <Settings className="h-3 w-3" />
-                        <span>إدارة</span>
-                      </Link>
+                      {/* Mobile: dropdown menu */}
+                      <div className="md:hidden flex justify-between items-center">
+                        <div className="text-xs text-muted-foreground">إجراءات سريعة</div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="inline-flex items-center justify-center rounded-full border px-2 py-1">
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-40">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/album/${e.token}`}>زيارة الألبوم</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/event/${e.token}/camera`}>فتح الكاميرا</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${e.token}`); }}>
+                              نسخ رابط المشاركة
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/manage/${e.token}`}>إدارة المناسبة</Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -144,7 +169,7 @@ export default function Account() {
 
             <section>
               <h2 className="text-2xl font-bold mb-3">مناسباتي السابقة</h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {ownedPast.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {ownedPast.map((e) => (
                   <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
@@ -162,7 +187,7 @@ export default function Account() {
 
             <section>
               <h2 className="text-2xl font-bold mb-3">مشاركاتي</h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {joinedCurrent.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {joinedCurrent.map((e) => (
                   <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
@@ -180,7 +205,7 @@ export default function Account() {
 
             <section>
               <h2 className="text-2xl font-bold mb-3">سجل المشاركات</h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                 {joinedPast.length === 0 && <div className="text-sm text-muted-foreground">لا يوجد</div>}
                 {joinedPast.map((e) => (
                   <Link key={e.token} to={`/album/${e.token}/intro`} className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">

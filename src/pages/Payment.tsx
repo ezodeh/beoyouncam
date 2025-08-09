@@ -26,7 +26,7 @@ const Payment = () => {
       <Navbar />
       <main className="flex-1 container mx-auto py-12">
         <h1 className="text-3xl font-extrabold mb-8 text-center">الدفع</h1>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <div className="border rounded-lg p-6 space-y-3">
             <h2 className="font-bold">Stripe</h2>
             <p className="text-sm text-muted-foreground">بطاقات ائتمانية ودعم عالمي</p>

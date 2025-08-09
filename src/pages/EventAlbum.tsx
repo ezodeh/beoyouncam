@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2 } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2, Heart, Users, ExternalLink, MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
 interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string }
@@ -57,6 +57,40 @@ export default function EventAlbum() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState<boolean>(true);
   const { toast } = useToast();
+
+  // مباركات وألبومات شخصية (بيانات مؤقتة حالياً)
+  const [congratulations, setCongratulations] = useState<any[]>([]);
+  const [newCongratulation, setNewCongratulation] = useState("");
+  const [senderName, setSenderName] = useState("");
+  const [personalAlbums, setPersonalAlbums] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Dummy congratulations
+    setCongratulations([
+      { id: 1, message: "مبروك! أتمنى لكم حياة سعيدة", sender_name: "أحمد محمد", created_at: new Date().toISOString() },
+      { id: 2, message: "ألف مبروك بالتوفيق والسعادة", sender_name: "فاطمة علي", created_at: new Date().toISOString() },
+      { id: 3, message: "مباركات وتهاني من القلب", sender_name: "محمد خالد", created_at: new Date().toISOString() },
+    ]);
+
+    // Dummy personal albums by eyes
+    setPersonalAlbums([
+      { id: 1, person_name: "أحمد محمد", photo_count: 15, latest_photo: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png" },
+      { id: 2, person_name: "فاطمة علي", photo_count: 8, latest_photo: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" },
+      { id: 3, person_name: "محمد خالد", photo_count: 12, latest_photo: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png" },
+    ]);
+  }, [token]);
+
+  const addCongratulation = () => {
+    if (!newCongratulation.trim() || !senderName.trim()) {
+      toast({ title: "خطأ", description: "يرجى ملء جميع الحقول", variant: "destructive" });
+      return;
+    }
+    const newItem = { id: Date.now(), message: newCongratulation, sender_name: senderName, created_at: new Date().toISOString() };
+    setCongratulations((prev) => [newItem, ...prev]);
+    setNewCongratulation("");
+    setSenderName("");
+    toast({ title: "تم إضافة المباركة", description: "شكراً لك" });
+  };
 
   useEffect(() => {
     (async () => {
@@ -151,10 +185,18 @@ export default function EventAlbum() {
 
         <section className="container mx-auto px-4 py-6">
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className="grid grid-cols-1 w-full max-w-xs rounded-full mx-auto">
-              <TabsTrigger value="photos" aria-label="الصور">
+            <TabsList className="grid grid-cols-3 w-full max-w-xl rounded-full mx-auto">
+              <TabsTrigger value="photos" aria-label="الصور" className="flex items-center gap-2">
                 <Images className="h-5 w-5" />
-                <span className="sr-only">الصور</span>
+                <span className="hidden sm:inline">الصور</span>
+              </TabsTrigger>
+              <TabsTrigger value="congratulations" aria-label="المباركات" className="flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                <span className="hidden sm:inline">المباركات</span>
+              </TabsTrigger>
+              <TabsTrigger value="albums" aria-label="ألبومات بالعيون" className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <span className="hidden sm:inline">ألبومات بالعيون</span>
               </TabsTrigger>
             </TabsList>
 
@@ -178,6 +220,65 @@ export default function EventAlbum() {
                     ))}
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="congratulations" className="mt-6">
+              <div className="space-y-6 max-w-3xl mx-auto">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 justify-end" dir="rtl">
+                      <MessageSquare className="h-5 w-5" />
+                      إضافة مباركة جديدة
+                    </h3>
+                    <div className="space-y-4" dir="rtl">
+                      <Input placeholder="اسمك" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="text-right" />
+                      <Textarea placeholder="اكتب مباركتك هنا..." value={newCongratulation} onChange={(e) => setNewCongratulation(e.target.value)} className="text-right min-h-[100px]" />
+                      <Button onClick={addCongratulation} className="w-full">إرسال المباركة</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-4" dir="rtl">
+                  {congratulations.map((cong) => (
+                    <Card key={cong.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
+                            {cong.sender_name.charAt(0)}
+                          </div>
+                          <div className="flex-1 text-right">
+                            <h4 className="font-semibold text-foreground">{cong.sender_name}</h4>
+                            <p className="text-muted-foreground mt-1 leading-relaxed">{cong.message}</p>
+                            <span className="text-xs text-muted-foreground">{new Date(cong.created_at).toLocaleDateString('ar-SA')}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="albums" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                {personalAlbums.map((album) => (
+                  <Card key={album.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="aspect-square rounded-lg overflow-hidden mb-3">
+                        <img src={album.latest_photo} alt={`ألبوم ${album.person_name}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                      </div>
+                      <div className="text-center" dir="rtl">
+                        <h3 className="font-semibold text-foreground">{album.person_name}</h3>
+                        <p className="text-sm text-muted-foreground">{album.photo_count} صورة</p>
+                        <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => window.open(`/album/${token}/${encodeURIComponent(album.person_name)}`, '_blank')}>
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                          عرض الألبوم
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </TabsContent>
           </Tabs>
