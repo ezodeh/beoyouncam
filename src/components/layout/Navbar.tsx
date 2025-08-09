@@ -67,10 +67,16 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                       إعدادات الحساب
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer" onClick={(e) => e.preventDefault()}>
-                    <div className="h-4 w-4" /> {/* spacer for alignment */}
-                    <span className="flex-1">الوضع الليلي</span>
-                    <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem asChild>
+                    <div className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer" onClick={(e) => {
+                      e.preventDefault();
+                      const themeToggleButton = e.currentTarget.querySelector('button');
+                      if (themeToggleButton) {
+                        themeToggleButton.click();
+                      }
+                    }}>
+                      <div className="h-4 w-4" /> {/* spacer for alignment */}
+                      <span className="flex-1">الوضع الليلي</span>
                       <ThemeToggle />
                     </div>
                   </DropdownMenuItem>
@@ -108,10 +114,10 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                 <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إعدادات الحساب">
                   <Link to="/settings"><Settings className="h-5 w-5" /></Link>
                 </Button>
+                <ThemeToggle />
                 <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10" aria-label="تسجيل الخروج" onClick={signOut}>
                   <LogOut className="h-5 w-5" />
                 </Button>
-                <ThemeToggle />
               </div>
             ) : (
               <div className="flex items-center gap-2">

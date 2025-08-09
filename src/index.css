@@ -5,7 +5,7 @@
 /* Design system — HSL tokens only */
 @layer base {
   :root {
-    --background: 0 0% 96%;
+    --background: 0 0% 94%;
     --foreground: 232 14% 12%;
 
     --card: 0 0% 100%;
