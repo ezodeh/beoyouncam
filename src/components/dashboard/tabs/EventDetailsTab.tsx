@@ -206,46 +206,87 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
             <Button 
               variant="destructive" 
               onClick={async () => {
-                if (!confirm("هل أنت متأكد من حذف هذه المناسبة نهائياً؟ سيتم حذف جميع البيانات والصور والمباركات.")) return;
-                if (!confirm("هذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد تماماً؟")) return;
+                const firstConfirm = window.confirm("هل أنت متأكد من حذف هذه المناسبة نهائياً؟\n\nسيتم حذف:\n- جميع الصور\n- جميع المباركات\n- جميع بيانات المشاركين\n- المناسبة كاملة");
+                if (!firstConfirm) return;
+                
+                const secondConfirm = window.confirm("تأكيد أخير: هذا الإجراء لا يمكن التراجع عنه!\n\nاضغط موافق للمتابعة أو إلغاء للتوقف.");
+                if (!secondConfirm) return;
                 
                 try {
-                  // Delete all photos from storage
-                  const { data: files } = await supabase.storage
-                    .from("event-media")
-                    .list(`events/${token}`, { limit: 1000 });
+                  console.log("بدء عملية حذف المناسبة:", token);
                   
-                  if (files && files.length > 0) {
-                    const filePaths = files.map(file => `events/${token}/${file.name}`);
-                    await supabase.storage.from("event-media").remove(filePaths);
+                  // Delete all photos from storage first
+                  console.log("حذف الصور من التخزين...");
+                  try {
+                    const { data: files } = await supabase.storage
+                      .from("event-media")
+                      .list(`events/${token}`, { limit: 1000 });
+                    
+                    if (files && files.length > 0) {
+                      const filePaths = files.map(file => `events/${token}/${file.name}`);
+                      const { error: storageError } = await supabase.storage
+                        .from("event-media")
+                        .remove(filePaths);
+                      if (storageError) console.error("خطأ في حذف الصور:", storageError);
+                    }
+                  } catch (storageErr) {
+                    console.error("خطأ في الوصول للصور:", storageErr);
                   }
                   
                   // Delete cover image if exists
+                  console.log("حذف صورة الغلاف...");
                   if (eventData?.cover_url) {
-                    const coverPath = eventData.cover_url.split('/').pop();
-                    if (coverPath) {
-                      await supabase.storage.from("event-media").remove([coverPath]);
+                    try {
+                      const coverFileName = eventData.cover_url.split('/').pop();
+                      if (coverFileName && coverFileName.includes(token)) {
+                        await supabase.storage.from("event-media").remove([coverFileName]);
+                      }
+                    } catch (coverErr) {
+                      console.error("خطأ في حذف صورة الغلاف:", coverErr);
                     }
                   }
                   
                   // Delete blessings
-                  await supabase.from("blessings").delete().eq("event_token", token);
+                  console.log("حذف المباركات...");
+                  const { error: blessingsError } = await supabase
+                    .from("blessings")
+                    .delete()
+                    .eq("event_token", token);
+                  if (blessingsError) console.error("خطأ في حذف المباركات:", blessingsError);
                   
                   // Delete participants
-                  await supabase.from("participants").delete().eq("event_token", token);
+                  console.log("حذف المشاركين...");
+                  const { error: participantsError } = await supabase
+                    .from("participants")
+                    .delete()
+                    .eq("event_token", token);
+                  if (participantsError) console.error("خطأ في حذف المشاركين:", participantsError);
                   
-                  // Delete the event
-                  const { error } = await supabase.from("events").delete().eq("token", token);
+                  // Delete the event itself
+                  console.log("حذف المناسبة...");
+                  const { error: eventError } = await supabase
+                    .from("events")
+                    .delete()
+                    .eq("token", token);
                   
-                  if (error) throw error;
+                  if (eventError) {
+                    console.error("خطأ في حذف المناسبة:", eventError);
+                    throw eventError;
+                  }
                   
-                  toast({ title: "تم حذف المناسبة نهائياً" });
+                  console.log("تم حذف المناسبة بنجاح");
+                  toast({ title: "تم حذف المناسبة نهائياً بنجاح" });
                   
-                  // Redirect to account page
-                  window.location.href = "/account";
+                  // Redirect to account page after a short delay
+                  setTimeout(() => {
+                    window.location.href = "/account";
+                  }, 1000);
+                  
                 } catch (error) {
+                  console.error("خطأ عام في حذف المناسبة:", error);
                   toast({
                     title: "فشل في حذف المناسبة",
+                    description: "حدث خطأ أثناء الحذف. يرجى المحاولة مرة أخرى.",
                     variant: "destructive"
                   });
                 }
