@@ -44,18 +44,31 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(275 85% 70%));
-    --gradient-brand: linear-gradient(135deg,
-      hsl(300 95% 70%),
-      hsl(320 90% 68%),
-      hsl(340 85% 66%),
-      hsl(360 80% 64%),
-      hsl(20 85% 66%),
-      hsl(40 90% 68%)
+    /* Beautiful gradients - Rainbow spectrum like the uploaded image */
+    --gradient-primary: linear-gradient(90deg, 
+      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
+      hsl(300 89% 60%) 16%,  /* Purple */
+      hsl(260 89% 60%) 33%,  /* Blue-Purple */
+      hsl(220 89% 60%) 50%,  /* Blue */
+      hsl(180 89% 60%) 66%,  /* Cyan */
+      hsl(140 89% 60%) 83%,  /* Green */
+      hsl(60 89% 60%) 100%   /* Yellow */
     );
-    --brand-foreground: 0 0% 100%;
-    --shadow-elevated: 0 12px 30px -10px hsl(var(--primary)/0.25);
-    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --gradient-brand: linear-gradient(90deg,
+      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
+      hsl(300 89% 60%) 14%,  /* Purple */
+      hsl(260 89% 60%) 28%,  /* Blue-Purple */
+      hsl(220 89% 60%) 42%,  /* Blue */
+      hsl(180 89% 60%) 57%,  /* Cyan */
+      hsl(140 89% 60%) 71%,  /* Green */
+      hsl(100 89% 60%) 85%,  /* Light Green */
+      hsl(60 89% 60%) 100%   /* Yellow */
+    );
+    --gradient-hero: linear-gradient(135deg, 
+      hsl(340 89% 60%) 0%,   /* Magenta/Pink */
+      hsl(260 89% 60%) 50%,  /* Blue-Purple */
+      hsl(180 89% 60%) 100%  /* Cyan */
+    );
   }
 
   .dark {
