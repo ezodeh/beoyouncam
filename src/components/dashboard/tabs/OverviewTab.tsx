@@ -18,6 +18,15 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const [stats, setStats] = useState({ participants: 0, photos: 0, messages: 0 });
   const [countdown, setCountdown] = useState("");
   const [designerOpen, setDesignerOpen] = useState(false);
+  const eventStatus = useMemo(() => {
+    const now = Date.now();
+    const start = eventData?.start_at ? new Date(eventData.start_at).getTime() : null;
+    const end = eventData?.end_at ? new Date(eventData.end_at).getTime() : null;
+    if (start && now < start) return "قادمة";
+    if (start && (!end || now <= end) && now >= start) return "جارية";
+    if (end && now > end) return "منتهية";
+    return "غير محددة";
+  }, [eventData?.start_at, eventData?.end_at]);
 
   useEffect(() => {
     // Fetch stats
@@ -63,25 +72,43 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
   return (
     <div className="grid gap-4 text-right">
-      {/* Event Status & Countdown (compact) */}
-      <Card className="bg-brand-gradient text-brand-foreground">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
-              {eventData?.start_at && (
-                <div className="flex items-center gap-2 text-white/90">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm">{countdown}</span>
-                </div>
-              )}
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">{stats.participants}</div>
-              <div className="text-white/90 text-xs">مشارك</div>
-            </div>
+      {/* Cover with overlay actions */}
+      <Card className="relative overflow-hidden rounded-xl">
+        <div
+          className="h-40 w-full"
+          style={{
+            backgroundImage: eventData?.cover_url ? `url(${eventData.cover_url})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {!eventData?.cover_url && (
+            <div className="h-full w-full bg-muted" />
+          )}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3">
+          <div className="text-white">
+            <h2 className="text-lg font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
+            {eventData?.start_at && (
+              <div className="flex items-center gap-2 text-white/90">
+                <Clock className="h-4 w-4" />
+                <span className="text-xs">{countdown}</span>
+              </div>
+            )}
           </div>
-        </CardContent>
+          <div className="flex items-center gap-2">
+            <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
+              التحكم بالألبوم
+            </Link>
+            <Link to={`/album/${token}`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
+              تعديل شاشة الألبوم
+            </Link>
+            <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
+              تعديل شاشة الحدث
+            </Link>
+          </div>
+        </div>
       </Card>
       {/* Attendance Donut */}
       <Card>
@@ -123,13 +150,29 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
               </div>
             </Link>
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded-full" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))' }} />
-                <span className="text-sm">الحاضرين</span>
+              <div className="text-xs text-muted-foreground">حالة المناسبة</div>
+              <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full border text-xs">
+                {eventStatus}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded-full bg-muted-foreground/20" />
-                <span className="text-sm">المتبقي</span>
+              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                <div>
+                  <div className="text-muted-foreground">تاريخ البداية</div>
+                  <div>{eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">تاريخ الانتهاء</div>
+                  <div>{eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <div className="text-muted-foreground">اللقطات المسموحة</div>
+                  <div>{eventData?.max_shots || 120}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">عدد الصور المأخوذة</div>
+                  <div>{stats.photos}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -193,7 +236,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              QR كود المناسبة
+              نشر الألبوم
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center">
