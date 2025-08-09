@@ -14,8 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      blessings: {
+        Row: {
+          content: string
+          created_at: string
+          event_token: string
+          id: string
+          name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          event_token: string
+          id?: string
+          name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          event_token?: string
+          id?: string
+          name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
+          calendar_type: Database["public"]["Enums"]["calendar_type"]
           country_code: string | null
           cover_url: string | null
           created_at: string
@@ -32,6 +60,7 @@ export type Database = {
           token: string
         }
         Insert: {
+          calendar_type?: Database["public"]["Enums"]["calendar_type"]
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
@@ -48,6 +77,7 @@ export type Database = {
           token: string
         }
         Update: {
+          calendar_type?: Database["public"]["Enums"]["calendar_type"]
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
@@ -104,6 +134,45 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          agreed_terms_at: string | null
+          birthdate: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string
+          display_name: string | null
+          gender: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          agreed_terms_at?: string | null
+          birthdate?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          display_name?: string | null
+          gender?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agreed_terms_at?: string | null
+          birthdate?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          display_name?: string | null
+          gender?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -112,7 +181,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      calendar_type: "gregorian" | "hijri"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -239,6 +308,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      calendar_type: ["gregorian", "hijri"],
+    },
   },
 } as const
