@@ -128,11 +128,18 @@ export function AlbumTab({ token }: AlbumTabProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="flex items-center gap-2">
             <Image className="h-5 w-5" />
             ألبوم الصور ({photos.length})
           </CardTitle>
+          <Button
+            variant="default"
+            size="sm"
+            asChild
+          >
+            <a href={`/event/${token}/submit`}>تسليم الألبوم</a>
+          </Button>
         </CardHeader>
         <CardContent>
           {photos.length === 0 ? (
