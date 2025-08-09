@@ -6,6 +6,8 @@ import QRCode from "react-qr-code";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import QRDesigner from "@/components/dashboard/QRDesigner";
 
 interface OverviewTabProps {
   token: string;
@@ -15,6 +17,7 @@ interface OverviewTabProps {
 export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const [stats, setStats] = useState({ participants: 0, photos: 0, messages: 0 });
   const [countdown, setCountdown] = useState("");
+  const [designerOpen, setDesignerOpen] = useState(false);
 
   useEffect(() => {
     // Fetch stats
@@ -133,6 +136,22 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
       {/* Quick Stats - clickable */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <Link to={`/manage/${token}?tab=details`} className="block">
+          <Card className="hover-scale">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{eventData?.max_shots || 120}</div>
+                  <div className="text-xs text-muted-foreground">اللقطات المسموحة</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link to={`/manage/${token}?tab=album`} className="block">
           <Card className="hover-scale">
             <CardContent className="p-3">
@@ -142,7 +161,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 </div>
                 <div>
                   <div className="text-xl font-bold">{stats.photos}</div>
-                  <div className="text-xs text-muted-foreground">صور</div>
+                  <div className="text-xs text-muted-foreground">عدد الصور المأخوذة</div>
                 </div>
               </div>
             </CardContent>
@@ -158,23 +177,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 </div>
                 <div>
                   <div className="text-xl font-bold">{stats.participants}</div>
-                  <div className="text-xs text-muted-foreground">مشاركون</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to={`/manage/${token}?tab=details`} className="block">
-          <Card className="hover-scale">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <div className="text-xl font-bold">{eventData?.max_shots || 120}</div>
-                  <div className="text-xs text-muted-foreground">صور مسموحة</div>
+                  <div className="text-xs text-muted-foreground">المشاركون</div>
                 </div>
               </div>
             </CardContent>
