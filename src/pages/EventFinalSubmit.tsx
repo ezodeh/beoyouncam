@@ -27,7 +27,7 @@ export default function EventFinalSubmit() {
   const { toast } = useToast();
 
   useEffect(() => {
-    document.title = "تسليم الألبوم — من عيونكم";
+    document.title = "تسليم الألبوم — عيون cam";
   }, []);
 
   const {

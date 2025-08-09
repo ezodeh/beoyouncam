@@ -13,7 +13,7 @@ export default function EventCamera() {
   const queryShots = Number(new URLSearchParams(location.search).get("shots") || "");
   const [maxShots, setMaxShots] = useState<number>(Math.max(1, isNaN(queryShots) ? 120 : queryShots));
   useEffect(() => {
-    document.title = `الكاميرا — ${eventTitle} — من عيونكم`;
+    document.title = `الكاميرا — ${eventTitle} — عيون cam`;
   }, [eventTitle]);
 
   useEffect(() => {
@@ -58,8 +58,7 @@ export default function EventCamera() {
   }, [location.search, navigate, token]);
 
   return (
-    <div className="h-[100dvh] overflow-hidden overscroll-none bg-background text-foreground relative" dir="rtl">
-      <Navbar compact fullBleed />
+    <div className="h-[100dvh] overflow-hidden overscroll-none bg-black text-white relative" dir="rtl">
       {/* واجهة الكاميرا الكاملة */}
       <MobileCamera token={token || ""} eventName={eventTitle} maxShots={maxShots} />
     </div>

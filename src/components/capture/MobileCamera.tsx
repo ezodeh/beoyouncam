@@ -56,6 +56,11 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
   const baseZoomRef = useRef<number>(1);
   const effects = [
     { name: "بدون", css: "none" },
+    { name: "أبيض وأسود", css: "grayscale(1) contrast(1.1)" },
+    { name: "تنعيم البشرة", css: "blur(1px) brightness(1.1) contrast(0.9)" },
+    { name: "شفايف حمراء", css: "hue-rotate(350deg) saturate(1.3) contrast(1.1)" },
+    { name: "ذهبي لامع", css: "hue-rotate(45deg) saturate(1.4) brightness(1.2) contrast(1.1)" },
+    { name: "فضي لامع", css: "saturate(0.2) brightness(1.3) contrast(1.2)" },
     { name: "المغرب - فاس", css: "saturate(1.4) contrast(1.1) hue-rotate(10deg)" },
     { name: "الجزائر - القصبة", css: "contrast(1.15) brightness(1.02) saturate(1.2)" },
     { name: "تونس - قرطاج", css: "sepia(0.25) saturate(1.15) brightness(1.05)" },
@@ -132,7 +137,6 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
       const file = new File([blob], `shot-${Date.now()}.jpg`, { type: "image/jpeg" });
       const newLeft = Math.max(0, left - 1);
       setRecent((r)=>[{ url: URL.createObjectURL(file), type: "image" as const }, ...r].slice(0,20));
-      setViewerIndex(0);
       setLeft(newLeft);
       toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
       try {
@@ -161,7 +165,6 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
         const file = new File([blob], `clip-${Date.now()}.webm`, { type: blob.type });
          const newLeft = Math.max(0, left - 1);
          setRecent((r)=>[{ url: URL.createObjectURL(file), type: "video" as const }, ...r].slice(0,20));
-         setViewerIndex(0);
          setLeft(newLeft);
          toast({ title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
          try {
@@ -289,11 +292,11 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
   }
 
   return (
-    <div className="relative w-full h-[calc(100dvh-48px)] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
+    <div className="relative w-full h-[100dvh] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
       {/* Preview */}
 <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-contain bg-black touch-none will-change-transform"
+        className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform"
         style={{ transform: `scale(${zoom})`, filter: effects[effectIndex].css || "none" }}
         onPointerDown={onVideoPointerDown}
         onPointerMove={onVideoPointerMove}

@@ -10,7 +10,7 @@ export default function EventSubmitSuccess() {
   const { token } = useParams();
 
   useEffect(() => {
-    document.title = "تم التسليم بنجاح — من عيونكم";
+    document.title = "تم التسليم بنجاح — عيون cam";
   }, []);
 
   return (
