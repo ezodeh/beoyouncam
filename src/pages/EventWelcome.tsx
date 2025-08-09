@@ -21,7 +21,7 @@ export default function EventWelcome() {
     toast
   } = useToast();
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
-  const [tab, setTab] = useState<"phone" | "email">("phone");
+  const [tab, setTab] = useState<"phone" | "email">("email");
   const [country, setCountry] = useState("+962");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");

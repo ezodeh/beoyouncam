@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { PlusCircle, QrCode } from "lucide-react";
 interface NavbarProps { compact?: boolean; fullBleed?: boolean }
 const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -30,23 +31,23 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="brand-strip w-full" aria-hidden />
       <nav className={`${fullBleed ? "w-full px-2" : "container mx-auto"} flex items-center justify-between ${compact ? "h-12" : "h-16"} flex-row`}>
         <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link to="/" className="flex items-center gap-2 text-foreground">
+          
+          <Link to={userName ? "/account" : "/"} className="flex items-center gap-2 text-foreground">
             <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="من عيونكم" className="h-7 w-auto md:h-8" loading="eager" />
           </Link>
         </div>
         <div>
           {userName ? (
-            <div className="flex items-center gap-2">
-              <Link to="/settings" className="hidden sm:inline-flex rounded-full px-3 py-1.5 bg-secondary text-secondary-foreground hover-scale" aria-label="حسابي">
-                حسابي
-              </Link>
-              <Button variant="hero" size="sm" className="md:h-10 md:px-4" onClick={signOut} aria-label="تسجيل الخروج">
-                تسجيل الخروج
+            <div className="flex items-center gap-1.5">
+              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="إنشاء مناسبة جديدة">
+                <Link to="/create-event"><PlusCircle className="h-5 w-5" /></Link>
               </Button>
+              <Button asChild variant="ghost" size="icon" className="rounded-full" aria-label="مسح رمز QR">
+                <Link to="/scanner"><QrCode className="h-5 w-5" /></Link>
+              </Button>
+              <ThemeToggle />
             </div>
           ) : (
             <div className="flex items-center gap-2">
