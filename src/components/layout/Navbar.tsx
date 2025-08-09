@@ -67,10 +67,10 @@ const Navbar = ({ compact = false, fullBleed = false }: NavbarProps) => {
                       إعدادات الحساب
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <div className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                      <div className="h-4 w-4" /> {/* spacer */}
-                      <span className="flex-1">الوضع الليلي</span>
+                  <DropdownMenuItem className="inline-flex items-center gap-2 w-full px-2 py-2 text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer" onClick={(e) => e.preventDefault()}>
+                    <div className="h-4 w-4" /> {/* spacer for alignment */}
+                    <span className="flex-1">الوضع الليلي</span>
+                    <div onClick={(e) => e.stopPropagation()}>
                       <ThemeToggle />
                     </div>
                   </DropdownMenuItem>
