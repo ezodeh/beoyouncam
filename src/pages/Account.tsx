@@ -70,17 +70,26 @@ export default function Account() {
     setOwnEvents(myEvents as any || []);
 
     // Refresh joined events
-    const { data: parts } = await supabase
+    const { data: parts, error: participantsError } = await supabase
       .from("participants")
       .select("event_token")
       .eq("user_id", userId);
 
+    if (participantsError) {
+      console.error("Error fetching participants:", participantsError);
+    }
+
     const tokens = Array.from(new Set((parts || []).map((p: any) => p.event_token)));
     if (tokens.length) {
-      const { data: evs } = await supabase
+      const { data: evs, error: eventsError } = await supabase
         .from("events")
         .select("token, title, cover_url, start_at, end_at")
         .in("token", tokens);
+      
+      if (eventsError) {
+        console.error("Error fetching joined events:", eventsError);
+      }
+      
       setJoinedEvents((evs as any) || []);
     } else {
       setJoinedEvents([]);

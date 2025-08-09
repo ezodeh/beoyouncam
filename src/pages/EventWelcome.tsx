@@ -191,27 +191,33 @@ export default function EventWelcome() {
         
         // If user is logged in and we have their data, try to add them as participant
         try {
-          await supabase.from("participants").insert({
+          const { error: insertError } = await supabase.from("participants").insert({
             event_token: token,
             method: "google",
             user_id: session.user.id,
-            name: fullName || "مستخدم",
+            name: fullName || userData.user_metadata?.email?.split('@')[0] || "مستخدم",
             email: userEmail
           });
-          localStorage.setItem(`participant:${token}`, "1");
-          localStorage.setItem(`participantName:${token}`, fullName || "مستخدم");
           
-          // If we have all needed data, go directly to camera
-          if (fullName && userEmail) {
-            goToCamera();
-            return;
+          if (!insertError) {
+            localStorage.setItem(`participant:${token}`, "1");
+            localStorage.setItem(`participantName:${token}`, fullName || "مستخدم");
+            
+            // If we have all needed data, go directly to camera
+            if (fullName && userEmail) {
+              goToCamera();
+              return;
+            }
+          } else {
+            console.log("Participant already exists or other error:", insertError);
           }
-        } catch (_) {
-          // Participant might already exist, check if we can proceed
-          if (has) {
-            goToCamera();
-            return;
-          }
+        } catch (error) {
+          console.error("Error adding participant:", error);
+        }
+        
+        // Check if already registered locally and can proceed
+        if (has) {
+          goToCamera();
         }
       }
       
