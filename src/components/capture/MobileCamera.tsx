@@ -451,7 +451,12 @@ const MobileCamera: React.FC<Props> = ({
         <Button size="icon" variant="secondary" className="rounded-full" onClick={() => {
         setCamAnim(true);
         setTimeout(() => setCamAnim(false), 400);
-        setFacingMode(m => m === "user" ? "environment" : "user");
+        const newMode = facingMode === "user" ? "environment" : "user";
+        setFacingMode(newMode);
+        // إعادة فتح الكاميرا بالوضع الجديد
+        streamRef.current?.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        setTimeout(() => openStream(), 100);
       }} aria-label="تبديل الكاميرا">
           <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
@@ -494,7 +499,7 @@ const MobileCamera: React.FC<Props> = ({
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
       </div>
 
-      {/* Recent thumb */}
+      {/* Recent thumb - معطل العرض التلقائي */}
       {recent.length > 0 && <button className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" onClick={() => setShowRecent(true)} aria-label="المعرض">
           <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
         </button>}
