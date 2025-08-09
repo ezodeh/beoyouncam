@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Save } from "lucide-react";
+import { Upload, Save, Video, Lock, Unlock, Globe } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updateEventSettings, getSupportedCountries } from "@/lib/eventSettings";
 
 interface EventDetailsTabProps {
   token: string;
@@ -23,6 +26,9 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
   const [maxShots, setMaxShots] = useState(eventData?.max_shots || 120);
   const [expectedGuests, setExpectedGuests] = useState<number>(eventData?.expected_guests ?? 100);
   const [coverUrl, setCoverUrl] = useState(eventData?.cover_url || "");
+  const [enableVideo, setEnableVideo] = useState(eventData?.enable_video ?? true);
+  const [isPrivate, setIsPrivate] = useState(eventData?.is_private ?? false);
+  const [countryCode, setCountryCode] = useState(eventData?.country_code || "+962");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,20 +64,22 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
-        .from("events")
-        .update({
-          title: title.trim() || null,
-          description: description.trim() || null,
-          start_at: startAt ? new Date(startAt).toISOString() : null,
-          end_at: endAt ? new Date(endAt).toISOString() : null,
-          max_shots: Math.max(1, Number(maxShots) || 1),
-          expected_guests: Math.max(0, Number(expectedGuests) || 0),
-          cover_url: coverUrl || null,
-        })
-        .eq("token", token);
+      const settings = {
+        title: title.trim() || "مناسبة جديدة",
+        description: description.trim() || null,
+        start_at: startAt ? new Date(startAt).toISOString() : null,
+        end_at: endAt ? new Date(endAt).toISOString() : null,
+        max_shots: Math.max(1, Number(maxShots) || 1),
+        expected_guests: Math.max(0, Number(expectedGuests) || 0),
+        cover_url: coverUrl || null,
+        enable_video: enableVideo,
+        is_private: isPrivate,
+        country_code: countryCode,
+      };
 
-      if (error) throw error;
+      const success = await updateEventSettings(token, settings);
+      
+      if (!success) throw new Error("فشل في حفظ الإعدادات");
 
       toast({ title: "تم حفظ التغييرات بنجاح" });
       onEventUpdate();
@@ -184,6 +192,57 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
               value={expectedGuests}
               onChange={(e) => setExpectedGuests(Number(e.target.value))}
             />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-2">
+                <Video className="h-4 w-4" />
+                <div>
+                  <Label>تفعيل الفيديو</Label>
+                  <p className="text-sm text-muted-foreground">السماح بتسجيل الفيديو</p>
+                </div>
+              </div>
+              <Switch 
+                checked={enableVideo} 
+                onCheckedChange={setEnableVideo}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-2">
+                {isPrivate ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                <div>
+                  <Label>خصوصية المناسبة</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {isPrivate ? "خاصة - تحتاج دعوة" : "عامة - يمكن للجميع الانضمام"}
+                  </p>
+                </div>
+              </div>
+              <Switch 
+                checked={isPrivate} 
+                onCheckedChange={setIsPrivate}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="country" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              رمز البلد
+            </Label>
+            <Select value={countryCode} onValueChange={setCountryCode}>
+              <SelectTrigger>
+                <SelectValue placeholder="اختر رمز البلد" />
+              </SelectTrigger>
+              <SelectContent>
+                {getSupportedCountries().map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    {country.nameAr} ({country.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Button onClick={handleSave} className="w-full">

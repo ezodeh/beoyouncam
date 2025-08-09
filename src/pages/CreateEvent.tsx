@@ -16,6 +16,7 @@ import { ar } from "date-fns/locale";
 import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { detectCountryCode, getSupportedCountries } from "@/lib/eventSettings";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 
 // Album timing type
@@ -392,30 +393,7 @@ export default function CreateEvent() {
         if (timing === "custom") return customPublishAt ? customPublishAt.toISOString() : null;
         return null; // manual
       })();
-      const organizerCountry = (() => {
-        try {
-          const lang = navigator.language || "";
-          if (lang.includes("MA")) return "+212";
-          if (lang.includes("DZ")) return "+213";
-          if (lang.includes("LY")) return "+218";
-          if (lang.includes("TN")) return "+216";
-          if (lang.includes("EG")) return "+20";
-          if (lang.includes("SD")) return "+249";
-          if (lang.includes("YE")) return "+967";
-          if (lang.includes("SY")) return "+963";
-          if (lang.includes("PS")) return "+970";
-          if (lang.includes("LB")) return "+961";
-          if (lang.includes("JO")) return "+962";
-          if (lang.includes("SA")) return "+966";
-          if (lang.includes("AE")) return "+971";
-          if (lang.includes("QA")) return "+974";
-          if (lang.includes("BH")) return "+973";
-          if (lang.includes("OM")) return "+968";
-          if (lang.includes("KW")) return "+965";
-          if (lang.includes("IQ")) return "+964";
-          return "+962";
-        } catch { return "+962"; }
-      })();
+      const organizerCountry = detectCountryCode();
 
       const { error: insErr } = await supabase.from("events").insert({
         token,
