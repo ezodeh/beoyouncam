@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
@@ -437,14 +437,37 @@ useEffect(() => { if (recent.length === 0) setLeft(maxShots); }, [maxShots, rece
         </button>
       )}
 
-      {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
+      {/* Bottom bar with all action buttons */}
       <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-30">
         <div className="mx-3 flex items-center justify-between">
-          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border backdrop-blur-sm hover:bg-background/95 transition-colors">
+          {/* Left side - Invites */}
+          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border backdrop-blur-sm hover:bg-background shadow-sm">
             <Users className="h-4 w-4" />
             <span>الضيوف</span>
           </Link>
-          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border cursor-pointer backdrop-blur-sm hover:bg-background/95 transition-colors">
+          
+          {/* Center - Share button */}
+          <button 
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: eventName,
+                  text: `انضم لمناسبة ${eventName}`,
+                  url: window.location.href
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                toast({ title: "تم نسخ الرابط" });
+              }
+            }}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border backdrop-blur-sm hover:bg-background shadow-sm"
+          >
+            <Share2 className="h-4 w-4" />
+            <span>مشاركة</span>
+          </button>
+          
+          {/* Right side - Gallery */}
+          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border cursor-pointer backdrop-blur-sm hover:bg-background shadow-sm">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
             <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => {
