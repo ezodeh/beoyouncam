@@ -77,7 +77,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
     return () => clearInterval(interval);
   }, [eventData?.start_at]);
 
-  const eventUrl = `${window.location.origin}/event/${token}`;
+  const eventUrl = `${window.location.origin}/event/${token}/welcome`;
 
   return (
     <div className="grid gap-4 text-right">
