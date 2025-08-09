@@ -120,21 +120,25 @@ const MobileCamera: React.FC<Props> = ({
   async function openStream() {
     console.log("🎥 MobileCamera: Attempting to open camera stream...");
     console.log("🎥 MobileCamera: facingMode:", facingMode);
-    console.log("🎥 MobileCamera: enableVideo:", enableVideo);
-    console.log("🎥 MobileCamera: navigator.mediaDevices:", !!navigator.mediaDevices);
-    console.log("🎥 MobileCamera: getUserMedia support:", !!navigator.mediaDevices?.getUserMedia);
     
     try {
+      // Stop existing stream first
+      if (streamRef.current) {
+        console.log("🎥 MobileCamera: Stopping existing stream...");
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
       const constraints: MediaStreamConstraints = {
         audio: false,
         video: {
-          facingMode
+          facingMode: { exact: facingMode }
         }
       };
       console.log("🎥 MobileCamera: Requesting camera with constraints:", constraints);
       
       const s = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("🎥 MobileCamera: Camera stream obtained successfully:", s);
+      console.log("🎥 MobileCamera: Camera stream obtained successfully");
       
       streamRef.current = s;
       if (videoRef.current) {
@@ -152,7 +156,27 @@ const MobileCamera: React.FC<Props> = ({
       console.log("🎥 MobileCamera: Camera setup complete");
     } catch (e) {
       console.error("🎥 MobileCamera: Camera access error:", e);
-      setPermissionDenied(true);
+      
+      // Try fallback without exact constraint
+      try {
+        console.log("🎥 MobileCamera: Trying fallback camera access...");
+        const fallbackConstraints: MediaStreamConstraints = {
+          audio: false,
+          video: { facingMode }
+        };
+        
+        const s = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+        streamRef.current = s;
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          await videoRef.current.play();
+        }
+        setPermissionDenied(false);
+        console.log("🎥 MobileCamera: Fallback camera setup complete");
+      } catch (fallbackError) {
+        console.error("🎥 MobileCamera: Fallback camera access failed:", fallbackError);
+        setPermissionDenied(true);
+      }
     }
   }
   useEffect(() => {

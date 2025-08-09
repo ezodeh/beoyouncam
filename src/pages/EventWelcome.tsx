@@ -189,7 +189,23 @@ export default function EventWelcome() {
         if (fullName) setName(fullName);
         if (userEmail) setEmail(userEmail);
         
-        // If user is logged in and we have their data, try to add them as participant
+        // Check if user is already a participant first
+        const { data: existingParticipant } = await supabase
+          .from("participants")
+          .select("*")
+          .eq("event_token", token)
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        
+        if (existingParticipant) {
+          // User already registered, just proceed
+          localStorage.setItem(`participant:${token}`, "1");
+          localStorage.setItem(`participantName:${token}`, existingParticipant.name || fullName || "مستخدم");
+          goToCamera();
+          return;
+        }
+        
+        // If user is not already registered, try to add them as participant
         try {
           const { error: insertError } = await supabase.from("participants").insert({
             event_token: token,
@@ -209,7 +225,7 @@ export default function EventWelcome() {
               return;
             }
           } else {
-            console.log("Participant already exists or other error:", insertError);
+            console.log("Participant registration error:", insertError);
           }
         } catch (error) {
           console.error("Error adding participant:", error);
