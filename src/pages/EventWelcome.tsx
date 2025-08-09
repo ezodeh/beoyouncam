@@ -198,10 +198,12 @@ export default function EventWelcome() {
           .maybeSingle();
         
         if (existingParticipant) {
-          // User already registered, just proceed
+          // User already registered, fill their data but don't auto-proceed
           localStorage.setItem(`participant:${token}`, "1");
           localStorage.setItem(`participantName:${token}`, existingParticipant.name || fullName || "مستخدم");
-          goToCamera();
+          // Fill the form but stay on welcome screen
+          if (existingParticipant.name) setName(existingParticipant.name);
+          if (existingParticipant.email) setEmail(existingParticipant.email);
           return;
         }
         
@@ -219,11 +221,8 @@ export default function EventWelcome() {
             localStorage.setItem(`participant:${token}`, "1");
             localStorage.setItem(`participantName:${token}`, fullName || "مستخدم");
             
-            // If we have all needed data, go directly to camera
-            if (fullName && userEmail) {
-              goToCamera();
-              return;
-            }
+            // Fill form but don't auto-proceed - let user see the welcome screen
+            // User can manually click "ابدأ" when ready
           } else {
             console.log("Participant registration error:", insertError);
           }
@@ -231,15 +230,7 @@ export default function EventWelcome() {
           console.error("Error adding participant:", error);
         }
         
-        // Check if already registered locally and can proceed
-        if (has) {
-          goToCamera();
-        }
-      }
-      
-      // If already registered locally, proceed
-      if (has) {
-        goToCamera();
+        // Don't check local storage for auto-proceed - always show welcome screen
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
