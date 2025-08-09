@@ -13,14 +13,14 @@ export default function Scanner() {
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
-        <div className="w-full max-w-md grid gap-4">
+        <div className="w-full max-w-lg grid gap-4">
           <h1 className="text-2xl font-bold text-center">ماسح الباركود</h1>
-          <div className="relative w-full aspect-square max-w-sm mx-auto rounded-lg overflow-hidden border border-border bg-muted">
+          <div className="relative w-full aspect-square max-w-sm sm:max-w-md md:max-w-lg mx-auto rounded-lg overflow-hidden border border-border bg-muted">
             <QRScanner
               constraints={{ 
                 facingMode: "environment",
-                width: { ideal: 640 },
-                height: { ideal: 640 }
+                width: { ideal: 1024 },
+                height: { ideal: 1024 }
               }}
               onScan={(detected: any[]) => {
                 const value = detected?.[0]?.rawValue as string | undefined;
@@ -45,12 +45,16 @@ export default function Scanner() {
               styles={{
                 container: {
                   width: "100%",
-                  height: "100%"
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center"
                 },
                 video: {
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover"
+                  objectFit: "cover",
+                  transform: "scaleX(-1)" // Mirror the video for better UX
                 }
               }}
             />
