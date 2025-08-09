@@ -71,11 +71,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const eventUrl = `${window.location.origin}/event/${token}`;
 
   return (
-    <div className="grid gap-4 text-right">
+    <div className="grid gap-3 text-right">
       {/* Cover with overlay actions */}
       <Card className="relative overflow-hidden rounded-xl">
         <div
-          className="h-40 w-full"
+          className="h-[150px] w-full"
           style={{
             backgroundImage: eventData?.cover_url ? `url(${eventData.cover_url})` : undefined,
             backgroundSize: 'cover',
@@ -87,37 +87,37 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           )}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3">
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+            التحكم بالألبوم
+          </Link>
+          <Link to={`/album/${token}`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+            تعديل شاشة الألبوم
+          </Link>
+          <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-2 py-0.5 text-[11px] bg-background/80 backdrop-blur">
+            تعديل شاشة الحدث
+          </Link>
+        </div>
+        <div className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-2">
           <div className="text-white">
-            <h2 className="text-lg font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
+            <h2 className="text-base font-bold">{eventData?.title || "مناسبة جديدة"}</h2>
             {eventData?.start_at && (
-              <div className="flex items-center gap-2 text-white/90">
+              <div className="flex items-center gap-1 text-white/90">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs">{countdown}</span>
+                <span className="text-[11px]">{countdown}</span>
               </div>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
-              التحكم بالألبوم
-            </Link>
-            <Link to={`/album/${token}`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
-              تعديل شاشة الألبوم
-            </Link>
-            <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-3 py-1 text-xs bg-background/80 backdrop-blur">
-              تعديل شاشة الحدث
-            </Link>
           </div>
         </div>
       </Card>
       {/* Attendance Donut */}
       <Card>
         <CardHeader>
-          <CardTitle>الحضور</CardTitle>
+          <CardTitle className="text-base">الحضور</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <Link to={`/manage/${token}?tab=participants`} className="relative h-40 md:h-48 block cursor-pointer">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-2 gap-3 items-center">
+            <Link to={`/manage/${token}?tab=participants`} className="relative h-32 md:h-36 block cursor-pointer">
               <div className="absolute inset-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -130,8 +130,8 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                     <Pie
                       data={[{ name: 'حضور', value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100)) }, { name: 'متبق', value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants) }]}
                       dataKey="value"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={44}
+                      outerRadius={56}
                       paddingAngle={2}
                     >
                       <Cell fill="url(#attendanceGrad)" />
@@ -142,19 +142,19 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-xl font-bold">
+                  <div className="text-base font-bold">
                     {String(stats.participants).padStart(3, '0')}/{String(Number(eventData?.expected_guests ?? 100)).padStart(3, '0')}
                   </div>
-                  <div className="text-xs text-muted-foreground">الحضور</div>
+                  <div className="text-[11px] text-muted-foreground">الحضور</div>
                 </div>
               </div>
             </Link>
             <div className="space-y-2">
-              <div className="text-xs text-muted-foreground">حالة المناسبة</div>
-              <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full border text-xs">
+              <div className="text-[11px] text-muted-foreground">حالة المناسبة</div>
+              <div className="inline-flex items-center gap-2 px-2 py-1 rounded-full border text-[11px]">
                 {eventStatus}
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div className="grid grid-cols-2 gap-2 text-[11px] mt-1">
                 <div>
                   <div className="text-muted-foreground">تاريخ البداية</div>
                   <div>{eventData?.start_at ? new Date(eventData.start_at).toLocaleString('ar-SA') : '—'}</div>
@@ -164,7 +164,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   <div>{eventData?.end_at ? new Date(eventData.end_at).toLocaleString('ar-SA') : '—'}</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div>
                   <div className="text-muted-foreground">اللقطات المسموحة</div>
                   <div>{eventData?.max_shots || 120}</div>
@@ -183,14 +183,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <Link to={`/manage/${token}?tab=details`} className="block">
           <Card className="hover-scale">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary" />
+            <CardContent className="p-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg">
+                  <Calendar className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold">{eventData?.max_shots || 120}</div>
-                  <div className="text-xs text-muted-foreground">اللقطات المسموحة</div>
+                  <div className="text-lg font-bold">{eventData?.max_shots || 120}</div>
+                  <div className="text-[11px] text-muted-foreground">اللقطات المسموحة</div>
                 </div>
               </div>
             </CardContent>
@@ -199,14 +199,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
         <Link to={`/manage/${token}?tab=album`} className="block">
           <Card className="hover-scale">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Image className="h-5 w-5 text-primary" />
+            <CardContent className="p-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg">
+                  <Image className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold">{stats.photos}</div>
-                  <div className="text-xs text-muted-foreground">عدد الصور المأخوذة</div>
+                  <div className="text-lg font-bold">{stats.photos}</div>
+                  <div className="text-[11px] text-muted-foreground">عدد الصور المأخوذة</div>
                 </div>
               </div>
             </CardContent>
@@ -215,14 +215,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
         <Link to={`/manage/${token}?tab=participants`} className="block">
           <Card className="hover-scale">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Users className="h-5 w-5 text-primary" />
+            <CardContent className="p-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg">
+                  <Users className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold">{stats.participants}</div>
-                  <div className="text-xs text-muted-foreground">المشاركون</div>
+                  <div className="text-lg font-bold">{stats.participants}</div>
+                  <div className="text-[11px] text-muted-foreground">المشاركون</div>
                 </div>
               </div>
             </CardContent>
@@ -231,18 +231,18 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
       </div>
 
       {/* QR Code & Links */}
-      <div className="grid grid-cols-2 gap-2 md:gap-4">
+      <div className="grid grid-cols-2 gap-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <QrCode className="h-4 w-4" />
               نشر الألبوم
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="bg-white p-3 rounded-lg inline-block mb-3">
+          <CardContent className="text-center p-3">
+            <div className="bg-white p-2 rounded-lg inline-block mb-2">
               <div id="overview-qr-wrap">
-                <QRCode id="overview-qr" value={eventUrl} size={112} />
+                <QRCode id="overview-qr" value={eventUrl} size={88} />
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -264,12 +264,12 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ExternalLink className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ExternalLink className="h-4 w-4" />
               روابط سريعة
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/camera`}>
                 <span className="text-sm">فتح الكاميرا</span>
