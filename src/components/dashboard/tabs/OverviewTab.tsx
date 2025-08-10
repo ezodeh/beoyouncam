@@ -200,11 +200,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <Link to={`/manage/${token}?tab=album`} className="block">
           <Card>
             <CardContent className="p-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-row-reverse">
                 <div className="p-1.5 rounded-lg bg-primary/10">
                   <Image className="h-5 w-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-right">
                   <div className="text-base font-bold">{stats.photos}</div>
                   <div className="text-[11px] text-muted-foreground">عدد الذكريات</div>
                 </div>
@@ -216,11 +216,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <Link to={`/album/${token}`} className="block">
           <Card>
             <CardContent className="p-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-row-reverse">
                 <div className="p-1.5 rounded-lg bg-primary/10">
                   <Image className="h-5 w-5 text-primary" />
                 </div>
-                <div>
+                <div className="text-right">
                   <div className="text-base font-bold">عرض</div>
                   <div className="text-[11px] text-muted-foreground">الألبوم العام</div>
                 </div>
@@ -234,7 +234,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
       <div className="space-y-2">
         <Card>
           <CardHeader className="p-3 pb-0">
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-sm flex-row-reverse">
               <QrCode className="h-5 w-5" />
               {eventStatus === "منتهية" ? "الألبوم" : "نشر الحدث"}
               {eventData?.published_at && new Date(eventData.published_at) > new Date() && eventStatus !== "منتهية" && (
@@ -352,7 +352,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
         <Card>
           <CardHeader className="p-3 pb-0">
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-sm flex-row-reverse">
               <ExternalLink className="h-5 w-5" />
               روابط سريعة
             </CardTitle>
@@ -360,20 +360,20 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           <CardContent className="p-3 space-y-2">
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/camera`}>
+                <Camera className="h-5 w-5 mr-2" />
                 <span className="text-sm">فتح الكاميرا</span>
-                <Camera className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/album/${token}`}>
+                <Image className="h-5 w-5 mr-2" />
                 <span className="text-sm">عرض الألبوم</span>
-                <Image className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/invites`}>
+                <Share2 className="h-5 w-5 mr-2" />
                 <span className="text-sm">إرسال دعوات</span>
-                <Share2 className="h-5 w-5 ml-2" />
               </Link>
             </Button>
           </CardContent>
