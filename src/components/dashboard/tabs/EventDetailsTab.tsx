@@ -96,22 +96,22 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
     <div className="grid gap-6" dir="rtl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-right">صورة الغلاف</CardTitle>
+          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {coverUrl && (
-            <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border">
+            <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border mb-4">
               <img src={coverUrl} alt="صورة الغلاف" className="w-full h-full object-cover" />
             </div>
           )}
-          <div className="flex items-center gap-3 justify-end">
+          <div className="flex items-center gap-3 justify-end mb-6">
             <Button 
               variant="outline" 
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="flex items-center gap-2"
             >
-              <span>{uploading ? "جاري الرفع..." : "رفع صورة"}</span>
+              <span>{uploading ? "جاري الرفع..." : "رفع صورة الغلاف"}</span>
               <Upload className="h-4 w-4" />
             </Button>
             <input
@@ -122,14 +122,7 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
               className="hidden"
             />
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="title" className="text-right">اسم المناسبة</Label>
             <Input 
