@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { updateEventSettings, hasEventStarted } from "@/lib/eventSettings";
 import { Image, Trash2, Download, Eye, EyeOff, Heart, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Photo {
   id: string;
@@ -325,6 +326,14 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
     }
   };
 
+  const handlePublishWithConfirmation = () => {
+    if (!isAlbumPublished) {
+      // Show confirmation only when publishing (not unpublishing)
+      return;
+    }
+    toggleAlbumPublish();
+  };
+
   if (loading) {
     return (
       <Card>
@@ -475,15 +484,32 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 
                 {/* Publish Now Button for Specific Time */}
                 <div className="flex gap-2">
-                  <Button 
-                    variant="default" 
-                    onClick={toggleAlbumPublish}
-                    disabled={isAlbumPublished}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 ml-2" />
-                    نشر الآن
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        disabled={isAlbumPublished}
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 ml-2" />
+                        نشر الآن
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>تأكيد النشر</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هل أنت متأكد من نشر الألبوم الآن؟ سيتم إرسال رسائل للضيوف مع رابط الألبوم ولن يمكن التراجع عن هذا الإجراء.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={toggleAlbumPublish}>
+                          نعم، نشر الآن
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   {isAlbumPublished && (
                     <Button 
                       variant="outline" 
@@ -515,15 +541,32 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 
                 {/* Publish Controls */}
                 <div className="flex gap-2">
-                  <Button 
-                    variant="default" 
-                    onClick={toggleAlbumPublish}
-                    disabled={isAlbumPublished}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 ml-2" />
-                    {isAlbumPublished ? "منشور" : "نشر الآن"}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        disabled={isAlbumPublished}
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 ml-2" />
+                        {isAlbumPublished ? "منشور" : "نشر الآن"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>تأكيد النشر</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هل أنت متأكد من نشر الألبوم الآن؟ سيتم إرسال رسائل للضيوف مع رابط الألبوم ولن يمكن التراجع عن هذا الإجراء.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={toggleAlbumPublish}>
+                          نعم، نشر الآن
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   {isAlbumPublished && (
                     <Button 
                       variant="outline" 
@@ -548,15 +591,32 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button 
-                    variant="default" 
-                    onClick={toggleAlbumPublish}
-                    disabled={isAlbumPublished}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 ml-2" />
-                    {isAlbumPublished ? "منشور" : "نشر الآن"}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        disabled={isAlbumPublished}
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 ml-2" />
+                        {isAlbumPublished ? "منشور" : "نشر الآن"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>تأكيد النشر</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هل أنت متأكد من نشر الألبوم الآن؟ سيتم إرسال رسائل للضيوف مع رابط الألبوم ولن يمكن التراجع عن هذا الإجراء.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={toggleAlbumPublish}>
+                          نعم، نشر الآن
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   {isAlbumPublished && (
                     <Button 
                       variant="outline" 
