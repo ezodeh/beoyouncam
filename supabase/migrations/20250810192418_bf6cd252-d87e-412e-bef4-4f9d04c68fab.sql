@@ -1,0 +1,3 @@
+-- Regenerate types by updating a comment
+-- This is just to trigger a types refresh
+-- is_hidden column already exists and is properly typed
