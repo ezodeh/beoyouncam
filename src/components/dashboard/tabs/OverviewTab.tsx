@@ -96,17 +96,6 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           )}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            التحكم بالألبوم
-          </Link>
-          <Link to={`/album/${token}`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            تعديل شاشة الألبوم
-          </Link>
-          <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            تعديل شاشة الحدث
-          </Link>
-        </div>
         <div className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-2">
           <div className="text-white">
             <h2 className="text-base font-bold font-nastaliq">{eventData?.title || "مناسبة جديدة"}</h2>
