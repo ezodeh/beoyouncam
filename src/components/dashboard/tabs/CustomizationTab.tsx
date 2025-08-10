@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Eye, Smartphone } from "lucide-react";
+import { Upload, Eye, Smartphone, Heart, Images, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -271,9 +271,15 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <section className="px-3 py-3">
                   {/* تبويبات الألبوم */}
                   <div className="grid grid-cols-3 w-full max-w-full rounded-full mx-auto bg-muted p-0.5 mb-3">
-                    <div className="flex items-center justify-center text-xs py-1 rounded-full">❤️</div>
-                    <div className="flex items-center justify-center text-xs py-1 rounded-full bg-background">📷</div>
-                    <div className="flex items-center justify-center text-xs py-1 rounded-full">👥</div>
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full">
+                      <Heart className="w-3 h-3" />
+                    </div>
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full bg-background">
+                      <Images className="w-3 h-3" />
+                    </div>
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full">
+                      <Users className="w-3 h-3" />
+                    </div>
                   </div>
                   
                   {/* شبكة الصور */}
