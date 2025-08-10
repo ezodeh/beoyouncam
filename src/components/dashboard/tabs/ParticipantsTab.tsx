@@ -1,16 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { updateEventSettings } from "@/lib/eventSettings";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, Mail, MessageCircle, Trash2, Shield, Lock, Unlock, Eye, EyeOff, Save } from "lucide-react";
+import { Users, Mail, MessageCircle, Trash2 } from "lucide-react";
 
 interface Participant {
   id: string;
@@ -31,16 +26,6 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
   const { toast } = useToast();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Privacy settings
-  const [isPrivate, setIsPrivate] = useState(eventData?.is_private ?? false);
-  const [eventPassword, setEventPassword] = useState(eventData?.password || "");
-  const [showPassword, setShowPassword] = useState(false);
-  
-  // Welcome texts
-  const [welcomeTitle, setWelcomeTitle] = useState(eventData?.welcome_title || "مرحباً بكم في مناسبتنا");
-  const [welcomeText, setWelcomeText] = useState(eventData?.welcome_text || "شاركونا لحظاتكم الجميلة");
-  const [inviteButtonText, setInviteButtonText] = useState(eventData?.invite_button_text || "انضم إلى المناسبة");
 
   useEffect(() => {
     fetchParticipants();
@@ -96,31 +81,6 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
       window.open(`mailto:${participant.email}?subject=دعوة للمشاركة في المناسبة&body=أهلاً ${participant.name}، مدعو للمشاركة في المناسبة: ${eventUrl}`);
     } else if (participant.phone) {
       window.open(`https://wa.me/${participant.phone}?text=أهلاً ${participant.name}، مدعو للمشاركة في المناسبة: ${eventUrl}`);
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    try {
-      const settings = {
-        is_private: isPrivate,
-        password: eventPassword || null,
-        welcome_title: welcomeTitle,
-        welcome_text: welcomeText,
-        invite_button_text: inviteButtonText,
-      };
-
-      const success = await updateEventSettings(token, settings);
-      
-      if (!success) throw new Error("فشل في حفظ الإعدادات");
-
-      toast({ title: "تم حفظ إعدادات الخصوصية بنجاح" });
-      onEventUpdate();
-    } catch (error) {
-      toast({ 
-        title: "فشل في الحفظ", 
-        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
-        variant: "destructive"
-      });
     }
   };
 
@@ -253,112 +213,6 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Privacy Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-right">
-            <Shield className="h-5 w-5" />
-            إعدادات الخصوصية
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Private Event Toggle */}
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3 text-right">
-              {isPrivate ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
-              <div>
-                <Label className="text-base">مناسبة خاصة</Label>
-                <p className="text-sm text-muted-foreground">
-                  {isPrivate ? "تحتاج كلمة سر للدخول" : "يمكن للجميع الانضمام"}
-                </p>
-              </div>
-            </div>
-            <Switch 
-              checked={isPrivate} 
-              onCheckedChange={setIsPrivate}
-            />
-          </div>
-
-          {/* Password Field */}
-          {isPrivate && (
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة السر</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={eventPassword}
-                  onChange={(e) => setEventPassword(e.target.value)}
-                  placeholder="أدخل كلمة السر للمناسبة"
-                  className="pl-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Welcome Page Customization */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-right">
-            <MessageCircle className="h-5 w-5" />
-            تخصيص صفحة الترحيب
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="welcomeTitle">عنوان الترحيب</Label>
-            <Input
-              id="welcomeTitle"
-              value={welcomeTitle}
-              onChange={(e) => setWelcomeTitle(e.target.value)}
-              placeholder="مرحباً بكم في مناسبتنا"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="welcomeText">نص الترحيب</Label>
-            <Textarea
-              id="welcomeText"
-              value={welcomeText}
-              onChange={(e) => setWelcomeText(e.target.value)}
-              placeholder="شاركونا لحظاتكم الجميلة"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="inviteButtonText">نص زر الدعوة</Label>
-            <Input
-              id="inviteButtonText"
-              value={inviteButtonText}
-              onChange={(e) => setInviteButtonText(e.target.value)}
-              placeholder="انضم إلى المناسبة"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Button */}
-      <Card>
-        <CardContent className="pt-6">
-          <Button onClick={handleSaveSettings} className="w-full">
-            <Save className="h-4 w-4 ml-2" />
-            حفظ الإعدادات
-          </Button>
         </CardContent>
       </Card>
     </div>
