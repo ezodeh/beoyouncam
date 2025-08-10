@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download } from "lucide-react";
+import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download, AlertCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,8 @@ interface EventCardProps {
 export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, onEventDeleted }: EventCardProps) {
   const { toast } = useToast();
   const [qrOpen, setQrOpen] = useState(false);
+  const [actionDialog, setActionDialog] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const svgId = `qr-svg-${event.token}`;
   const shareUrl = `${window.location.origin}/event/${event.token}`;
 
@@ -128,6 +131,50 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
     };
     
     img.src = svgUrl;
+  };
+
+  const downloadAlbum = async () => {
+    setDownloading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "خطأ", description: "يجب تسجيل الدخول أولاً", variant: "destructive" });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('download-album', {
+        body: JSON.stringify({ token: event.token }),
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${event.title}_${event.token}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "تم تنزيل الألبوم بنجاح" });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({ 
+        title: "خطأ في التنزيل", 
+        description: "تعذّر تنزيل الألبوم. يرجى المحاولة مرة أخرى",
+        variant: "destructive" 
+      });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const webShare = async () => {
@@ -232,19 +279,35 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
 
   return (
     <div className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
-      <Link to={linkTo}>
-        <div className="aspect-video bg-muted overflow-hidden">
-          <img 
-            src={event.cover_url || heroImage} 
-            alt={`غلاف ${event.title}`} 
-            className="w-full h-full object-cover" 
-          />
+      {isPast ? (
+        <div className="cursor-pointer" onClick={() => setActionDialog(true)}>
+          <div className="aspect-video bg-muted overflow-hidden">
+            <img 
+              src={event.cover_url || heroImage} 
+              alt={`غلاف ${event.title}`} 
+              className="w-full h-full object-cover" 
+            />
+          </div>
+          <div className="p-3">
+            <div className="font-nastaliq text-xl">{event.title}</div>
+            <div className="text-xs text-muted-foreground">{subtitle}</div>
+          </div>
         </div>
-        <div className="p-3">
-          <div className="font-nastaliq text-xl">{event.title}</div>
-          <div className="text-xs text-muted-foreground">{subtitle}</div>
-        </div>
-      </Link>
+      ) : (
+        <Link to={linkTo}>
+          <div className="aspect-video bg-muted overflow-hidden">
+            <img 
+              src={event.cover_url || heroImage} 
+              alt={`غلاف ${event.title}`} 
+              className="w-full h-full object-cover" 
+            />
+          </div>
+          <div className="p-3">
+            <div className="font-nastaliq text-xl">{event.title}</div>
+            <div className="text-xs text-muted-foreground">{subtitle}</div>
+          </div>
+        </Link>
+      )}
 
       {/* Quick Actions - visible for current events; past events show only more menu */}
       <div className="p-3 pt-0 border-t">
@@ -309,10 +372,6 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
                   <Download className="h-4 w-4" />
                   تنزيل SVG (كبير ومتمركز)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={downloadQrPng} className="cursor-pointer">
-                  <Download className="h-4 w-4" />
-                  تنزيل PNG (فائق 8K)
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
                   <Share2 className="h-4 w-4" />
                   نسخ رابط المشاركة
@@ -323,8 +382,13 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
                     <DropdownMenuItem asChild>
                       <Link to={`/manage/${event.token}`}>إدارة الخصوصية</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toast({ title: "تنزيل الألبوم", description: "ميزة قيد التطوير" })} className="cursor-pointer">
-                      تنزيل الألبوم
+                    <DropdownMenuItem 
+                      onClick={downloadAlbum} 
+                      className="cursor-pointer"
+                      disabled={downloading}
+                    >
+                      <Download className="h-4 w-4" />
+                      {downloading ? "جاري التنزيل..." : "تنزيل الألبوم الكامل"}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => toast({ title: "إلغاء المشاركة", description: "ميزة قيد التطوير" })} className="cursor-pointer">
                       إلغاء المشاركة
@@ -360,16 +424,43 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
             <div className="flex gap-2 mt-4">
               <button onClick={downloadQrSvg} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Download className="h-4 w-4" />
-                SVG (كبير)
-              </button>
-              <button onClick={downloadQrPng} className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
-                <Download className="h-4 w-4" />
-                PNG (فائق 8K)
+                SVG
               </button>
               <button onClick={copyLink} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Share2 className="h-4 w-4" />
                 نسخ رابط
               </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Dialog for Past Events */}
+      <Dialog open={actionDialog} onOpenChange={setActionDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              {event.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">اختر الإجراء المطلوب:</p>
+            <div className="grid gap-2">
+              <Button asChild className="w-full">
+                <Link to={`/album/${event.token}`}>
+                  <Image className="h-4 w-4 mr-2" />
+                  زيارة الألبوم
+                </Link>
+              </Button>
+              {isOwner && (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={`/manage/${event.token}`}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    الإعدادات
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>

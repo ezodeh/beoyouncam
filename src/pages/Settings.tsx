@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Globe, Save, LogOut, Trash2, Shield, Calendar, Edit3 } from "lucide-react";
+import { User, Mail, Phone, Globe, Save, LogOut, Trash2, Shield, Calendar, Edit3, Download } from "lucide-react";
 
 interface Event {
   token: string;
@@ -19,6 +19,7 @@ interface Event {
   expected_guests: number;
   max_shots: number;
   created_at: string;
+  end_at?: string;
 }
 
 export default function Settings() {
@@ -32,6 +33,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [editingEvent, setEditingEvent] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function Settings() {
 
       const { data: eventsData } = await supabase
         .from("events")
-        .select("token, title, description, expected_guests, max_shots, created_at")
+        .select("token, title, description, expected_guests, max_shots, created_at, end_at")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -150,6 +152,50 @@ export default function Settings() {
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
         variant: "destructive"
       });
+    }
+  };
+
+  const downloadEventAlbum = async (eventToken: string, eventTitle: string) => {
+    setDownloading(eventToken);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "خطأ", description: "يجب تسجيل الدخول أولاً", variant: "destructive" });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('download-album', {
+        body: JSON.stringify({ token: eventToken }),
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${eventTitle}_${eventToken}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "تم تنزيل الألبوم بنجاح" });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({ 
+        title: "خطأ في التنزيل", 
+        description: "تعذّر تنزيل الألبوم. يرجى المحاولة مرة أخرى",
+        variant: "destructive" 
+      });
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -368,17 +414,37 @@ export default function Settings() {
               {events.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">لا توجد مناسبات بعد</p>
               ) : (
-                events.map((event) => (
+                events.map((event) => {
+                  const isEventEnded = event.end_at ? new Date(event.end_at) < new Date() : false;
+                  const canEdit = !isEventEnded;
+                  
+                  return (
                   <div key={event.token} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">{event.title}</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingEvent(editingEvent === event.token ? null : event.token)}
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
+                      <div>
+                        <h3 className="font-semibold">{event.title}</h3>
+                        {isEventEnded && (
+                          <p className="text-xs text-muted-foreground">انتهت المناسبة - يمكن تعديل الاسم والوصف فقط</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadEventAlbum(event.token, event.title)}
+                          disabled={downloading === event.token}
+                          title="تنزيل الألبوم الكامل"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingEvent(editingEvent === event.token ? null : event.token)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     
                     {editingEvent === event.token ? (
@@ -426,6 +492,30 @@ export default function Settings() {
                           </div>
                         </div>
 
+                        {!canEdit && (
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label>عدد الضيوف المتوقع</Label>
+                              <Input
+                                value={event.expected_guests}
+                                readOnly
+                                className="bg-muted"
+                              />
+                              <p className="text-xs text-muted-foreground">لا يمكن تغيير عدد الضيوف</p>
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label>عدد الصور المسموح</Label>
+                              <Input
+                                value={event.max_shots}
+                                readOnly
+                                className="bg-muted"
+                              />
+                              <p className="text-xs text-muted-foreground">لا يمكن تغيير عدد الصور</p>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="grid gap-2">
                           <Label>رمز المناسبة</Label>
                           <Input
@@ -465,7 +555,8 @@ export default function Settings() {
                       </div>
                     )}
                   </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
