@@ -96,11 +96,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           )}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <div className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-2">
-          <div className="text-white">
-            <h2 className="text-base font-bold font-nastaliq">{eventData?.title || "مناسبة جديدة"}</h2>
+        <div className="absolute inset-x-3 bottom-2 flex items-center justify-center">
+          <div className="text-white text-center">
+            <h2 className="text-xl font-bold font-nastaliq">{eventData?.title || "مناسبة جديدة"}</h2>
             {eventData?.start_at && (
-              <div className="flex items-center gap-1 text-white/90">
+              <div className="flex items-center justify-center gap-1 text-white/90 mt-1">
                 <Clock className="h-4 w-4" />
                 <span className="text-[11px]">{countdown}</span>
               </div>
