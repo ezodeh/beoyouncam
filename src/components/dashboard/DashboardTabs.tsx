@@ -6,7 +6,7 @@ import { AlbumTab } from "./tabs/AlbumTab";
 import { StatisticsTab } from "./tabs/StatisticsTab";
 import { QRCodesTab } from "./tabs/QRCodesTab";
 import { PrivacyTab } from "./tabs/PrivacyTab";
-import { BarChart3, Users, Image, Settings, Activity, QrCode, Shield } from "lucide-react";
+import { BarChart3, Users, Image, Settings, Activity, QrCode, Shield, Share2 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 interface DashboardTabsProps {
@@ -21,14 +21,14 @@ export function DashboardTabs({ token, eventData, onEventUpdate }: DashboardTabs
   return (
     <div className="w-full" dir="rtl">
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7 bg-muted/50 p-1 rounded-xl" dir="rtl">
+        <TabsList className="grid w-full grid-cols-6 bg-muted/50 p-1 rounded-xl" dir="rtl">
           <TabsTrigger value="overview" className="flex items-center gap-2 rounded-lg flex-row-reverse order-1">
             <span className="hidden sm:inline">نظرة عامة</span>
             <BarChart3 className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="stats" className="flex items-center gap-2 rounded-lg flex-row-reverse order-2">
-            <span className="hidden sm:inline">الإحصائيات</span>
-            <Activity className="h-4 w-4" />
+          <TabsTrigger value="details" className="flex items-center gap-2 rounded-lg flex-row-reverse order-2">
+            <span className="hidden sm:inline">التفاصيل</span>
+            <Settings className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="participants" className="flex items-center gap-2 rounded-lg flex-row-reverse order-3">
             <span className="hidden sm:inline">المشاركين</span>
@@ -38,17 +38,13 @@ export function DashboardTabs({ token, eventData, onEventUpdate }: DashboardTabs
             <span className="hidden sm:inline">الألبوم</span>
             <Image className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2 rounded-lg flex-row-reverse order-5">
-            <span className="hidden sm:inline">الخصوصية</span>
-            <Shield className="h-4 w-4" />
+          <TabsTrigger value="sharing" className="flex items-center gap-2 rounded-lg flex-row-reverse order-5">
+            <span className="hidden sm:inline">المشاركة</span>
+            <Share2 className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="qrcodes" className="flex items-center gap-2 rounded-lg flex-row-reverse order-6">
-            <span className="hidden sm:inline">الباركود</span>
-            <QrCode className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="details" className="flex items-center gap-2 rounded-lg flex-row-reverse order-7">
-            <span className="hidden sm:inline">التفاصيل</span>
-            <Settings className="h-4 w-4" />
+          <TabsTrigger value="stats" className="flex items-center gap-2 rounded-lg flex-row-reverse order-6">
+            <span className="hidden sm:inline">الإحصائيات</span>
+            <Activity className="h-4 w-4" />
           </TabsTrigger>
         </TabsList>
 
@@ -65,15 +61,14 @@ export function DashboardTabs({ token, eventData, onEventUpdate }: DashboardTabs
         </TabsContent>
 
         <TabsContent value="participants" className="mt-6">
-          <ParticipantsTab token={token} />
+          <div className="space-y-6">
+            <ParticipantsTab token={token} />
+            <PrivacyTab token={token} eventData={eventData} onEventUpdate={onEventUpdate} />
+          </div>
         </TabsContent>
 
-        <TabsContent value="qrcodes" className="mt-6">
+        <TabsContent value="sharing" className="mt-6">
           <QRCodesTab token={token} eventData={eventData} />
-        </TabsContent>
-
-        <TabsContent value="privacy" className="mt-6">
-          <PrivacyTab token={token} eventData={eventData} onEventUpdate={onEventUpdate} />
         </TabsContent>
 
         <TabsContent value="stats" className="mt-6">
