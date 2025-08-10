@@ -134,45 +134,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
         
         <div className="space-y-6">
           {/* Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 space-y-4">
-                <div>
-                  <Label>نسبة العرض إلى الارتفاع</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Button
-                      variant={aspect === 16/9 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAspect(16/9)}
-                    >
-                      16:9
-                    </Button>
-                    <Button
-                      variant={aspect === 4/3 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAspect(4/3)}
-                    >
-                      4:3
-                    </Button>
-                    <Button
-                      variant={aspect === 1 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAspect(1)}
-                    >
-                      1:1
-                    </Button>
-                    <Button
-                      variant={aspect === undefined ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAspect(undefined)}
-                    >
-                      حر
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
