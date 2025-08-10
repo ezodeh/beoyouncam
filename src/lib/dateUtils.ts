@@ -1,8 +1,7 @@
-// Format date - defaults to Gregorian unless explicitly set to Hijri
+// Format date - always uses Gregorian calendar
 export const formatDate = (date: string | Date, options?: {
   includeTime?: boolean;
   dateStyle?: 'full' | 'long' | 'medium' | 'short';
-  calendarType?: 'hijri' | 'gregorian';
 }) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -16,20 +15,14 @@ export const formatDate = (date: string | Date, options?: {
     })
   };
 
-  // Use Hijri calendar only if explicitly requested, otherwise use Gregorian
-  const locale = options?.calendarType === 'hijri' ? 'ar-SA-u-ca-islamic' : 'ar-SA';
-  
-  return dateObj.toLocaleDateString(locale, baseOptions);
+  return dateObj.toLocaleDateString('ar-SA', baseOptions);
 };
 
-// Short date format for smaller spaces - defaults to Gregorian unless explicitly set to Hijri
-export const formatShortDate = (date: string | Date, calendarType?: 'hijri' | 'gregorian') => {
+// Short date format for smaller spaces - always uses Gregorian calendar
+export const formatShortDate = (date: string | Date) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
-  // Use Hijri calendar only if explicitly requested, otherwise use Gregorian
-  const locale = calendarType === 'hijri' ? 'ar-SA-u-ca-islamic' : 'ar-SA';
-  
-  return dateObj.toLocaleDateString(locale, {
+  return dateObj.toLocaleDateString('ar-SA', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

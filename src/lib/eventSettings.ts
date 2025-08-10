@@ -13,7 +13,6 @@ export interface EventSettings {
   country_code: string;
   cover_url?: string;
   sign_in_method: "phone" | "email";
-  calendar_type: "gregorian" | "hijri";
   published_at?: string;
   
   // Privacy and sharing settings
@@ -67,7 +66,6 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
     country_code: data.country_code || "+962",
     cover_url: data.cover_url,
     sign_in_method: (data.sign_in_method as "phone" | "email") || "phone",
-    calendar_type: (data.calendar_type as "gregorian" | "hijri") || "gregorian",
     published_at: data.published_at,
     
     // Privacy and sharing settings
