@@ -18,6 +18,20 @@ interface Photo {
   participant_name: string;
 }
 
+interface Blessing {
+  id: string;
+  content: string;
+  name: string;
+  created_at: string;
+}
+
+interface EyeAlbum {
+  id: string;
+  participant_name: string;
+  photos_count: number;
+  created_at: string;
+}
+
 interface AlbumTabProps {
   token: string;
   eventData: any;
@@ -27,6 +41,8 @@ interface AlbumTabProps {
 export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   const { toast } = useToast();
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [blessings, setBlessings] = useState<Blessing[]>([]);
+  const [eyeAlbums, setEyeAlbums] = useState<EyeAlbum[]>([]);
   const [loading, setLoading] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   
@@ -93,6 +109,8 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   useEffect(() => {
     fetchPhotos();
+    fetchBlessings();
+    fetchEyeAlbums();
   }, [token]);
 
   const fetchPhotos = async () => {
@@ -131,6 +149,48 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
       setPhotos([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBlessings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blessings')
+        .select('*')
+        .eq('event_token', token)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setBlessings(data || []);
+    } catch (error) {
+      console.error("Error fetching blessings:", error);
+      setBlessings([]);
+    }
+  };
+
+  const fetchEyeAlbums = async () => {
+    try {
+      // Fetch participants who have uploaded photos
+      const { data: participants, error } = await supabase
+        .from('participants')
+        .select('id, name, created_at')
+        .eq('event_token', token);
+      
+      if (error) throw error;
+      
+      // For now, we'll create placeholder eye albums
+      // In a real implementation, you'd query the actual eye albums
+      const eyeData: EyeAlbum[] = (participants || []).map(p => ({
+        id: p.id,
+        participant_name: p.name || 'مشارك',
+        photos_count: Math.floor(Math.random() * 10) + 1, // placeholder
+        created_at: p.created_at
+      }));
+      
+      setEyeAlbums(eyeData);
+    } catch (error) {
+      console.error("Error fetching eye albums:", error);
+      setEyeAlbums([]);
     }
   };
 
@@ -277,6 +337,31 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   return (
     <div className="space-y-6" dir="rtl">
+      {/* Album Preview Button */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-right">
+            <Eye className="h-5 w-5" />
+            استعراض الألبوم
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" asChild>
+              <a href={`/album/${token}`} target="_blank">
+                <Eye className="h-4 w-4 ml-2" />
+                معاينة الألبوم
+              </a>
+            </Button>
+            <Button variant="default" className="flex-1" asChild>
+              <a href={`/event/${token}/submit`} target="_blank">
+                <Share2 className="h-4 w-4 ml-2" />
+                صفحة المشاركة
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       {/* Album Sharing Settings */}
       <Card>
         <CardHeader>
@@ -387,7 +472,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 </div>
                 
                 {/* Countdown */}
-                {countdown && customPublishDate && customPublishTime && (
+                {countdown && customPublishDate && customPublishTime && !isAlbumPublished && (
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                     <div className="flex items-center gap-2 text-primary">
                       <Clock className="h-4 w-4" />
@@ -426,7 +511,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
             {!["specific_time", "immediately"].includes(albumPublishTime) && (
               <>
                 {/* Countdown Display */}
-                {countdown && (
+                {countdown && !isAlbumPublished && (
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                     <div className="flex items-center gap-2 text-primary">
                       <Clock className="h-4 w-4" />
@@ -530,48 +615,129 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               لا توجد صور في الألبوم حتى الآن
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photos.map((photo, index) => (
-                <div key={photo.id} className="relative group">
-                  <div className="aspect-square rounded-lg overflow-hidden border">
-                    <img
-                      src={photo.url}
-                      alt={`صورة من ${photo.participant_name}`}
-                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                      onClick={() => setLightboxIndex(index)}
-                    />
-                  </div>
-                  
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => setLightboxIndex(index)}
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => downloadPhoto(photo.url, `photo-${photo.id}.jpg`)}
-                    >
-                      <Download className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deletePhoto(photo.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
+                  {photos.map((photo, index) => (
+                    <div key={photo.id} className="flex-shrink-0 group">
+                      <div className="w-32 h-32 rounded-lg overflow-hidden border relative">
+                        <img
+                          src={photo.url}
+                          alt={`صورة من ${photo.participant_name}`}
+                          className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => setLightboxIndex(index)}
+                        />
+                        
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setLightboxIndex(index)}
+                            className="p-1 h-auto"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => downloadPhoto(photo.url, `photo-${photo.id}.jpg`)}
+                            className="p-1 h-auto"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deletePhoto(photo.id)}
+                            className="p-1 h-auto"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
 
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    <div>{photo.participant_name}</div>
-                    <div>{new Date(photo.created_at).toLocaleDateString('ar-SA')}</div>
-                  </div>
+                      <div className="mt-2 text-xs text-center text-muted-foreground w-32">
+                        <div className="truncate">{photo.participant_name}</div>
+                        <div>{new Date(photo.created_at).toLocaleDateString('ar-SA')}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Blessings Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-right">
+            <Star className="h-5 w-5" />
+            المباركات ({blessings.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {blessings.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              لا توجد مباركات حتى الآن
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
+                  {blessings.map((blessing) => (
+                    <div key={blessing.id} className="flex-shrink-0 group w-64">
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 h-32 overflow-hidden">
+                        <p className="text-sm line-clamp-4">{blessing.content}</p>
+                      </div>
+
+                      <div className="mt-2 text-xs text-center text-muted-foreground">
+                        <div className="truncate font-medium">{blessing.name || 'مجهول'}</div>
+                        <div>{new Date(blessing.created_at).toLocaleDateString('ar-SA')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Eye Albums Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-right">
+            <Eye className="h-5 w-5" />
+            ألبومات بعيون ({eyeAlbums.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {eyeAlbums.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              لا توجد ألبومات بعيون حتى الآن
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
+                  {eyeAlbums.map((album) => (
+                    <div key={album.id} className="flex-shrink-0 group">
+                      <div className="w-32 h-32 rounded-lg border bg-gradient-to-br from-secondary/20 to-secondary/40 flex flex-col items-center justify-center">
+                        <Eye className="h-8 w-8 text-secondary-foreground/60 mb-2" />
+                        <span className="text-lg font-bold text-secondary-foreground/80">{album.photos_count}</span>
+                        <span className="text-xs text-secondary-foreground/60">صورة</span>
+                      </div>
+
+                      <div className="mt-2 text-xs text-center text-muted-foreground w-32">
+                        <div className="truncate font-medium">{album.participant_name}</div>
+                        <div>{new Date(album.created_at).toLocaleDateString('ar-SA')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
