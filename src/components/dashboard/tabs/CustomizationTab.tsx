@@ -55,13 +55,13 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
       const fileName = `${token}/${field}_${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
-        .from('event-assets')
+        .from('event-customization')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('event-assets')
+        .from('event-customization')
         .getPublicUrl(fileName);
 
       setCustomization(prev => ({ ...prev, [field]: publicUrl }));
