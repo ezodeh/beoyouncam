@@ -77,16 +77,8 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         const timeLeft = targetTime.getTime() - now.getTime();
         
         if (timeLeft > 0) {
-          const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          
-          if (days > 0) {
-            setCountdown(`${days} يوم ${hours} ساعة ${minutes} دقيقة`);
-          } else {
-            setCountdown(`${hours} ساعة ${minutes} دقيقة ${seconds} ثانية`);
-          }
+          const totalHours = Math.floor(timeLeft / (1000 * 60 * 60));
+          setCountdown(`سيتم النشر بعد : ${totalHours} ساعة`);
         } else {
           setCountdown("حان وقت النشر!");
         }
@@ -415,7 +407,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                     <div className="flex items-center gap-2 text-primary">
                       <Clock className="h-4 w-4" />
-                      <span className="font-medium">العد التنازلي للنشر: {countdown}</span>
+                      <span className="font-medium">{countdown}</span>
                     </div>
                   </div>
                 )}
@@ -497,11 +489,6 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   )}
                 </div>
                 
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    🔧 النشر اليدوي: يمكنك التحكم يدوياً في توقيت إرسال رابط الألبوم للضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"}.
-                  </p>
-                </div>
               </>
             )}
 
@@ -513,17 +500,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                     <div className="flex items-center gap-2 text-primary">
                       <Clock className="h-4 w-4" />
-                      <span className="font-medium">العد التنازلي للنشر التلقائي: {countdown}</span>
+                      <span className="font-medium">{countdown}</span>
                     </div>
                   </div>
                 )}
                 
-                {/* Info about automatic publishing */}
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-700">
-                    📬 النشر التلقائي: سيتم إرسال رابط الألبوم تلقائياً لجميع الضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"} في الوقت المحدد.
-                  </p>
-                </div>
                 
                 {/* Publish Controls */}
                 <div className="flex gap-2">
