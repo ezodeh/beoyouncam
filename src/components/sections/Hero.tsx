@@ -13,8 +13,8 @@ const Hero = () => {
       <PointerGlow />
       <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center py-16">
         <div className="space-y-6">
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight font-nastaliq">
-            شوف مناسبتك بعيون ضيوفك — كل لقطة من زاوية مختلفة
+          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
+            مناسبتك بعيون الضيوف والاحباب
           </h1>
           <p className="text-lg text-muted-foreground">
             خلّي ضيوفك يوثّقوا أجمل اللحظات من منظورهم الخاص. بس رابط أو QR وكل شي بيصير جاهز.
