@@ -51,7 +51,9 @@ export type Database = {
           country_code: string | null
           cover_url: string | null
           created_at: string
+          custom_publish_date: string | null
           custom_publish_delay: number | null
+          custom_publish_time: string | null
           description: string | null
           enable_video: boolean
           end_at: string | null
@@ -82,7 +84,9 @@ export type Database = {
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_publish_date?: string | null
           custom_publish_delay?: number | null
+          custom_publish_time?: string | null
           description?: string | null
           enable_video?: boolean
           end_at?: string | null
@@ -113,7 +117,9 @@ export type Database = {
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_publish_date?: string | null
           custom_publish_delay?: number | null
+          custom_publish_time?: string | null
           description?: string | null
           enable_video?: boolean
           end_at?: string | null
