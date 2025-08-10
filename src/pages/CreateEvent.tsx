@@ -671,172 +671,78 @@ export default function CreateEvent() {
 
               {step === 3 && (
                 <div className="grid lg:grid-cols-2 gap-6">
-                  {/* Panel اليسار: تخصيص الصفحات */}
+                  {/* Panel اليسار: تفاصيل المناسبة */}
                   <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Eye className="w-5 h-5" />
-                      <h3 className="text-lg font-semibold">تخصيص الصفحات</h3>
-                    </div>
-
-                    <Tabs defaultValue="welcome" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
-                        <TabsTrigger value="album-intro">ترحيب الألبوم</TabsTrigger>
-                        <TabsTrigger value="album">صفحة الألبوم</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="welcome" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة الغلاف</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                                }}
-                                className="hidden"
-                                id="welcome-hero-upload"
-                              />
-                              <label
-                                htmlFor="welcome-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الصفحة</Label>
-                            <Input
-                              value={welcomeTitle}
-                              onChange={(e) => setWelcomeTitle(e.target.value)}
-                              placeholder="عنوان صفحة الترحيب"
-                            />
-                          </div>
-                          <div>
-                            <Label>وصف الصفحة</Label>
-                            <Textarea
-                              value={welcomeBody}
-                              onChange={(e) => setWelcomeBody(e.target.value)}
-                              placeholder="نص ترحيبي للضيوف"
-                              rows={3}
-                            />
-                          </div>
-                          <div>
-                            <Label>نص الزر</Label>
-                            <Input
-                              value={ctaLabel}
-                              onChange={(e) => setCtaLabel(e.target.value)}
-                              placeholder="نص زر البدء"
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="album-intro" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة الغلاف</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'album_welcome_hero_image');
-                                }}
-                                className="hidden"
-                                id="album-welcome-hero-upload"
-                              />
-                              <label
-                                htmlFor="album-welcome-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الألبوم</Label>
-                            <Input
-                              value={albumWelcomeTitle}
-                              onChange={(e) => setAlbumWelcomeTitle(e.target.value)}
-                              placeholder="عنوان ترحيب الألبوم"
-                            />
-                          </div>
-                          <div>
-                            <Label>وصف الألبوم</Label>
-                            <Textarea
-                              value={albumWelcomeDescription}
-                              onChange={(e) => setAlbumWelcomeDescription(e.target.value)}
-                              placeholder="وصف ترحيبي للألبوم"
-                              rows={3}
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="album" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة غلاف الألبوم</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'album_page_hero_image');
-                                }}
-                                className="hidden"
-                                id="album-page-hero-upload"
-                              />
-                              <label
-                                htmlFor="album-page-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الألبوم</Label>
-                            <Input
-                              value={albumPageTitle}
-                              onChange={(e) => setAlbumPageTitle(e.target.value)}
-                              placeholder="عنوان صفحة الألبوم"
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-
-                    {/* إعدادات عامة - ميزة البريميوم */}
-                    <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
-                          <Crown className="w-4 h-4" />
-                          إعدادات البريميوم
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Images className="w-5 h-5" />
+                          تفاصيل المناسبة
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <Label className="text-sm font-medium">إظهار الهيدر</Label>
-                            <p className="text-xs text-muted-foreground">
-                              تحكم في إظهار أو إخفاء الهيدر في جميع الصفحات
-                            </p>
+                        <div>
+                          <Label>صورة الغلاف</Label>
+                          <div className="mt-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleImageUpload(file, 'welcome_page_hero_image');
+                              }}
+                              className="hidden"
+                              id="event-hero-upload"
+                            />
+                            <label
+                              htmlFor="event-hero-upload"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                            >
+                              <Upload className="w-4 h-4" />
+                              رفع صورة
+                            </label>
                           </div>
-                          <Switch
-                            checked={showHeader}
-                            onCheckedChange={setShowHeader}
+                        </div>
+                        <div>
+                          <Label>عنوان المناسبة</Label>
+                          <Input
+                            value={welcomeTitle}
+                            onChange={(e) => setWelcomeTitle(e.target.value)}
+                            placeholder="عنوان المناسبة"
                           />
+                        </div>
+                        <div>
+                          <Label>وصف المناسبة</Label>
+                          <Textarea
+                            value={welcomeBody}
+                            onChange={(e) => setWelcomeBody(e.target.value)}
+                            placeholder="نص ترحيبي للضيوف"
+                            rows={3}
+                          />
+                        </div>
+                        
+                        {/* إعدادات إضافية */}
+                        <div className="mt-6 pt-4 border-t">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="space-y-1">
+                              <Label className="text-sm font-medium">إخفاء لوجو "من عيونكم"</Label>
+                              <p className="text-xs text-muted-foreground">
+                                إخفاء اللوجو من جميع صفحات المناسبة
+                              </p>
+                            </div>
+                            <Switch
+                              checked={!showHeader}
+                              onCheckedChange={(checked) => setShowHeader(!checked)}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* ملاحظة */}
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            ℹ️ هذه الإعدادات ستطبق على جميع الشاشات الثلاث (الترحيب، مقدمة الألبوم، الألبوم). 
+                            يمكنك تعديل كل شاشة بشكل منفصل من لوحة التحكم بعد إنشاء المناسبة.
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -844,10 +750,6 @@ export default function CreateEvent() {
 
                   {/* Panel اليمين: معاينة الهاتف */}
                   <div className="flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Smartphone className="w-5 h-5" />
-                      <h3 className="text-lg font-semibold">معاينة مباشرة</h3>
-                    </div>
                     
                     <Tabs defaultValue="welcome" className="w-full max-w-xs">
                       <TabsList className="grid w-full grid-cols-3 text-xs">
@@ -957,31 +859,31 @@ export default function CreateEvent() {
                                 </>
                               )}
                               
-                              {/* صورة الغلاف */}
-                              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                                <div className="relative h-20">
-                                  {albumWelcomeHeroImage ? (
-                                    <img 
-                                      src={albumWelcomeHeroImage} 
-                                      alt="غلاف الألبوم" 
-                                      className="absolute inset-0 h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="absolute inset-0 bg-muted" />
-                                  )}
-                                  <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-                                </div>
-                              </figure>
-                              
-                              {/* المحتوى الرئيسي */}
-                              <main className="px-3 py-2 flex-1 grid place-items-center">
-                                <section className="max-w-full mx-auto text-center">
-                                  <h1 className="font-nastaliq text-sm leading-snug font-bold mb-2">
-                                    ألبوم {albumWelcomeTitle || "المناسبة"}
-                                  </h1>
-                                  <p className="text-xs text-muted-foreground mb-3">
-                                    {albumWelcomeDescription || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
-                                  </p>
+                               {/* صورة الغلاف */}
+                               <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                                 <div className="relative h-20">
+                                   {welcomePageHeroImage ? (
+                                     <img 
+                                       src={welcomePageHeroImage} 
+                                       alt="غلاف المناسبة" 
+                                       className="absolute inset-0 h-full w-full object-cover"
+                                     />
+                                   ) : (
+                                     <div className="absolute inset-0 bg-muted" />
+                                   )}
+                                   <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                                 </div>
+                               </figure>
+                               
+                               {/* المحتوى الرئيسي */}
+                               <main className="px-3 py-2 flex-1 grid place-items-center">
+                                 <section className="max-w-full mx-auto text-center">
+                                   <h1 className="font-nastaliq text-sm leading-snug font-bold mb-2">
+                                     ألبوم {welcomeTitle || "المناسبة"}
+                                   </h1>
+                                   <p className="text-xs text-muted-foreground mb-3">
+                                     {welcomeBody || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
+                                   </p>
                                   <div className="w-full h-6 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
                                     الدخول إلى الألبوم
                                   </div>
@@ -1010,29 +912,29 @@ export default function CreateEvent() {
                                 </>
                               )}
                               
-                              {/* صورة الغلاف */}
-                              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                                <div className="relative h-20">
-                                  {albumPageHeroImage ? (
-                                    <img 
-                                      src={albumPageHeroImage} 
-                                      alt="غلاف الألبوم" 
-                                      className="absolute inset-0 h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="absolute inset-0 bg-muted" />
-                                  )}
-                                  <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-                                </div>
-                              </figure>
-                              
-                              <main className="flex-1">
-                                {/* عنوان الألبوم */}
-                                <section className="px-3 py-2 text-center">
-                                  <h1 className="font-nastaliq text-sm leading-snug font-bold">
-                                    {albumPageTitle || "الألبوم"}
-                                  </h1>
-                                </section>
+                               {/* صورة الغلاف */}
+                               <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                                 <div className="relative h-20">
+                                   {welcomePageHeroImage ? (
+                                     <img 
+                                       src={welcomePageHeroImage} 
+                                       alt="غلاف المناسبة" 
+                                       className="absolute inset-0 h-full w-full object-cover"
+                                     />
+                                   ) : (
+                                     <div className="absolute inset-0 bg-muted" />
+                                   )}
+                                   <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                                 </div>
+                               </figure>
+                               
+                               <main className="flex-1">
+                                 {/* عنوان الألبوم */}
+                                 <section className="px-3 py-2 text-center">
+                                   <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                                     {welcomeTitle || "الألبوم"}
+                                   </h1>
+                                 </section>
                                 
                                 {/* تبويبات الألبوم */}
                                 <section className="px-3 py-3">
