@@ -354,7 +354,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         <CardContent>
           <div className="grid lg:grid-cols-2 gap-8">
             {/* الاستعراض - يظهر أولاً في الموبايل */}
-            <div className="order-2 lg:order-2">
+            <div className="order-1 lg:order-2">
               <div className="sticky top-4">
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-semibold mb-2">الاستعراض</h3>
@@ -364,7 +364,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
             </div>
             
             {/* التحكم - يظهر ثانياً في الموبايل */}
-            <div className="order-1 lg:order-1 space-y-6">
+            <div className="order-2 lg:order-1 space-y-6">
               <Tabs value={selectedPage} onValueChange={setSelectedPage}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
