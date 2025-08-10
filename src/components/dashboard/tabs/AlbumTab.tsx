@@ -337,6 +337,23 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   return (
     <div className="space-y-6" dir="rtl">
+      {/* Album Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-right">
+            <Eye className="h-5 w-5" />
+            معاينة الألبوم
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="w-full" asChild>
+            <a href={`/album/${token}`} target="_blank">
+              <Eye className="h-4 w-4 ml-2" />
+              معاينة الألبوم
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
       {/* Album Sharing Settings */}
       <Card>
         <CardHeader>
@@ -564,19 +581,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
       {/* Photos Management */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-right">
             <Image className="h-5 w-5" />
             إدارة الصور ({photos.length})
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href={`/album/${token}`} target="_blank">
-                <Eye className="h-4 w-4 ml-2" />
-                معاينة الألبوم
-              </a>
-            </Button>
-          </div>
         </CardHeader>
         <CardContent>
           {photos.length === 0 ? (
