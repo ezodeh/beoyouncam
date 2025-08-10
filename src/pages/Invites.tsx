@@ -66,16 +66,16 @@ export default function Invites() {
     img.src = urlObj;
   };
   return <div className="min-h-screen bg-background text-foreground flex flex-col relative" dir="rtl">
+      <Navbar compact fullBleed />
       <button 
         onClick={() => window.history.back()} 
-        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 hover:bg-background border border-border"
+        className="absolute top-20 left-4 z-50 p-2 rounded-full bg-background/80 hover:bg-background border border-border"
         aria-label="إغلاق"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
-      <Navbar compact fullBleed />
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="text-center w-full max-w-sm">
           <h1 className="text-3xl font-bold font-nastaliq mb-6">دعوة الضيوف</h1>
@@ -91,47 +91,6 @@ export default function Invites() {
             <Button variant="secondary" onClick={downloadQR} className="rounded-full">تنزيل الباركود</Button>
           </div>
 
-          {/* NFC Share Button */}
-          <div className="mt-6">
-            <Button 
-              variant="outline" 
-              className="rounded-full w-full"
-              onClick={async () => {
-                // Check if we're on HTTPS
-                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                  alert("مشاركة NFC تحتاج HTTPS - استخدم النسخة المنشورة من التطبيق");
-                  return;
-                }
-
-                // Check for NFC support
-                if (!('NDEFWriter' in window)) {
-                  alert("NFC غير مدعوم على هذا المتصفح. يعمل فقط على Chrome Android");
-                  return;
-                }
-
-                try {
-                  const ndef = new (window as any).NDEFWriter();
-                  await ndef.write({
-                    records: [{ recordType: "url", data: url }]
-                  });
-                  alert("✅ تم تفعيل NFC! قرب الهاتف من هاتف آخر يدعم NFC");
-                } catch (error: any) {
-                  if (error.name === 'NotAllowedError') {
-                    alert("يرجى السماح باستخدام NFC في إعدادات المتصفح");
-                  } else if (error.name === 'NotSupportedError') {
-                    alert("هذا الجهاز لا يدعم NFC");
-                  } else {
-                    alert("خطأ في تفعيل NFC: " + error.message);
-                  }
-                }
-              }}
-            >
-              📱 مشاركة عبر NFC
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              يعمل على Chrome Android + HTTPS فقط
-            </p>
-          </div>
         </div>
       </main>
       <Footer />

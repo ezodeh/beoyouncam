@@ -1,18 +1,37 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useLocation, useParams, Link } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EventEnded() {
   const { token } = useParams();
   const location = useLocation();
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+  const [isAlbumPublished, setIsAlbumPublished] = useState<boolean>(false);
+  const [isPrivate, setIsPrivate] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = `انتهت المناسبة — ${eventName} — من عيونكم`;
-  }, [eventName]);
+    checkAlbumStatus();
+  }, [eventName, token]);
+
+  const checkAlbumStatus = async () => {
+    if (!token) return;
+    
+    const { data } = await supabase
+      .from("events")
+      .select("is_album_published, is_private")
+      .eq("token", token)
+      .maybeSingle();
+    
+    if (data) {
+      setIsAlbumPublished(data.is_album_published || false);
+      setIsPrivate(data.is_private || false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
@@ -26,12 +45,21 @@ export default function EventEnded() {
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto text-center">
           <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventName}</h1>
-          <p className="mt-3 text-muted-foreground">شكراً لمشاركتكم — المناسبة خلصت. تقدروا تشوفوا الألبوم الآن.</p>
-          <div className="mt-6">
-            <Link to={`/album/${token}${location.search}`}>
-              <Button className="rounded-full px-8">اذهب إلى الألبوم</Button>
-            </Link>
-          </div>
+          {!isPrivate && isAlbumPublished ? (
+            <>
+              <p className="mt-3 text-muted-foreground">شكراً لمشاركتكم — المناسبة خلصت. تقدروا تشوفوا الألبوم الآن.</p>
+              <div className="mt-6">
+                <Link to={`/album/${token}${location.search}`}>
+                  <Button className="rounded-full px-8">اذهب إلى الألبوم</Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-muted-foreground">شكراً لمشاركتكم — المناسبة خلصت.</p>
+              <p className="mt-2 text-muted-foreground text-sm">سينشر الألبوم قريباً</p>
+            </>
+          )}
         </section>
       </main>
       <Footer />

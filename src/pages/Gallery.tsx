@@ -78,7 +78,7 @@ const Gallery = () => {
                   {loading ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> جاري التحميل…</span> : "تحميل المزيد"}
                 </Button>
               )}
-              {!hasMore && items.length === 0 && <p className="text-center opacity-70">لا توجد عناصر بعد.</p>}
+              {!hasMore && items.length === 0 && <p className="text-center opacity-70">لا يوجد صور</p>}
             </CardContent>
           </Card>
         </div>

@@ -1,6 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
@@ -65,7 +65,9 @@ export default function EventSoon() {
           )}
           <div className="mt-8 flex items-center justify-center gap-2">
             <Button className="rounded-full px-8" onClick={() => navigator.clipboard.writeText(window.location.href)}>انسخ الرابط</Button>
-            <Button asChild variant="outline" className="rounded-full px-8"><a href={`/event/${token}/welcome${location.search}`}>العودة للترحيب</a></Button>
+            <Button asChild variant="outline" className="rounded-full px-8">
+              <Link to={`/event/${token}/welcome${location.search}`}>العودة للترحيب</Link>
+            </Button>
           </div>
         </section>
       </main>

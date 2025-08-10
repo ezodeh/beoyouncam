@@ -206,8 +206,8 @@ export default function Settings() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="gender">الجنس (اختياري)</Label>
-                <Select value={gender} onValueChange={setGender}>
+                <Label htmlFor="gender">الجنس *</Label>
+                <Select value={gender} onValueChange={setGender} required>
                   <SelectTrigger>
                     <SelectValue placeholder="اختر الجنس" />
                   </SelectTrigger>
@@ -253,18 +253,25 @@ export default function Settings() {
             </Button>
           </div>
 
-          <Card className="border-destructive/50">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-destructive flex items-center gap-2">
-                <Trash2 className="h-5 w-5" />
-                المنطقة الخطرة
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                إعدادات الأمان
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => alert("تغيير كلمة المرور: سيتم إضافتها قريبًا")}
+                  className="w-full"
+                >
+                  تغيير كلمة المرور
+                </Button>
                 <a 
                   href="mailto:support@manyoyonkom.app" 
-                  className="text-center py-2 px-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="text-center py-2 px-4 border rounded-lg hover:bg-muted/50 transition-colors block"
                 >
                   تواصل معنا
                 </a>

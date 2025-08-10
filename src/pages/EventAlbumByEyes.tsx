@@ -102,23 +102,29 @@ export default function EventAlbumByEyes() {
 
         <section className="container mx-auto px-4 py-6 grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-{dummyPhotos.map((p, idx) => (
-                <button
-                  key={p.id}
-                  onClick={() => openAt(idx)}
-                  className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
-                  aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
-                >
-                  <img
-                    src={mediaItems[idx].src}
-                    alt={mediaItems[idx].alt}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                </button>
-              ))}
-            </div>
+            {dummyPhotos.length > 0 ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
+                {dummyPhotos.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    onClick={() => openAt(idx)}
+                    className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+                    aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
+                  >
+                    <img
+                      src={mediaItems[idx].src}
+                      alt={mediaItems[idx].alt}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                لا يوجد صور
+              </div>
+            )}
           </div>
           <aside className="space-y-3">
             <h2 className="text-lg font-nastaliq font-bold">مباركات {name}</h2>
@@ -164,8 +170,11 @@ export default function EventAlbumByEyes() {
               <Share2 className="h-5 w-5" />
             </button>
 
-            {/* Index like main album (left top) */}
-            <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{mediaItems.length}</div>
+            {/* Index and name like main album (left top) */}
+            <div className="absolute top-4 left-4 text-sm">
+              <div>{String(lightboxIndex + 1).padStart(2, "0")}/{mediaItems.length}</div>
+              <div className="font-nastaliq text-xs mt-1">بعيون {name}</div>
+            </div>
 
             {/* Prev/Next */}
             <button
