@@ -112,148 +112,184 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-800 rounded-b-lg"></div>
         <div className="h-full overflow-y-auto">
           {page === "welcome" && (
-            <div className="relative h-full flex flex-col" dir="rtl">
+            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
               {/* شريط العلامة التجارية */}
               <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
               
               {/* صورة البطل */}
-              <div className="relative h-48 overflow-hidden bg-secondary">
-                {customization.welcome_page_hero_image ? (
-                  <img 
-                    src={customization.welcome_page_hero_image} 
-                    alt="صورة الترحيب" 
-                    className="absolute inset-0 h-full w-full object-cover kenburns-slow"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-muted" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-                
-                {/* زر المشاركة */}
-                <div className="absolute top-2 left-2">
-                  <div className="w-6 h-6 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
-                    <div className="w-3 h-3 bg-foreground rounded-sm" />
+              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                <div className="relative h-32">
+                  {customization.welcome_page_hero_image ? (
+                    <img 
+                      src={customization.welcome_page_hero_image} 
+                      alt="صورة الترحيب" 
+                      className="absolute inset-0 h-full w-full object-cover kenburns-slow"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-muted" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                  
+                  {/* زر المشاركة */}
+                  <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-background/70 backdrop-blur shadow-elevated flex items-center justify-center">
+                    <div className="w-2 h-2 bg-foreground rounded-sm opacity-60" />
                   </div>
                 </div>
-              </div>
+              </figure>
               
-              {/* المحتوى */}
-              <div className="flex-1 p-4 text-center flex flex-col justify-center">
-                <h1 className="font-nastaliq text-lg md:text-xl leading-snug font-bold mb-3">
-                  {customization.welcome_page_title || "عنوان الحدث"}
-                </h1>
-                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                  {customization.welcome_page_description || "وصف الحدث"}
-                </p>
-                
-                {/* نموذج التسجيل */}
-                <div className="space-y-2 mb-4">
-                  <div className="h-6 bg-muted rounded text-xs flex items-center justify-center">اسمك</div>
-                  <div className="grid grid-cols-3 gap-1">
-                    <div className="h-6 bg-muted rounded text-xs flex items-center justify-center">+970</div>
-                    <div className="col-span-2 h-6 bg-muted rounded text-xs flex items-center justify-center">5XXXXXXX</div>
+              {/* المحتوى الرئيسي */}
+              <main className="px-3 py-2 flex-1 grid place-items-center">
+                <section className="max-w-full mx-auto">
+                  <div className="text-center mb-4">
+                    <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                      {customization.welcome_page_title || "عنوان الحدث"}
+                    </h1>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {customization.welcome_page_description || "يا هلا بكم"}
+                    </p>
                   </div>
-                </div>
-                
-                <button className="w-full h-8 bg-primary text-primary-foreground rounded-full text-xs font-medium">
-                  {customization.welcome_page_button_text || "ابدأ"}
-                </button>
-                
-                {/* خط الفاصل */}
-                <div className="my-3 flex items-center gap-2">
-                  <div className="h-px bg-border flex-1" />
-                  <span className="text-xs text-muted-foreground">أو</span>
-                  <div className="h-px bg-border flex-1" />
-                </div>
-                
-                {/* زر Google */}
-                <button className="w-full h-8 bg-secondary text-secondary-foreground rounded-full text-xs">
-                  المتابعة بحساب Google
-                </button>
-              </div>
+                  
+                  {/* نموذج التسجيل */}
+                  <div className="w-full space-y-2">
+                    <div>
+                      <div className="text-xs mb-1 text-right text-muted-foreground">الاسم</div>
+                      <div className="h-6 bg-muted border rounded text-xs flex items-center px-2">اسمك</div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-1">
+                        <div className="text-xs mb-1 text-right text-muted-foreground">المقدمة</div>
+                        <div className="h-6 bg-muted border rounded text-xs flex items-center justify-center">+970</div>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-xs mb-1 text-right text-muted-foreground">الهاتف</div>
+                        <div className="h-6 bg-muted border rounded text-xs flex items-center px-2" dir="ltr">5XXXXXXX</div>
+                      </div>
+                    </div>
+                    <button className="w-full h-6 bg-primary text-primary-foreground rounded-full text-xs font-medium mt-2">
+                      {customization.welcome_page_button_text || "ابدأ"}
+                    </button>
+                  </div>
+                  
+                  {/* خط الفاصل */}
+                  <div className="my-3 flex items-center gap-2">
+                    <div className="h-px bg-border flex-1" />
+                    <span className="text-xs text-muted-foreground">أو</span>
+                    <div className="h-px bg-border flex-1" />
+                  </div>
+                  
+                  {/* زر Google */}
+                  <button className="w-full h-6 bg-secondary text-secondary-foreground rounded-full text-xs">
+                    المتابعة بحساب Google
+                  </button>
+                  
+                  {/* زر إنشاء حساب */}
+                  <div className="mt-2 text-center">
+                    <button className="h-6 bg-transparent border border-border text-foreground rounded-full text-xs px-3">
+                      تسجيل/إنشاء حساب بالبريد
+                    </button>
+                  </div>
+                </section>
+              </main>
             </div>
           )}
           
           {page === "album-welcome" && (
-            <div className="relative h-full flex flex-col" dir="rtl">
-              {/* صورة البطل */}
-              <div className="relative h-48 overflow-hidden bg-secondary">
-                {customization.album_welcome_hero_image ? (
-                  <img 
-                    src={customization.album_welcome_hero_image} 
-                    alt="صورة ترحيب الألبوم" 
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-muted" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-              </div>
+            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+              {/* هيدر */}
+              <header className="relative">
+                <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                  <div className="relative h-32">
+                    {customization.album_welcome_hero_image ? (
+                      <img 
+                        src={customization.album_welcome_hero_image} 
+                        alt="غلاف الألبوم" 
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-muted" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                  </div>
+                </figure>
+              </header>
               
               {/* المحتوى */}
-              <div className="flex-1 p-4 text-center flex flex-col justify-center">
-                <h1 className="font-nastaliq text-lg leading-snug font-bold mb-3">
-                  {customization.album_welcome_title || "ألبوم الحدث"}
-                </h1>
-                <p className="text-xs text-muted-foreground mb-6">
-                  {customization.album_welcome_description || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
-                </p>
-                <button className="w-full h-8 bg-primary text-primary-foreground rounded-full text-xs font-medium">
-                  الدخول إلى الألبوم
-                </button>
-              </div>
+              <main className="px-3 py-2 flex-1 grid place-items-center">
+                <section className="max-w-full mx-auto text-center">
+                  <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                    ألبوم {customization.album_welcome_title || "الحدث"}
+                  </h1>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {customization.album_welcome_description || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
+                  </p>
+                  <div className="mt-4">
+                    <button className="h-6 bg-primary text-primary-foreground rounded-full text-xs px-6">
+                      الدخول إلى الألبوم
+                    </button>
+                  </div>
+                </section>
+              </main>
             </div>
           )}
           
           {page === "album" && (
-            <div className="relative h-full flex flex-col" dir="rtl">
-              {/* هيدر الألبوم */}
-              <div className="relative h-32 overflow-hidden">
-                {customization.album_page_hero_image ? (
-                  <img 
-                    src={customization.album_page_hero_image} 
-                    alt="صورة الألبوم" 
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full bg-muted" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
-                
-                {/* زر المشاركة */}
-                <div className="absolute top-2 left-2">
-                  <div className="w-6 h-6 rounded-full bg-background/70 backdrop-blur border border-border flex items-center justify-center">
-                    <div className="w-3 h-3 bg-foreground rounded-sm" />
-                  </div>
-                </div>
-                
-                {/* عنوان الألبوم */}
-                <div className="absolute inset-x-0 bottom-0 p-3">
-                  <h1 className="font-nastaliq text-sm font-bold text-right text-white">
-                    الألبوم — {customization.album_page_title || "ألبوم الصور"}
-                  </h1>
-                </div>
-              </div>
-              
-              {/* تبويبات الألبوم */}
-              <div className="p-3">
-                <div className="grid grid-cols-3 bg-muted rounded-full p-1 mb-3">
-                  <div className="h-6 rounded-full bg-background text-xs flex items-center justify-center">❤️</div>
-                  <div className="h-6 rounded-full text-xs flex items-center justify-center">📷</div>
-                  <div className="h-6 rounded-full text-xs flex items-center justify-center">👥</div>
-                </div>
-                
-                {/* شبكة الصور */}
-                <div className="grid grid-cols-3 gap-1">
-                  {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="aspect-square bg-muted rounded relative">
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
-                        <div className="w-full h-1 bg-white/50 rounded"></div>
-                      </div>
+            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+              <main className="flex-1">
+                {/* هيدر الألبوم */}
+                <header className="relative">
+                  <figure className="h-24 w-full overflow-hidden">
+                    {customization.album_page_hero_image ? (
+                      <img 
+                        src={customization.album_page_hero_image} 
+                        alt="غلاف الألبوم" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full bg-muted" />
+                    )}
+                  </figure>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10 pointer-events-none" />
+                  
+                  {/* زر المشاركة */}
+                  <div className="absolute top-1 left-1 z-20">
+                    <div className="w-5 h-5 bg-background/70 border border-border rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-foreground rounded-sm opacity-60" />
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                  
+                  {/* عنوان الألبوم */}
+                  <div className="absolute inset-x-0 bottom-0">
+                    <div className="px-2 py-1">
+                      <h1 className="font-nastaliq text-xs font-bold text-right text-white">
+                        الألبوم — {customization.album_page_title || "ألبوم الصور"}
+                      </h1>
+                    </div>
+                  </div>
+                </header>
+                
+                {/* محتوى الألبوم */}
+                <section className="px-3 py-3">
+                  {/* تبويبات الألبوم */}
+                  <div className="grid grid-cols-3 w-full max-w-full rounded-full mx-auto bg-muted p-0.5 mb-3">
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full">❤️</div>
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full bg-background">📷</div>
+                    <div className="flex items-center justify-center text-xs py-1 rounded-full">👥</div>
+                  </div>
+                  
+                  {/* شبكة الصور */}
+                  <div className="max-w-full mx-auto">
+                    <div className="grid grid-cols-3 gap-0.5">
+                      {[1,2,3,4,5,6].map(i => (
+                        <div key={i} className="relative aspect-square overflow-hidden rounded border border-border bg-muted">
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
+                            <div className="text-white text-xs text-right font-medium opacity-80">مشارك</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              </main>
             </div>
           )}
         </div>
