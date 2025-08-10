@@ -29,6 +29,7 @@ export function EventDetailsTab({
   const [endAt, setEndAt] = useState(eventData?.end_at ? eventData.end_at.slice(0, 16) : "");
   const [maxShots, setMaxShots] = useState(eventData?.max_shots || 120);
   const [expectedGuests, setExpectedGuests] = useState<number>(eventData?.expected_guests ?? 100);
+  const [showCustomGuestInput, setShowCustomGuestInput] = useState(false);
   const [coverUrl, setCoverUrl] = useState(eventData?.cover_url || "");
   const [enableVideo, setEnableVideo] = useState(eventData?.enable_video ?? true);
   const [isPrivate, setIsPrivate] = useState(eventData?.is_private ?? false);
@@ -133,35 +134,63 @@ export function EventDetailsTab({
                 <SelectValue placeholder="اختر عدد الصور" />
               </SelectTrigger>
               <SelectContent className="z-50">
-                <SelectItem value="50">50 صورة</SelectItem>
-                <SelectItem value="100">100 صورة</SelectItem>
-                <SelectItem value="150">150 صورة</SelectItem>
-                <SelectItem value="200">200 صورة</SelectItem>
-                <SelectItem value="300">300 صورة</SelectItem>
-                <SelectItem value="500">500 صورة</SelectItem>
-                <SelectItem value="1000">1000 صورة (غير محدود تقريباً)</SelectItem>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="15">15</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="999">بلا حدود 👑</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
-            <Select value={expectedGuests.toString()} onValueChange={(value) => setExpectedGuests(Number(value))}>
+            <Select 
+              value={showCustomGuestInput ? "custom" : expectedGuests.toString()} 
+              onValueChange={(value) => {
+                if (value === "custom") {
+                  setShowCustomGuestInput(true);
+                } else if (value === "unlimited") {
+                  setExpectedGuests(999999);
+                  setShowCustomGuestInput(false);
+                } else {
+                  setExpectedGuests(Number(value));
+                  setShowCustomGuestInput(false);
+                }
+              }}
+            >
               <SelectTrigger className="text-right">
                 <SelectValue placeholder="اختر عدد الضيوف" />
               </SelectTrigger>
               <SelectContent className="z-50">
-                <SelectItem value="25">25 ضيف</SelectItem>
-                <SelectItem value="50">50 ضيف</SelectItem>
-                <SelectItem value="75">75 ضيف</SelectItem>
-                <SelectItem value="100">100 ضيف</SelectItem>
-                <SelectItem value="150">150 ضيف</SelectItem>
-                <SelectItem value="200">200 ضيف</SelectItem>
-                <SelectItem value="300">300 ضيف</SelectItem>
-                <SelectItem value="500">500 ضيف</SelectItem>
-                <SelectItem value="1000">1000+ ضيف</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="75">75</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="150">150</SelectItem>
+                <SelectItem value="200">200</SelectItem>
+                <SelectItem value="300">300</SelectItem>
+                <SelectItem value="500">500</SelectItem>
+                <SelectItem value="1000">1000</SelectItem>
+                <SelectItem value="unlimited">غير محدود 💎</SelectItem>
+                <SelectItem value="custom">عدد مخصص</SelectItem>
               </SelectContent>
             </Select>
+            
+            {showCustomGuestInput && (
+              <div className="mt-2">
+                <Input 
+                  type="number" 
+                  min={1}
+                  value={expectedGuests} 
+                  onChange={(e) => setExpectedGuests(Number(e.target.value))}
+                  placeholder="أدخل العدد المطلوب"
+                  className="text-right" 
+                />
+              </div>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
