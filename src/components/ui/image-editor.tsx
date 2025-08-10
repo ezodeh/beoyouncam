@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
-import { Crop as CropIcon, RotateCw, Download, Upload } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Crop as CropIcon, RotateCw, Check, X } from 'lucide-react';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageEditorProps {
@@ -42,6 +43,8 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
   const [rotation, setRotation] = useState(0);
   const [scale, setScale] = useState(1);
   const [open, setOpen] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -119,115 +122,182 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
     }
   };
 
+  const handleClose = () => {
+    if (hasChanges) {
+      setShowExitDialog(true);
+    } else {
+      setOpen(false);
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setShowExitDialog(false);
+    setOpen(false);
+    setHasChanges(false);
+    // Reset to original state
+    setRotation(0);
+    setScale(1);
+  };
+
+  const handleScaleChange = (value: number[]) => {
+    setScale(value[0]);
+    setHasChanges(true);
+  };
+
+  const handleRotationChange = (value: number[]) => {
+    setRotation(value[0]);
+    setHasChanges(true);
+  };
+
+  const handleRotateButton = (direction: number) => {
+    setRotation(rotation + direction);
+    setHasChanges(true);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CropIcon className="h-5 w-5" />
-            محرر الصور
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
-          {/* Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4 space-y-4">
-                <div>
-                  <Label>التكبير: {scale.toFixed(1)}x</Label>
-                  <Slider
-                    value={[scale]}
-                    onValueChange={(value) => setScale(value[0])}
-                    min={0.5}
-                    max={3}
-                    step={0.1}
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div>
-                  <Label>الدوران: {rotation}°</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRotation(rotation - 90)}
-                    >
-                      <RotateCw className="h-4 w-4 scale-x-[-1]" />
-                    </Button>
-                    <Slider
-                      value={[rotation]}
-                      onValueChange={(value) => setRotation(value[0])}
-                      min={-180}
-                      max={180}
-                      step={1}
-                      className="flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRotation(rotation + 90)}
-                    >
-                      <RotateCw className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 space-y-4">
-                <Button onClick={resetCrop} variant="outline" className="w-full">
-                  إعادة تعيين الاقتصاص
-                </Button>
-                <Button 
-                  onClick={generateCroppedImage} 
-                  className="w-full"
-                  disabled={!completedCrop}
-                >
-                  <Download className="h-4 w-4 ml-2" />
-                  تطبيق التغييرات
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Image Crop Area */}
-          <div className="flex justify-center">
-            <div className="max-w-full">
-              <ReactCrop
-                crop={crop}
-                onChange={(_, percentCrop) => setCrop(percentCrop)}
-                onComplete={(c) => setCompletedCrop(c)}
-                aspect={aspect}
-                className="max-w-full"
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto" dir="rtl">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <CropIcon className="h-5 w-5" />
+                محرر الصور
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="h-8 w-8 p-0"
               >
-                <img
-                  ref={imgRef}
-                  alt="اقتصاص"
-                  src={src}
-                  style={{ 
-                    transform: `scale(${scale}) rotate(${rotation}deg)`,
-                    maxWidth: '100%',
-                    maxHeight: '60vh'
-                  }}
-                  onLoad={onImageLoad}
-                />
-              </ReactCrop>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <Label>التكبير: {scale.toFixed(1)}x</Label>
+                    <Slider
+                      value={[scale]}
+                      onValueChange={handleScaleChange}
+                      min={0.5}
+                      max={3}
+                      step={0.1}
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>الدوران: {rotation}°</Label>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRotateButton(-90)}
+                      >
+                        <RotateCw className="h-4 w-4 scale-x-[-1]" />
+                      </Button>
+                      <Slider
+                        value={[rotation]}
+                        onValueChange={handleRotationChange}
+                        min={-180}
+                        max={180}
+                        step={1}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRotateButton(90)}
+                      >
+                        <RotateCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Hidden canvas for image processing */}
-          <canvas
-            ref={canvasRef}
-            style={{ display: 'none' }}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+              <Card>
+                <CardContent className="p-4 space-y-4">
+                  <Button onClick={resetCrop} variant="outline" className="w-full">
+                    إعادة تعيين الاقتصاص
+                  </Button>
+                  <Button 
+                    onClick={generateCroppedImage} 
+                    className="w-full"
+                    disabled={!completedCrop}
+                  >
+                    <Check className="h-4 w-4 ml-2" />
+                    تطبيق التغييرات
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Image Crop Area */}
+            <div className="flex justify-center">
+              <div className="max-w-full">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => {
+                    setCrop(percentCrop);
+                    setHasChanges(true);
+                  }}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={aspect}
+                  className="max-w-full"
+                >
+                  <img
+                    ref={imgRef}
+                    alt="اقتصاص"
+                    src={src}
+                    style={{ 
+                      transform: `scale(${scale}) rotate(${rotation}deg)`,
+                      maxWidth: '100%',
+                      maxHeight: '60vh'
+                    }}
+                    onLoad={onImageLoad}
+                  />
+                </ReactCrop>
+              </div>
+            </div>
+
+            {/* Hidden canvas for image processing */}
+            <canvas
+              ref={canvasRef}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الخروج</AlertDialogTitle>
+            <AlertDialogDescription>
+              لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد الخروج؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowExitDialog(false)}>
+              إلغاء
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmClose}>
+              نعم، اخرج
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
