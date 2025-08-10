@@ -220,7 +220,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
       <div className="space-y-2">
         <Card>
           <CardHeader className="p-3 pb-0">
-            <CardTitle className="flex items-center justify-end gap-2 text-sm">
+            <CardTitle className="flex items-center justify-start gap-2 text-sm">
               <QrCode className="h-5 w-5" />
               {eventStatus === "منتهية" ? "الألبوم" : "نشر الحدث"}
               {eventData?.published_at && new Date(eventData.published_at) > new Date() && eventStatus !== "منتهية" && (
