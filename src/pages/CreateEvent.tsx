@@ -208,7 +208,7 @@ export default function CreateEvent() {
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
   const [password, setPassword] = useState("");
   const [autoShareToGuests, setAutoShareToGuests] = useState(false);
-  const [shareChannel, setShareChannel] = useState<"sms" | "email" | "none">("none");
+  const [shareChannel, setShareChannel] = useState<"whatsapp" | "email" | "none">("none");
 
   // Step 3 - Page Customization
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -377,7 +377,7 @@ export default function CreateEvent() {
     // باقة 5 مشاركين مجانية: 10 لقطات لكل شخص (بدون فيديو)
     if (guests === 5 && shotsPerGuest === 10 && !enableVideo) {
       // الإيميل مجاني، والواتساب غير مجاني
-      if (autoShareToGuests && shareChannel === "sms") {
+      if (autoShareToGuests && shareChannel === "whatsapp") {
         return Math.round(0.18 * guests); // تكلفة الواتساب فقط
       }
       return 0; // مجاني تماماً
@@ -652,11 +652,11 @@ export default function CreateEvent() {
                     <Label>مشاركة الألبوم عبر</Label>
                     <div className="flex gap-2">
                       <Pill
-                        selected={shareChannel === "sms"}
-                        onClick={() => setShareChannel("sms")}
+                        selected={shareChannel === "whatsapp"}
+                        onClick={() => setShareChannel("whatsapp")}
                         disabled={!autoShareToGuests}
                       >
-                        SMS
+                        واتساب
                       </Pill>
                       <Pill
                         selected={shareChannel === "email"}
@@ -1058,8 +1058,8 @@ export default function CreateEvent() {
                         <div className="text-muted-foreground">مشاركة تلقائية</div>
                         <div className="font-semibold">
                           {autoShareToGuests
-                            ? shareChannel === "sms"
-                              ? "SMS"
+                            ? shareChannel === "whatsapp"
+                              ? "واتساب"
                               : shareChannel === "email"
                               ? "Email"
                               : "—"
@@ -1150,7 +1150,7 @@ export default function CreateEvent() {
                       <Switch checked={autoShareToGuests} onCheckedChange={setAutoShareToGuests} />
                     </div>
                     <div className="flex gap-2">
-                      <Pill selected={shareChannel === 'sms'} onClick={() => setShareChannel('sms')} disabled={!autoShareToGuests}>SMS</Pill>
+                      <Pill selected={shareChannel === 'whatsapp'} onClick={() => setShareChannel('whatsapp')} disabled={!autoShareToGuests}>واتساب</Pill>
                       <Pill selected={shareChannel === 'email'} onClick={() => setShareChannel('email')} disabled={!autoShareToGuests}>Email</Pill>
                       <Pill selected={shareChannel === 'none'} onClick={() => setShareChannel('none')} disabled={!autoShareToGuests}>لاحقًا</Pill>
                     </div>

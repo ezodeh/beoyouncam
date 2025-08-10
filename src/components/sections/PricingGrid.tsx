@@ -14,7 +14,7 @@ const plans = [
     code: "premium",
     name: "Premium",
     price: "₪39",
-    features: ["≥ 27 صورة", "فيديو 10 ثوانٍ", "ثيم مخصص خفيف", "دعوات SMS"],
+    features: ["≥ 27 صورة", "فيديو 10 ثوانٍ", "ثيم مخصص خفيف", "دعوات واتساب"],
     cta: "اختر Premium",
     highlight: true,
   },
