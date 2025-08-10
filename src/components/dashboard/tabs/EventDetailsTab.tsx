@@ -128,12 +128,40 @@ export function EventDetailsTab({
 
           <div className="grid gap-2">
             <Label htmlFor="maxShots" className="text-right">عدد الصور المسموحة لكل مشارك</Label>
-            <Input id="maxShots" type="number" min={1} value={maxShots} onChange={e => setMaxShots(Number(e.target.value))} className="text-right" />
+            <Select value={maxShots.toString()} onValueChange={(value) => setMaxShots(Number(value))}>
+              <SelectTrigger className="text-right">
+                <SelectValue placeholder="اختر عدد الصور" />
+              </SelectTrigger>
+              <SelectContent className="z-50">
+                <SelectItem value="50">50 صورة</SelectItem>
+                <SelectItem value="100">100 صورة</SelectItem>
+                <SelectItem value="150">150 صورة</SelectItem>
+                <SelectItem value="200">200 صورة</SelectItem>
+                <SelectItem value="300">300 صورة</SelectItem>
+                <SelectItem value="500">500 صورة</SelectItem>
+                <SelectItem value="1000">1000 صورة (غير محدود تقريباً)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
-            <Input id="expectedGuests" type="number" min={0} value={expectedGuests} onChange={e => setExpectedGuests(Number(e.target.value))} className="text-right" />
+            <Select value={expectedGuests.toString()} onValueChange={(value) => setExpectedGuests(Number(value))}>
+              <SelectTrigger className="text-right">
+                <SelectValue placeholder="اختر عدد الضيوف" />
+              </SelectTrigger>
+              <SelectContent className="z-50">
+                <SelectItem value="25">25 ضيف</SelectItem>
+                <SelectItem value="50">50 ضيف</SelectItem>
+                <SelectItem value="75">75 ضيف</SelectItem>
+                <SelectItem value="100">100 ضيف</SelectItem>
+                <SelectItem value="150">150 ضيف</SelectItem>
+                <SelectItem value="200">200 ضيف</SelectItem>
+                <SelectItem value="300">300 ضيف</SelectItem>
+                <SelectItem value="500">500 ضيف</SelectItem>
+                <SelectItem value="1000">1000+ ضيف</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
