@@ -9,7 +9,8 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { updateEventSettings, hasEventStarted } from "@/lib/eventSettings";
-import { Image, Trash2, Download, Eye, EyeOff, Heart, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle } from "lucide-react";
+import { Image, Trash2, Download, Eye, EyeOff, Heart, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle, Edit } from "lucide-react";
+import { ImageEditor } from "@/components/ui/image-editor";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Photo {
@@ -242,6 +243,64 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         title: "فشل في تحميل الصورة",
         variant: "destructive"
       });
+    }
+  };
+
+  const handlePhotoEdit = async (photoId: string, newImageSrc: string) => {
+    try {
+      // Convert blob URL to actual file
+      const response = await fetch(newImageSrc);
+      const blob = await response.blob();
+      
+      // Create new file with edited suffix
+      const originalFileName = photoId;
+      const fileExtension = originalFileName.split('.').pop() || 'jpg';
+      const nameWithoutExt = originalFileName.replace(`.${fileExtension}`, '');
+      const newFileName = `${nameWithoutExt}_edited_${Date.now()}.${fileExtension}`;
+      
+      // Upload edited image
+      const prefix = `events/${token}`;
+      const { data, error } = await supabase.storage
+        .from("event-media")
+        .upload(`${prefix}/${newFileName}`, blob, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL for the new image
+      const { data: { publicUrl } } = supabase.storage
+        .from("event-media")
+        .getPublicUrl(`${prefix}/${newFileName}`);
+
+      // Update photos list
+      setPhotos(prev => prev.map(photo => 
+        photo.id === photoId 
+          ? { ...photo, id: newFileName, url: publicUrl }
+          : photo
+      ));
+
+      toast({ 
+        title: "تم حفظ الصورة المعدلة بنجاح",
+        description: "تم إنشاء نسخة جديدة من الصورة مع التعديلات"
+      });
+
+      // Clean up blob URL
+      URL.revokeObjectURL(newImageSrc);
+      
+      // Refresh photos to ensure consistency
+      setTimeout(() => {
+        fetchPhotos();
+      }, 1000);
+    } catch (error) {
+      console.error("Error editing photo:", error);
+      toast({ 
+        title: "فشل في حفظ الصورة المعدلة", 
+        variant: "destructive"
+      });
+      // Clean up blob URL even on error
+      URL.revokeObjectURL(newImageSrc);
     }
   };
 
@@ -675,6 +734,18 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
+                          <ImageEditor
+                            src={photo.url}
+                            onImageChange={(newImageSrc) => handlePhotoEdit(photo.id, newImageSrc)}
+                          >
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="p-1 h-auto"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </ImageEditor>
                           <Button
                             size="sm"
                             variant="secondary"
