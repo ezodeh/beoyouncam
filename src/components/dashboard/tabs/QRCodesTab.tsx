@@ -87,7 +87,7 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 text-right" dir="rtl">
       <div className="grid md:grid-cols-2 gap-6">
         {/* Event QR Code */}
         <Card>

@@ -81,7 +81,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
 
   return (
-    <div className="grid gap-4 text-right">
+    <div className="grid gap-4 text-right" dir="rtl">
       {/* Cover with overlay actions */}
       <Card className="relative overflow-hidden rounded-xl">
         <div

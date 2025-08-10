@@ -57,7 +57,7 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 text-right" dir="rtl">
       {/* Privacy Settings */}
       <Card>
         <CardHeader>

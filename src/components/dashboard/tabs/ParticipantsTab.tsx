@@ -95,7 +95,7 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 text-right" dir="rtl">
       {/* Guest Statistics */}
       <Card>
         <CardHeader>

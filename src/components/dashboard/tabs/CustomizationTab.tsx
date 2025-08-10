@@ -343,7 +343,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
   );
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 text-right" dir="rtl">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

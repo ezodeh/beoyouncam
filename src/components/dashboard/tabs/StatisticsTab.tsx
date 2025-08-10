@@ -87,12 +87,12 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-right" dir="rtl">
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-right">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Users className="h-5 w-5 text-primary" />
               </div>
@@ -106,7 +106,7 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-right">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Camera className="h-5 w-5 text-primary" />
               </div>
@@ -120,7 +120,7 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-right">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Activity className="h-5 w-5 text-primary" />
               </div>
@@ -134,7 +134,7 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-right">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
@@ -150,7 +150,7 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
       {/* Daily Activity Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>النشاط اليومي (آخر 7 أيام)</CardTitle>
+          <CardTitle className="text-right">النشاط اليومي (آخر 7 أيام)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
