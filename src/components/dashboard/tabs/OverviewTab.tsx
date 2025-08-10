@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, Clock, QrCode, Users, Image, Share2, ExternalLink, Camera } from "lucide-react";
+import { Calendar, Clock, QrCode, Users, Album, Share2, ExternalLink, Camera, Images } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,7 +202,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardContent className="p-3">
               <div className="flex items-center gap-2 flex-row-reverse">
                 <div className="p-1.5 rounded-lg bg-primary/10">
-                  <Image className="h-5 w-5 text-primary" />
+                  <Images className="h-5 w-5 text-primary" />
                 </div>
                 <div className="text-right">
                   <div className="text-base font-bold">{stats.photos}</div>
@@ -218,7 +218,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardContent className="p-3">
               <div className="flex items-center gap-2 flex-row-reverse">
                 <div className="p-1.5 rounded-lg bg-primary/10">
-                  <Image className="h-5 w-5 text-primary" />
+                  <Album className="h-5 w-5 text-primary" />
                 </div>
                 <div className="text-right">
                   <div className="text-base font-bold">عرض</div>
@@ -366,7 +366,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/album/${token}`}>
-                <Image className="h-5 w-5 mr-2" />
+                <Images className="h-5 w-5 mr-2" />
                 <span className="text-sm">عرض الألبوم</span>
               </Link>
             </Button>
