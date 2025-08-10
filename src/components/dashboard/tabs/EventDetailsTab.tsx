@@ -33,6 +33,7 @@ export function EventDetailsTab({
   const [coverUrl, setCoverUrl] = useState(eventData?.cover_url || "");
   const [enableVideo, setEnableVideo] = useState(eventData?.enable_video ?? true);
   const [isPrivate, setIsPrivate] = useState(eventData?.is_private ?? false);
+  const [password, setPassword] = useState(eventData?.password || "");
   const [countryCode, setCountryCode] = useState(eventData?.country_code || "+962");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,6 +79,7 @@ export function EventDetailsTab({
         cover_url: coverUrl || null,
         enable_video: enableVideo,
         is_private: isPrivate,
+        password: isPrivate ? password.trim() || null : null,
         country_code: countryCode
       };
       const success = await updateEventSettings(token, settings);
@@ -148,12 +150,15 @@ export function EventDetailsTab({
           <div className="grid gap-2">
             <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
             <Select 
-              value={showCustomGuestInput ? "custom" : expectedGuests.toString()} 
+              value={showCustomGuestInput ? "custom" : (expectedGuests === 0 ? "undefined" : expectedGuests.toString())} 
               onValueChange={(value) => {
                 if (value === "custom") {
                   setShowCustomGuestInput(true);
                 } else if (value === "unlimited") {
                   setExpectedGuests(999999);
+                  setShowCustomGuestInput(false);
+                } else if (value === "undefined") {
+                  setExpectedGuests(0);
                   setShowCustomGuestInput(false);
                 } else {
                   setExpectedGuests(Number(value));
@@ -165,6 +170,7 @@ export function EventDetailsTab({
                 <SelectValue placeholder="اختر عدد الضيوف" />
               </SelectTrigger>
               <SelectContent className="z-50">
+                <SelectItem value="undefined">غير محدد</SelectItem>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="75">75</SelectItem>
@@ -218,6 +224,23 @@ export function EventDetailsTab({
               </div>
             </div>
           </div>
+
+          {isPrivate && (
+            <div className="grid gap-2">
+              <Label htmlFor="password" className="text-right">كلمة المرور (للمناسبات الخاصة)</Label>
+              <Input 
+                id="password"
+                type="text"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="أدخل كلمة مرور أو اتركها فارغة"
+                className="text-right" 
+              />
+              <p className="text-sm text-muted-foreground text-right">
+                {password ? `كلمة المرور الحالية: ${password}` : "لا توجد كلمة مرور محددة حالياً"}
+              </p>
+            </div>
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor="country" className="flex items-center gap-2 justify-end flex-row-reverse">
