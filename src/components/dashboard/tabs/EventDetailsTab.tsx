@@ -96,33 +96,77 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
     <div className="grid gap-6" dir="rtl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
+          <CardTitle className="text-right">صورة الغلاف</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {coverUrl && (
-            <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border mb-4">
-              <img src={coverUrl} alt="صورة الغلاف" className="w-full h-full object-cover" />
+          <div className="flex flex-col items-center gap-4">
+            {coverUrl ? (
+              <div className="relative group">
+                <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border bg-muted">
+                  <img 
+                    src={coverUrl} 
+                    alt="صورة الغلاف" 
+                    className="w-full h-full object-cover transition-all group-hover:scale-105" 
+                  />
+                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all rounded-lg flex items-center justify-center">
+                  <Button 
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    تغيير الصورة
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="aspect-video w-full max-w-md rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                <Upload className="h-12 w-12" />
+                <p className="text-sm font-medium">لا توجد صورة غلاف</p>
+                <p className="text-xs">اضغط لرفع صورة</p>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                variant={coverUrl ? "outline" : "default"}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                <span>{uploading ? "جاري الرفع..." : coverUrl ? "تغيير الصورة" : "رفع صورة الغلاف"}</span>
+              </Button>
+              
+              {coverUrl && (
+                <Button 
+                  variant="outline"
+                  onClick={() => setCoverUrl("")}
+                  className="text-destructive hover:text-destructive"
+                >
+                  إزالة الصورة
+                </Button>
+              )}
             </div>
-          )}
-          <div className="flex items-center gap-3 justify-end mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="flex items-center gap-2"
-            >
-              <span>{uploading ? "جاري الرفع..." : "رفع صورة الغلاف"}</span>
-              <Upload className="h-4 w-4" />
-            </Button>
+            
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/jpg"
               onChange={handleFileUpload}
               className="hidden"
             />
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="title" className="text-right">اسم المناسبة</Label>
             <Input 
