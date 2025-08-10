@@ -15,14 +15,14 @@ export const formatDate = (date: string | Date, options?: {
     })
   };
 
-  return dateObj.toLocaleDateString('ar-SA', baseOptions);
+  return dateObj.toLocaleDateString('ar-EG', baseOptions);
 };
 
 // Short date format for smaller spaces - always uses Gregorian calendar
 export const formatShortDate = (date: string | Date) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
-  return dateObj.toLocaleDateString('ar-SA', {
+  return dateObj.toLocaleDateString('ar-EG', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
