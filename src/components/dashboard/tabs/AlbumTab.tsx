@@ -52,14 +52,29 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   // Countdown state for scheduled publishing
   const [countdown, setCountdown] = useState("");
 
-  // Calculate countdown for specific time publishing
+  // Calculate countdown for scheduled publishing
   useEffect(() => {
+    let targetTime: Date | null = null;
+    
+    // Calculate target time based on album publish time setting
     if (albumPublishTime === "specific_time" && customPublishDate && customPublishTime) {
-      const publishDateTime = new Date(`${customPublishDate}T${customPublishTime}`);
-      
+      targetTime = new Date(`${customPublishDate}T${customPublishTime}`);
+    } else if (albumPublishTime === "after_event" && eventData?.end_at) {
+      targetTime = new Date(eventData.end_at);
+    } else if (albumPublishTime === "after_12h" && eventData?.end_at) {
+      targetTime = new Date(new Date(eventData.end_at).getTime() + (12 * 60 * 60 * 1000));
+    } else if (albumPublishTime === "after_24h" && eventData?.end_at) {
+      targetTime = new Date(new Date(eventData.end_at).getTime() + (24 * 60 * 60 * 1000));
+    } else if (albumPublishTime === "custom_delay" && eventData?.end_at) {
+      targetTime = new Date(new Date(eventData.end_at).getTime() + (customPublishDelay * 60 * 60 * 1000));
+    } else if (albumPublishTime === "after_creation" && eventData?.created_at) {
+      targetTime = new Date(new Date(eventData.created_at).getTime() + (customPublishDelay * 60 * 60 * 1000));
+    }
+    
+    if (targetTime) {
       const interval = setInterval(() => {
         const now = new Date();
-        const timeLeft = publishDateTime.getTime() - now.getTime();
+        const timeLeft = targetTime.getTime() - now.getTime();
         
         if (timeLeft > 0) {
           const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
@@ -67,15 +82,21 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
           const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
           
-          setCountdown(`${days}د ${hours}س ${minutes}ق ${seconds}ث`);
+          if (days > 0) {
+            setCountdown(`${days} يوم ${hours} ساعة ${minutes} دقيقة`);
+          } else {
+            setCountdown(`${hours} ساعة ${minutes} دقيقة ${seconds} ثانية`);
+          }
         } else {
           setCountdown("حان وقت النشر!");
         }
       }, 1000);
       
       return () => clearInterval(interval);
+    } else {
+      setCountdown("");
     }
-  }, [albumPublishTime, customPublishDate, customPublishTime]);
+  }, [albumPublishTime, customPublishDate, customPublishTime, customPublishDelay, eventData]);
 
   useEffect(() => {
     fetchPhotos();
@@ -475,40 +496,91 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                     </Button>
                   )}
                 </div>
+                
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    🔧 النشر اليدوي: يمكنك التحكم يدوياً في توقيت إرسال رابط الألبوم للضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"}.
+                  </p>
+                </div>
               </>
             )}
 
-            {/* General Publish Controls for Other Options */}
-            {!["manual", "specific_time"].includes(albumPublishTime) && (
-              <div className="flex gap-2">
-                <Button 
-                  variant="default" 
-                  onClick={toggleAlbumPublish}
-                  disabled={isAlbumPublished}
-                  className="flex-1"
-                >
-                  <Send className="h-4 w-4 ml-2" />
-                  {isAlbumPublished ? "منشور" : "نشر الآن"}
-                </Button>
-                {isAlbumPublished && (
+            {/* Countdown and Publish Controls for Scheduled Options */}
+            {!["manual", "specific_time", "immediately"].includes(albumPublishTime) && (
+              <>
+                {/* Countdown Display */}
+                {countdown && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Clock className="h-4 w-4" />
+                      <span className="font-medium">العد التنازلي للنشر التلقائي: {countdown}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Info about automatic publishing */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-700">
+                    📬 النشر التلقائي: سيتم إرسال رابط الألبوم تلقائياً لجميع الضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"} في الوقت المحدد.
+                  </p>
+                </div>
+                
+                {/* Publish Controls */}
+                <div className="flex gap-2">
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     onClick={toggleAlbumPublish}
+                    disabled={isAlbumPublished}
                     className="flex-1"
                   >
-                    <StopCircle className="h-4 w-4 ml-2" />
-                    إلغاء النشر
+                    <Send className="h-4 w-4 ml-2" />
+                    {isAlbumPublished ? "منشور" : "نشر الآن"}
                   </Button>
-                )}
-              </div>
+                  {isAlbumPublished && (
+                    <Button 
+                      variant="outline" 
+                      onClick={toggleAlbumPublish}
+                      className="flex-1"
+                    >
+                      <StopCircle className="h-4 w-4 ml-2" />
+                      إلغاء النشر
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
 
-            {albumPublishTime === "manual" && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  النشر اليدوي: لن يظهر الألبوم للضيوف إلا عندما تختار نشره بنفسك من لوحة التحكم.
-                </p>
-              </div>
+            {/* Immediate Publishing */}
+            {albumPublishTime === "immediately" && (
+              <>
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm text-orange-700">
+                    ⚡ النشر الفوري: سيتم إرسال رابط الألبوم فوراً لجميع الضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"}.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="default" 
+                    onClick={toggleAlbumPublish}
+                    disabled={isAlbumPublished}
+                    className="flex-1"
+                  >
+                    <Send className="h-4 w-4 ml-2" />
+                    {isAlbumPublished ? "منشور" : "نشر الآن"}
+                  </Button>
+                  {isAlbumPublished && (
+                    <Button 
+                      variant="outline" 
+                      onClick={toggleAlbumPublish}
+                      className="flex-1"
+                    >
+                      <StopCircle className="h-4 w-4 ml-2" />
+                      إلغاء النشر
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
