@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import QRCode from "react-qr-code";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 
 
 interface EventItem {
@@ -233,13 +234,11 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
     <div className="border border-border rounded-xl overflow-hidden hover:shadow-elevated transition-shadow">
       <Link to={linkTo}>
         <div className="aspect-video bg-muted overflow-hidden">
-          {event.cover_url ? (
-            <img src={event.cover_url} alt={`غلاف ${event.title}`} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <Image className="h-8 w-8" />
-            </div>
-          )}
+          <img 
+            src={event.cover_url || heroImage} 
+            alt={`غلاف ${event.title}`} 
+            className="w-full h-full object-cover" 
+          />
         </div>
         <div className="p-3">
           <div className="font-nastaliq text-xl">{event.title}</div>

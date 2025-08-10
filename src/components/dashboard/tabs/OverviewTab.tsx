@@ -9,6 +9,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import QRDesigner from "@/components/dashboard/QRDesigner";
 import { formatDate } from "@/lib/dateUtils";
+import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 
 interface OverviewTabProps {
   token: string;
@@ -86,15 +87,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <div
           className="h-[150px] w-full"
           style={{
-            backgroundImage: eventData?.cover_url ? `url(${eventData.cover_url})` : undefined,
+            backgroundImage: `url(${eventData?.cover_url || heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
-        >
-          {!eventData?.cover_url && (
-            <div className="h-full w-full bg-muted" />
-          )}
-        </div>
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute inset-x-3 bottom-2 flex items-center justify-center">
           <div className="text-white text-center">
