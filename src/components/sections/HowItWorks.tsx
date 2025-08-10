@@ -62,12 +62,7 @@ const HowItWorks = () => {
         </div>
         
         <div className="text-center">
-          <Button asChild size="lg" variant="hero">
-            <Link to="/auth">
-              ابدأ الآن مجاناً
-            </Link>
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground">
             * مجاناً لحد 5 أصحاب، 10 لقطات بدون الميزات الإضافية
           </p>
         </div>
