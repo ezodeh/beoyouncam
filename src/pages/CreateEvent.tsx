@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { detectCountryCode, getSupportedCountries } from "@/lib/eventSettings";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { MobilePreview } from "@/components/create-event/MobilePreview";
 
 // Album timing type
 
@@ -670,86 +671,96 @@ export default function CreateEvent() {
               )}
 
               {step === 3 && (
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {/* Panel اليسار: تفاصيل المناسبة */}
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Images className="w-5 h-5" />
-                          تفاصيل المناسبة
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <Label>صورة الغلاف</Label>
-                          <div className="mt-2">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                              }}
-                              className="hidden"
-                              id="event-hero-upload"
-                            />
-                            <label
-                              htmlFor="event-hero-upload"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                            >
-                              <Upload className="w-4 h-4" />
-                              رفع صورة
-                            </label>
-                          </div>
-                        </div>
-                        <div>
-                          <Label>عنوان المناسبة</Label>
-                          <Input
-                            value={welcomeTitle}
-                            onChange={(e) => setWelcomeTitle(e.target.value)}
-                            placeholder="عنوان المناسبة"
-                          />
-                        </div>
-                        <div>
-                          <Label>وصف المناسبة</Label>
-                          <Textarea
-                            value={welcomeBody}
-                            onChange={(e) => setWelcomeBody(e.target.value)}
-                            placeholder="نص ترحيبي للضيوف"
-                            rows={3}
-                          />
-                        </div>
-                        
-                        {/* إعدادات إضافية */}
-                        <div className="mt-6 pt-4 border-t">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="space-y-1">
-                              <Label className="text-sm font-medium">إخفاء لوجو "من عيونكم"</Label>
-                              <p className="text-xs text-muted-foreground">
-                                إخفاء اللوجو من جميع صفحات المناسبة
-                              </p>
-                            </div>
-                            <Switch
-                              checked={!showHeader}
-                              onCheckedChange={(checked) => setShowHeader(!checked)}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* ملاحظة */}
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                          <p className="text-sm text-muted-foreground">
-                            ℹ️ هذه الإعدادات ستطبق على جميع الشاشات الثلاث (الترحيب، مقدمة الألبوم، الألبوم). 
-                            يمكنك تعديل كل شاشة بشكل منفصل من لوحة التحكم بعد إنشاء المناسبة.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                <>
+                  {/* المعاينة في الأعلى */}
+                  <div className="mb-6 flex justify-center">
+                    <MobilePreview 
+                      welcomeTitle={welcomeTitle}
+                      welcomeBody={welcomeBody}
+                      ctaLabel={ctaLabel}
+                      showHeader={showHeader}
+                      welcomePageHeroImage={welcomePageHeroImage}
+                    />
                   </div>
-
-                  {/* Panel اليمين: معاينة الهاتف */}
-                  <div className="flex flex-col items-center gap-4">
+                  
+                  {/* النموذج في الأسفل */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Images className="w-5 h-5" />
+                        تفاصيل المناسبة
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label>صورة الغلاف</Label>
+                        <div className="mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'welcome_page_hero_image');
+                            }}
+                            className="hidden"
+                            id="event-hero-upload"
+                          />
+                          <label
+                            htmlFor="event-hero-upload"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                          >
+                            <Upload className="w-4 h-4" />
+                            رفع صورة
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>عنوان المناسبة</Label>
+                        <Input
+                          value={welcomeTitle}
+                          onChange={(e) => setWelcomeTitle(e.target.value)}
+                          placeholder="عنوان المناسبة"
+                        />
+                      </div>
+                      <div>
+                        <Label>وصف المناسبة</Label>
+                        <Textarea
+                          value={welcomeBody}
+                          onChange={(e) => setWelcomeBody(e.target.value)}
+                          placeholder="نص ترحيبي للضيوف"
+                          rows={3}
+                        />
+                      </div>
+                      
+                      {/* إعدادات إضافية */}
+                      <div className="mt-6 pt-4 border-t">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium">إخفاء لوجو "من عيونكم"</Label>
+                            <p className="text-xs text-muted-foreground">
+                              إخفاء اللوجو من جميع صفحات المناسبة
+                            </p>
+                          </div>
+                          <Switch
+                            checked={!showHeader}
+                            onCheckedChange={(checked) => setShowHeader(!checked)}
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* ملاحظة */}
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          ℹ️ هذه الإعدادات ستطبق على جميع الشاشات الثلاث (الترحيب، مقدمة الألبوم، الألبوم). 
+                          يمكنك تعديل كل شاشة بشكل منفصل من لوحة التحكم بعد إنشاء المناسبة.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+                    </CardContent>
+                  </Card>
                     
                     <Tabs defaultValue="welcome" className="w-full max-w-xs">
                       <TabsList className="grid w-full grid-cols-3 text-xs">
@@ -1108,12 +1119,14 @@ export default function CreateEvent() {
               </div>
             </CardContent>
           </Card>
-          <Drawer open={!!quickEdit} onOpenChange={(o) => { if (!o) setQuickEdit(null); }}>
-            <DrawerContent className="p-4">
-              <DrawerHeader>
-                <DrawerTitle>تعديل سريع</DrawerTitle>
-              </DrawerHeader>
-              <div className="grid gap-4" dir="rtl">
+        </div>
+        
+        <Drawer open={!!quickEdit} onOpenChange={(o) => { if (!o) setQuickEdit(null); }}>
+          <DrawerContent className="p-4">
+            <DrawerHeader>
+              <DrawerTitle>تعديل سريع</DrawerTitle>
+            </DrawerHeader>
+            <div className="grid gap-4" dir="rtl">
                 {quickEdit === 'title' && (
                   <div className="grid gap-2">
                     <Label>اسم المناسبة</Label>
@@ -1182,7 +1195,10 @@ export default function CreateEvent() {
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
-        </div>
+              </div>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
       </main>
       <Footer />
     </div>
