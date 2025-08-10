@@ -1,4 +1,4 @@
-import heroImage from "@/assets/hero-phone-camera.jpg";
+import heroImage from "@/assets/hero-app-camera.jpg";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import PointerGlow from "@/components/visuals/PointerGlow";

@@ -31,13 +31,16 @@ const Footer = () => {
           <div className="space-y-3">
             <h3 className="text-base font-semibold">تواصل معنا</h3>
             <div className="space-y-2">
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 نحن هنا لمساعدتك في توثيق أجمل لحظاتك
               </p>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">info@eyescam.com</span>
-              </div>
+              <a 
+                href="mailto:info@eyescam.com?subject=استفسار من موقع عيون cam&body=مرحباً، أود الاستفسار عن..." 
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Mail className="h-4 w-4" />
+                <span className="text-sm">راسلنا</span>
+              </a>
             </div>
           </div>
         </div>
