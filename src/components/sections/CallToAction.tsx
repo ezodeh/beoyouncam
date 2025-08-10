@@ -10,17 +10,17 @@ const CallToAction = () => {
         <Card className="max-w-4xl mx-auto">
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              جاهز لجمع كل ذكريات مناسبتك؟
+              جاهز تشوف مناسبتك بعيون أصحابك؟
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              انضم لآلاف المستخدمين الذين يستخدمون عيون cam لجعل مناسباتهم لا تُنسى
+              انضم لآلاف الأصحاب اللي بيستخدموا عيون cam لحفظ أحلى اللحظات
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
               <Button asChild size="lg" variant="hero" className="w-full sm:w-auto">
                 <Link to="/auth">
                   <Camera className="h-5 w-5 ml-2" />
-                  أنشئ مناسبة الآن
+                  ابدأ مناسبتك الآن
                 </Link>
               </Button>
               
@@ -32,12 +32,16 @@ const CallToAction = () => {
               </Button>
             </div>
             
-            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <span>✓ مجاني للبدء</span>
+            <div className="mt-6 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+              <span>✓ مجاناً لحد 5 أصحاب</span>
               <span>✓ بدون تنزيل تطبيق</span>
               <span>✓ سهل الاستخدام</span>
               <span>✓ آمن ومحمي</span>
             </div>
+            
+            <p className="text-xs text-muted-foreground mt-4">
+              * الخطة المجانية: 5 أصحاب، 10 لقطات بدون الميزات الإضافية
+            </p>
           </CardContent>
         </Card>
       </div>

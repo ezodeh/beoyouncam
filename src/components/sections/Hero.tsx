@@ -14,10 +14,10 @@ const Hero = () => {
       <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center py-16">
         <div className="space-y-6">
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight font-nastaliq">
-            ألبوم صور وفيديو جماعي لمناسبتك — بسهولة رابط أو QR
+            شوف مناسبتك بعيون أصحابك — كل لقطة من زاوية مختلفة
           </h1>
           <p className="text-lg text-muted-foreground">
-            ادعُ ضيوفك ليوثّقوا أجمل اللحظات من هواتفهم مباشرة. لا حاجة لتنزيل تطبيق.
+            خلّي أصحابك يوثّقوا أجمل اللحظات من منظورهم الخاص. بس رابط أو QR وكل شي بيصير جاهز.
           </p>
           <div className="flex items-center gap-3">
             <Button
@@ -32,7 +32,7 @@ const Hero = () => {
                 }
               }}
             >
-              أنشئ مناسبتك الآن
+              ابدأ مناسبتك الآن
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link to="/scanner">
@@ -42,10 +42,10 @@ const Hero = () => {
             </Button>
           </div>
           <ul className="grid grid-cols-2 gap-3 pt-4 text-sm text-muted-foreground">
-            <li>• جمع الصور والفيديوهات من جميع الضيوف</li>
+            <li>• كل صاحب بيشارك من زاويته</li>
             <li>• مشاركة فورية عبر رابط أو QR</li>
             <li>• لا حاجة لتنزيل تطبيق</li>
-            <li>• معرض خاص قابل للمشاركة</li>
+            <li>• ألبوم مشترك للذكريات</li>
           </ul>
         </div>
         <div className="relative rounded-xl overflow-hidden border shadow">

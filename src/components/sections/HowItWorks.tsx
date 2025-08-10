@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const HowItWorks = () => {
   const steps = [
@@ -12,18 +12,18 @@ const HowItWorks = () => {
     },
     {
       step: "2", 
-      title: "شارك مع الضيوف",
-      description: "أرسل رابط المناسبة أو رمز QR للضيوف عبر الواتساب أو أي وسيلة أخرى"
+      title: "شارك مع الأصحاب",
+      description: "أرسل رابط المناسبة أو رمز QR للأصحاب عبر الواتساب أو أي وسيلة أخرى"
     },
     {
       step: "3",
-      title: "الضيوف يشاركون",
-      description: "الضيوف يدخلون الرابط ويبدؤون بتحميل صورهم وفيديوهاتهم مباشرة"
+      title: "الأصحاب يوثّقون",
+      description: "الأصحاب يدخلون الرابط ويبدؤون بتوثيق اللحظات من زاويتهم الخاصة"
     },
     {
       step: "4",
-      title: "استمتع بالنتيجة",
-      description: "اجمع كل الذكريات في ألبوم واحد وحمّلها جميعاً بضغطة واحدة"
+      title: "استمتع بالذكريات",
+      description: "اجمع كل الذكريات كما رآها أصحابك واحفظها للأبد"
     }
   ];
 
@@ -33,11 +33,11 @@ const HowItWorks = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">كيف يعمل؟</h2>
           <p className="text-xl text-muted-foreground">
-            أربع خطوات بسيطة لجمع كل ذكريات مناسبتك
+            أربع خطوات بسيطة لترى مناسبتك بعيون أصحابك
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12" dir="rtl">
           {steps.map((step, index) => (
             <Card key={index} className="text-center relative">
               <CardHeader>
@@ -53,8 +53,8 @@ const HowItWorks = () => {
               </CardContent>
               
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                  <ArrowRight className="h-6 w-6 text-muted-foreground" />
+                <div className="hidden lg:block absolute top-1/2 -left-3 transform -translate-y-1/2">
+                  <ArrowLeft className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}
             </Card>
@@ -67,6 +67,9 @@ const HowItWorks = () => {
               ابدأ الآن مجاناً
             </Link>
           </Button>
+          <p className="text-sm text-muted-foreground mt-2">
+            * مجاناً لحد 5 أصحاب، 10 لقطات بدون الميزات الإضافية
+          </p>
         </div>
       </div>
     </section>
