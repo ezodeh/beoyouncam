@@ -15,6 +15,23 @@ export interface EventSettings {
   sign_in_method: "phone" | "email";
   calendar_type: "gregorian" | "hijri";
   published_at?: string;
+  
+  // Privacy and sharing settings
+  password?: string;
+  share_method?: "email" | "whatsapp";
+  album_publish_time?: string;
+  custom_publish_delay?: number;
+  
+  // Welcome page customization
+  welcome_title?: string;
+  welcome_text?: string;
+  invite_button_text?: string;
+  
+  // Album settings
+  album_title?: string;
+  album_description?: string;
+  album_cover_url?: string;
+  is_album_published?: boolean;
 }
 
 export interface UserProfile {
@@ -51,6 +68,23 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
     sign_in_method: (data.sign_in_method as "phone" | "email") || "phone",
     calendar_type: (data.calendar_type as "gregorian" | "hijri") || "gregorian",
     published_at: data.published_at,
+    
+    // Privacy and sharing settings
+    password: data.password,
+    share_method: (data.share_method as "email" | "whatsapp") || "email",
+    album_publish_time: data.album_publish_time || "after_event",
+    custom_publish_delay: data.custom_publish_delay || 24,
+    
+    // Welcome page customization
+    welcome_title: data.welcome_title,
+    welcome_text: data.welcome_text,
+    invite_button_text: data.invite_button_text,
+    
+    // Album settings
+    album_title: data.album_title,
+    album_description: data.album_description,
+    album_cover_url: data.album_cover_url,
+    is_album_published: data.is_album_published ?? false,
   };
 }
 

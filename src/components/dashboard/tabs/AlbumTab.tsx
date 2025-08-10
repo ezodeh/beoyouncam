@@ -1,9 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Trash2, Download, Eye, EyeOff, Star } from "lucide-react";
+import { updateEventSettings } from "@/lib/eventSettings";
+import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2 } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -14,13 +20,24 @@ interface Photo {
 
 interface AlbumTabProps {
   token: string;
+  eventData: any;
+  onEventUpdate: () => void;
 }
 
-export function AlbumTab({ token }: AlbumTabProps) {
+export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   const { toast } = useToast();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  
+  // Album settings
+  const [albumTitle, setAlbumTitle] = useState(eventData?.album_title || eventData?.title || "ألبوم المناسبة");
+  const [albumDescription, setAlbumDescription] = useState(eventData?.album_description || "مجموعة من أجمل اللحظات");
+  const [albumCoverUrl, setAlbumCoverUrl] = useState(eventData?.album_cover_url || eventData?.cover_url || "");
+  const [albumPublishTime, setAlbumPublishTime] = useState(eventData?.album_publish_time || "after_event");
+  const [isAlbumPublished, setIsAlbumPublished] = useState(eventData?.is_album_published ?? false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPhotos();
@@ -115,6 +132,83 @@ export function AlbumTab({ token }: AlbumTabProps) {
     }
   };
 
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileName = `album-cover-${token}-${Date.now()}.${file.name.split('.').pop()}`;
+      const { data, error } = await supabase.storage
+        .from('event-media')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('event-media')
+        .getPublicUrl(fileName);
+
+      setAlbumCoverUrl(publicUrl);
+      toast({ title: "تم رفع صورة الغلاف بنجاح" });
+    } catch (error) {
+      toast({ 
+        title: "خطأ في رفع الصورة", 
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSaveAlbumSettings = async () => {
+    try {
+      const settings = {
+        album_title: albumTitle,
+        album_description: albumDescription,
+        album_cover_url: albumCoverUrl,
+        album_publish_time: albumPublishTime,
+        is_album_published: isAlbumPublished,
+      };
+
+      const success = await updateEventSettings(token, settings);
+      
+      if (!success) throw new Error("فشل في حفظ الإعدادات");
+
+      toast({ title: "تم حفظ إعدادات الألبوم بنجاح" });
+      onEventUpdate();
+    } catch (error) {
+      toast({ 
+        title: "فشل في الحفظ", 
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleAlbumPublish = async () => {
+    const newStatus = !isAlbumPublished;
+    setIsAlbumPublished(newStatus);
+    
+    try {
+      const success = await updateEventSettings(token, { is_album_published: newStatus });
+      if (!success) throw new Error("فشل في تحديث حالة النشر");
+      
+      toast({ 
+        title: newStatus ? "تم نشر الألبوم" : "تم إخفاء الألبوم",
+        description: newStatus ? "الألبوم متاح الآن للضيوف" : "الألبوم لم يعد مرئياً للضيوف"
+      });
+      onEventUpdate();
+    } catch (error) {
+      setIsAlbumPublished(!newStatus); // Revert on error
+      toast({ 
+        title: "فشل في تحديث حالة النشر", 
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -126,20 +220,133 @@ export function AlbumTab({ token }: AlbumTabProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
+      {/* Album Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-right">
+            <Image className="h-5 w-5" />
+            إعدادات الألبوم
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Album Cover */}
+          <div className="space-y-4">
+            <Label>صورة غلاف الألبوم</Label>
+            {albumCoverUrl && (
+              <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border">
+                <img src={albumCoverUrl} alt="غلاف الألبوم" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="h-4 w-4 ml-2" />
+                {uploading ? "جاري الرفع..." : "رفع صورة الغلاف"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
+
+          {/* Album Info */}
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="albumTitle">عنوان الألبوم</Label>
+              <Input
+                id="albumTitle"
+                value={albumTitle}
+                onChange={(e) => setAlbumTitle(e.target.value)}
+                placeholder="عنوان الألبوم"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="albumDescription">وصف الألبوم</Label>
+              <Textarea
+                id="albumDescription"
+                value={albumDescription}
+                onChange={(e) => setAlbumDescription(e.target.value)}
+                placeholder="وصف قصير للألبوم"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* Publish Settings */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="publishTime">وقت نشر الألبوم</Label>
+              <Select value={albumPublishTime} onValueChange={setAlbumPublishTime}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر وقت النشر" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="immediately">فوراً</SelectItem>
+                  <SelectItem value="after_event">بعد انتهاء المناسبة</SelectItem>
+                  <SelectItem value="after_12h">بعد 12 ساعة</SelectItem>
+                  <SelectItem value="after_24h">بعد 24 ساعة</SelectItem>
+                  <SelectItem value="manual">نشر يدوي</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Manual Publish Toggle */}
+            {albumPublishTime === "manual" && (
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3 text-right">
+                  <Clock className="h-5 w-5" />
+                  <div>
+                    <Label className="text-base">نشر الألبوم الآن</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {isAlbumPublished ? "الألبوم متاح للضيوف" : "الألبوم مخفي عن الضيوف"}
+                    </p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={isAlbumPublished} 
+                  onCheckedChange={toggleAlbumPublish}
+                />
+              </div>
+            )}
+          </div>
+
+          <Button onClick={handleSaveAlbumSettings} className="w-full">
+            <Save className="h-4 w-4 ml-2" />
+            حفظ إعدادات الألبوم
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Photos Management */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-right">
             <Image className="h-5 w-5" />
-            ألبوم الصور ({photos.length})
+            إدارة الصور ({photos.length})
           </CardTitle>
-          <Button
-            variant="default"
-            size="sm"
-            asChild
-          >
-            <a href={`/event/${token}/submit`}>تسليم الألبوم</a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/album/${token}`} target="_blank">
+                <Eye className="h-4 w-4 ml-2" />
+                معاينة الألبوم
+              </a>
+            </Button>
+            <Button variant="default" size="sm" asChild>
+              <a href={`/event/${token}/submit`}>
+                <Share2 className="h-4 w-4 ml-2" />
+                مشاركة الألبوم
+              </a>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {photos.length === 0 ? (
