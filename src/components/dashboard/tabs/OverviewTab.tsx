@@ -182,7 +182,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ البداية</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.start_at ? formatDate(eventData.start_at, { includeTime: true }) : '—'}
+            {eventData?.start_at ? formatDate(eventData.start_at, { includeTime: true, calendarType: 'gregorian' }) : '—'}
           </CardContent>
         </Card>
         <Card>
@@ -190,7 +190,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ الانتهاء</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.end_at ? formatDate(eventData.end_at, { includeTime: true }) : '—'}
+            {eventData?.end_at ? formatDate(eventData.end_at, { includeTime: true, calendarType: 'gregorian' }) : '—'}
           </CardContent>
         </Card>
       </div>
