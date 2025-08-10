@@ -337,31 +337,6 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Album Preview Button */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-right">
-            <Eye className="h-5 w-5" />
-            استعراض الألبوم
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" asChild>
-              <a href={`/album/${token}`} target="_blank">
-                <Eye className="h-4 w-4 ml-2" />
-                معاينة الألبوم
-              </a>
-            </Button>
-            <Button variant="default" className="flex-1" asChild>
-              <a href={`/event/${token}/submit`} target="_blank">
-                <Share2 className="h-4 w-4 ml-2" />
-                صفحة المشاركة
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
       {/* Album Sharing Settings */}
       <Card>
         <CardHeader>
@@ -599,12 +574,6 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               <a href={`/album/${token}`} target="_blank">
                 <Eye className="h-4 w-4 ml-2" />
                 معاينة الألبوم
-              </a>
-            </Button>
-            <Button variant="default" size="sm" asChild>
-              <a href={`/event/${token}/submit`}>
-                <Share2 className="h-4 w-4 ml-2" />
-                مشاركة الألبوم
               </a>
             </Button>
           </div>
