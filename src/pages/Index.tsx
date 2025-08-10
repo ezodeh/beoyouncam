@@ -1,5 +1,8 @@
 import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/sections/Hero";
+import Features from "@/components/sections/Features";
+import HowItWorks from "@/components/sections/HowItWorks";
+import CallToAction from "@/components/sections/CallToAction";
 import Footer from "@/components/layout/Footer";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,11 +62,19 @@ const Index = () => {
           <WelcomeTour onClose={closeOnboarding} />
         )}
 
+        {/* Main content sections for all users */}
+        {!showOnboarding && (
+          <>
+            <Features />
+            <HowItWorks />
+            <CallToAction />
+          </>
+        )}
+
         {/* Empty state for authenticated users with no events */}
         {session && !hasEvents && !showOnboarding && (
           <section className="container mx-auto px-4 py-12">
             <div className="max-w-md mx-auto text-center" dir="rtl">
-              <div className="text-6xl mb-4">📸</div>
               <h2 className="text-2xl font-bold mb-3">أنشئ مناسبتك الآن</h2>
               <p className="text-muted-foreground mb-6">
                 ابدأ بإنشاء أول مناسبة لك واجمع كل الصور والذكريات في مكان واحد
