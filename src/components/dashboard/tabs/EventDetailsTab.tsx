@@ -270,7 +270,7 @@ export function EventDetailsTab({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-amber-600 text-right">إعدادات متقدمة</CardTitle>
+          <CardTitle className="text-red-600 text-right">إعدادات متقدمة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Hide/Show Event Section */}
