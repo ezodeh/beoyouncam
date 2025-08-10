@@ -324,7 +324,7 @@ export default function CreateEvent() {
     return () => { try { unsub?.unsubscribe(); } catch {} };
   }, []);
 
-  // Image upload handler for page customization
+  // Image upload handler for page customization with smart sharing
   const handleImageUpload = async (file: File, field: string) => {
     try {
       const fileExt = file.name.split('.').pop();
@@ -340,24 +340,35 @@ export default function CreateEvent() {
         .from('event-customization')
         .getPublicUrl(fileName);
 
-      // Update the appropriate field
-      switch (field) {
-        case 'welcome_page_hero_image':
-          setWelcomePageHeroImage(publicUrl);
-          break;
-        case 'album_welcome_hero_image':
-          setAlbumWelcomeHeroImage(publicUrl);
-          break;
-        case 'album_page_hero_image':
-          setAlbumPageHeroImage(publicUrl);
-          break;
-        default:
-          setCoverPreview(publicUrl);
+      // Smart image sharing logic
+      const isFirstImage = !welcomePageHeroImage && !albumWelcomeHeroImage && !albumPageHeroImage;
+      
+      if (isFirstImage) {
+        // First image applies to all pages
+        setWelcomePageHeroImage(publicUrl);
+        setAlbumWelcomeHeroImage(publicUrl);
+        setAlbumPageHeroImage(publicUrl);
+        setCoverPreview(publicUrl);
+      } else {
+        // Update specific field only
+        switch (field) {
+          case 'welcome_page_hero_image':
+            setWelcomePageHeroImage(publicUrl);
+            break;
+          case 'album_welcome_hero_image':
+            setAlbumWelcomeHeroImage(publicUrl);
+            break;
+          case 'album_page_hero_image':
+            setAlbumPageHeroImage(publicUrl);
+            break;
+          default:
+            setCoverPreview(publicUrl);
+        }
       }
       
       toast({
-        title: "تم رفع الصورة بنجاح",
-        description: "تم حفظ الصورة وستظهر في المعاينة",
+        title: isFirstImage ? "تم تطبيق الصورة على جميع الصفحات" : "تم رفع الصورة بنجاح",
+        description: isFirstImage ? "يمكنك تغيير أي صفحة منفرداً لاحقاً" : "تم حفظ الصورة وستظهر في المعاينة",
       });
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -670,213 +681,42 @@ export default function CreateEvent() {
               )}
 
               {step === 3 && (
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {/* Panel اليسار: تخصيص الصفحات */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Eye className="w-5 h-5" />
-                      <h3 className="text-lg font-semibold">تخصيص الصفحات</h3>
-                    </div>
-
-                    <Tabs defaultValue="welcome" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
-                        <TabsTrigger value="album-intro">ترحيب الألبوم</TabsTrigger>
-                        <TabsTrigger value="album">صفحة الألبوم</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="welcome" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة الغلاف</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                                }}
-                                className="hidden"
-                                id="welcome-hero-upload"
-                              />
-                              <label
-                                htmlFor="welcome-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الصفحة</Label>
-                            <Input
-                              value={welcomeTitle}
-                              onChange={(e) => setWelcomeTitle(e.target.value)}
-                              placeholder="عنوان صفحة الترحيب"
-                            />
-                          </div>
-                          <div>
-                            <Label>وصف الصفحة</Label>
-                            <Textarea
-                              value={welcomeBody}
-                              onChange={(e) => setWelcomeBody(e.target.value)}
-                              placeholder="نص ترحيبي للضيوف"
-                              rows={3}
-                            />
-                          </div>
-                          <div>
-                            <Label>نص الزر</Label>
-                            <Input
-                              value={ctaLabel}
-                              onChange={(e) => setCtaLabel(e.target.value)}
-                              placeholder="نص زر البدء"
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="album-intro" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة الغلاف</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'album_welcome_hero_image');
-                                }}
-                                className="hidden"
-                                id="album-welcome-hero-upload"
-                              />
-                              <label
-                                htmlFor="album-welcome-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الألبوم</Label>
-                            <Input
-                              value={albumWelcomeTitle}
-                              onChange={(e) => setAlbumWelcomeTitle(e.target.value)}
-                              placeholder="عنوان ترحيب الألبوم"
-                            />
-                          </div>
-                          <div>
-                            <Label>وصف الألبوم</Label>
-                            <Textarea
-                              value={albumWelcomeDescription}
-                              onChange={(e) => setAlbumWelcomeDescription(e.target.value)}
-                              placeholder="وصف ترحيبي للألبوم"
-                              rows={3}
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="album" className="space-y-4">
-                        <div className="grid gap-4">
-                          <div>
-                            <Label>صورة غلاف الألبوم</Label>
-                            <div className="mt-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleImageUpload(file, 'album_page_hero_image');
-                                }}
-                                className="hidden"
-                                id="album-page-hero-upload"
-                              />
-                              <label
-                                htmlFor="album-page-hero-upload"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                              >
-                                <Upload className="w-4 h-4" />
-                                رفع صورة
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>عنوان الألبوم</Label>
-                            <Input
-                              value={albumPageTitle}
-                              onChange={(e) => setAlbumPageTitle(e.target.value)}
-                              placeholder="عنوان صفحة الألبوم"
-                            />
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-
-                    {/* إعدادات عامة - ميزة البريميوم */}
-                    <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
-                          <Crown className="w-4 h-4" />
-                          إعدادات البريميوم
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <Label className="text-sm font-medium">إظهار الهيدر</Label>
-                            <p className="text-xs text-muted-foreground">
-                              تحكم في إظهار أو إخفاء الهيدر في جميع الصفحات
-                            </p>
-                          </div>
-                          <Switch
-                            checked={showHeader}
-                            onCheckedChange={setShowHeader}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Panel اليمين: معاينة الهاتف */}
+                <div className="space-y-6">
+                  {/* معاينة الهاتف في الأعلى */}
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Smartphone className="w-5 h-5" />
                       <h3 className="text-lg font-semibold">معاينة مباشرة</h3>
                     </div>
                     
-                    <Tabs defaultValue="welcome" className="w-full max-w-xs">
-                      <TabsList className="grid w-full grid-cols-3 text-xs">
+                    <Tabs defaultValue="welcome" className="w-full max-w-sm">
+                      <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="welcome" className="text-xs">الترحيب</TabsTrigger>
                         <TabsTrigger value="album-intro" className="text-xs">ترحيب الألبوم</TabsTrigger>
                         <TabsTrigger value="album" className="text-xs">الألبوم</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="welcome">
-                        <div className="relative w-full h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden">
-                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-800 rounded-b-lg"></div>
-                          <div className="h-full overflow-y-auto">
-                            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+                        <div className="relative w-full max-w-[280px] h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden mx-auto">
+                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-slate-800 rounded-b-lg"></div>
+                          <div className="h-full overflow-hidden">
+                            <div className="min-h-full bg-background text-foreground flex flex-col text-xs" dir="rtl">
                               {/* هيدر شرطي */}
                               {showHeader && (
                                 <>
                                   <nav className="w-full bg-background border-b px-2 py-1">
                                     <div className="flex items-center justify-between">
-                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
-                                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
+                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-2.5 w-auto" />
+                                      <div className="text-[8px] bg-primary text-primary-foreground px-1 py-0.5 rounded">دخول</div>
                                     </div>
                                   </nav>
-                                  <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+                                  <div className="brand-strip w-full h-0.5 bg-gradient-to-r from-primary to-secondary" />
                                 </>
                               )}
                               
                               {/* صورة الغلاف */}
-                              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                                <div className="relative h-20">
+                              <figure className="relative w-full overflow-hidden bg-secondary">
+                                <div className="relative h-16">
                                   {welcomePageHeroImage ? (
                                     <img 
                                       src={welcomePageHeroImage} 
@@ -891,47 +731,47 @@ export default function CreateEvent() {
                               </figure>
                               
                               {/* المحتوى الرئيسي */}
-                              <main className="px-3 py-2 flex-1 grid place-items-center">
+                              <main className="px-2 py-2 flex-1 flex flex-col justify-center">
                                 <section className="max-w-full mx-auto">
-                                  <div className="text-center mb-4">
-                                    <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                                  <div className="text-center mb-3">
+                                    <h1 className="text-[10px] leading-tight font-bold truncate">
                                       {welcomeTitle || "عنوان الحدث"}
                                     </h1>
-                                    <p className="mt-2 text-xs text-muted-foreground">
+                                    <p className="mt-1 text-[8px] text-muted-foreground line-clamp-2">
                                       {welcomeBody || "يا هلا بكم"}
                                     </p>
                                   </div>
                                   
                                   {/* نموذج التسجيل */}
-                                  <div className="w-full space-y-2">
+                                  <div className="w-full space-y-1.5">
                                     <div>
-                                      <div className="text-xs mb-1 text-right text-muted-foreground">الاسم</div>
-                                      <div className="h-6 bg-muted border rounded text-xs flex items-center px-2">اسمك</div>
+                                      <div className="text-[7px] mb-0.5 text-right text-muted-foreground">الاسم</div>
+                                      <div className="h-4 bg-muted border rounded text-[8px] flex items-center px-1">اسمك</div>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-3 gap-1">
                                       <div className="col-span-1">
-                                        <div className="text-xs mb-1 text-right text-muted-foreground">المقدمة</div>
-                                        <div className="h-6 bg-muted border rounded text-xs flex items-center justify-center">+970</div>
+                                        <div className="text-[7px] mb-0.5 text-right text-muted-foreground">المقدمة</div>
+                                        <div className="h-4 bg-muted border rounded text-[8px] flex items-center justify-center">+970</div>
                                       </div>
                                       <div className="col-span-2">
-                                        <div className="text-xs mb-1 text-right text-muted-foreground">الهاتف</div>
-                                        <div className="h-6 bg-muted border rounded text-xs flex items-center px-2" dir="ltr">5XXXXXXX</div>
+                                        <div className="text-[7px] mb-0.5 text-right text-muted-foreground">الهاتف</div>
+                                        <div className="h-4 bg-muted border rounded text-[8px] flex items-center px-1" dir="ltr">5XXXXXXX</div>
                                       </div>
                                     </div>
-                                    <button className="w-full h-6 bg-primary text-primary-foreground rounded-full text-xs font-medium mt-2">
+                                    <button className="w-full h-4 bg-primary text-primary-foreground rounded-full text-[8px] font-medium mt-1">
                                       {ctaLabel || "ابدأ"}
                                     </button>
                                   </div>
                                   
                                   {/* خط الفاصل */}
-                                  <div className="my-3 flex items-center gap-2">
+                                  <div className="my-2 flex items-center gap-1">
                                     <div className="h-px bg-border flex-1" />
-                                    <span className="text-xs text-muted-foreground">أو</span>
+                                    <span className="text-[7px] text-muted-foreground">أو</span>
                                     <div className="h-px bg-border flex-1" />
                                   </div>
                                   
                                   {/* زر Google */}
-                                  <div className="w-full h-5 bg-muted rounded text-xs flex items-center justify-center">التسجيل بـ Google</div>
+                                  <div className="w-full h-4 bg-muted rounded text-[8px] flex items-center justify-center">التسجيل بـ Google</div>
                                 </section>
                               </main>
                             </div>
@@ -940,26 +780,26 @@ export default function CreateEvent() {
                       </TabsContent>
                       
                       <TabsContent value="album-intro">
-                        <div className="relative w-full h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden">
-                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-800 rounded-b-lg"></div>
-                          <div className="h-full overflow-y-auto">
-                            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+                        <div className="relative w-full max-w-[280px] h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden mx-auto">
+                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-slate-800 rounded-b-lg"></div>
+                          <div className="h-full overflow-hidden">
+                            <div className="min-h-full bg-background text-foreground flex flex-col text-xs" dir="rtl">
                               {/* هيدر شرطي */}
                               {showHeader && (
                                 <>
                                   <nav className="w-full bg-background border-b px-2 py-1">
                                     <div className="flex items-center justify-between">
-                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
-                                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
+                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-2.5 w-auto" />
+                                      <div className="text-[8px] bg-primary text-primary-foreground px-1 py-0.5 rounded">دخول</div>
                                     </div>
                                   </nav>
-                                  <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+                                  <div className="brand-strip w-full h-0.5 bg-gradient-to-r from-primary to-secondary" />
                                 </>
                               )}
                               
                               {/* صورة الغلاف */}
-                              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                                <div className="relative h-20">
+                              <figure className="relative w-full overflow-hidden bg-secondary">
+                                <div className="relative h-16">
                                   {albumWelcomeHeroImage ? (
                                     <img 
                                       src={albumWelcomeHeroImage} 
@@ -974,15 +814,15 @@ export default function CreateEvent() {
                               </figure>
                               
                               {/* المحتوى الرئيسي */}
-                              <main className="px-3 py-2 flex-1 grid place-items-center">
+                              <main className="px-2 py-2 flex-1 flex flex-col justify-center">
                                 <section className="max-w-full mx-auto text-center">
-                                  <h1 className="font-nastaliq text-sm leading-snug font-bold mb-2">
+                                  <h1 className="text-[10px] leading-tight font-bold mb-1 truncate">
                                     ألبوم {albumWelcomeTitle || "المناسبة"}
                                   </h1>
-                                  <p className="text-xs text-muted-foreground mb-3">
+                                  <p className="text-[8px] text-muted-foreground mb-2 line-clamp-2">
                                     {albumWelcomeDescription || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
                                   </p>
-                                  <div className="w-full h-6 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
+                                  <div className="w-full h-4 bg-primary text-primary-foreground rounded-full text-[8px] flex items-center justify-center">
                                     الدخول إلى الألبوم
                                   </div>
                                 </section>
@@ -993,26 +833,26 @@ export default function CreateEvent() {
                       </TabsContent>
                       
                       <TabsContent value="album">
-                        <div className="relative w-full h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden">
-                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-800 rounded-b-lg"></div>
-                          <div className="h-full overflow-y-auto">
-                            <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+                        <div className="relative w-full max-w-[280px] h-[500px] bg-background border-8 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden mx-auto">
+                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-slate-800 rounded-b-lg"></div>
+                          <div className="h-full overflow-hidden">
+                            <div className="min-h-full bg-background text-foreground flex flex-col text-xs" dir="rtl">
                               {/* هيدر شرطي */}
                               {showHeader && (
                                 <>
                                   <nav className="w-full bg-background border-b px-2 py-1">
                                     <div className="flex items-center justify-between">
-                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
-                                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
+                                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-2.5 w-auto" />
+                                      <div className="text-[8px] bg-primary text-primary-foreground px-1 py-0.5 rounded">دخول</div>
                                     </div>
                                   </nav>
-                                  <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+                                  <div className="brand-strip w-full h-0.5 bg-gradient-to-r from-primary to-secondary" />
                                 </>
                               )}
                               
                               {/* صورة الغلاف */}
-                              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                                <div className="relative h-20">
+                              <figure className="relative w-full overflow-hidden bg-secondary">
+                                <div className="relative h-16">
                                   {albumPageHeroImage ? (
                                     <img 
                                       src={albumPageHeroImage} 
@@ -1026,25 +866,25 @@ export default function CreateEvent() {
                                 </div>
                               </figure>
                               
-                              <main className="flex-1">
+                              <main className="flex-1 p-2">
                                 {/* عنوان الألبوم */}
-                                <section className="px-3 py-2 text-center">
-                                  <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                                <section className="text-center mb-2">
+                                  <h1 className="text-[10px] leading-tight font-bold truncate">
                                     {albumPageTitle || "الألبوم"}
                                   </h1>
                                 </section>
                                 
                                 {/* تبويبات الألبوم */}
-                                <section className="px-3 py-3">
-                                  <div className="grid grid-cols-3 w-full max-w-full rounded-full mx-auto bg-muted p-0.5 mb-3">
-                                    <div className="flex items-center justify-center text-xs py-1 rounded-full">
-                                      <Heart className="w-3 h-3" />
+                                <section>
+                                  <div className="grid grid-cols-3 w-full rounded-full mx-auto bg-muted p-0.5 mb-2">
+                                    <div className="flex items-center justify-center py-0.5 rounded-full">
+                                      <Heart className="w-2 h-2" />
                                     </div>
-                                    <div className="flex items-center justify-center text-xs py-1 rounded-full bg-background">
-                                      <Images className="w-3 h-3" />
+                                    <div className="flex items-center justify-center py-0.5 rounded-full bg-background">
+                                      <Images className="w-2 h-2" />
                                     </div>
-                                    <div className="flex items-center justify-center text-xs py-1 rounded-full">
-                                      <Users className="w-3 h-3" />
+                                    <div className="flex items-center justify-center py-0.5 rounded-full">
+                                      <Users className="w-2 h-2" />
                                     </div>
                                   </div>
                                   
@@ -1059,6 +899,204 @@ export default function CreateEvent() {
                             </div>
                           </div>
                         </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+
+                  {/* استمارة التخصيص في الأسفل */}
+                  <div className="mt-8">
+                    <Tabs defaultValue="page-customization" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="page-customization">تنسيق الصفحات</TabsTrigger>
+                        <TabsTrigger value="screen-settings">إعدادات الشاشات</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="page-customization" className="space-y-6 mt-6">
+                        <Tabs defaultValue="welcome" className="w-full">
+                          <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
+                            <TabsTrigger value="album-intro">ترحيب الألبوم</TabsTrigger>
+                            <TabsTrigger value="album">صفحة الألبوم</TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="welcome" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة الغلاف</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'welcome_page_hero_image');
+                                    }}
+                                    className="hidden"
+                                    id="welcome-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="welcome-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                                  >
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {welcomePageHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <Label>عنوان الصفحة</Label>
+                                <Input
+                                  value={welcomeTitle}
+                                  onChange={(e) => setWelcomeTitle(e.target.value)}
+                                  placeholder="عنوان صفحة الترحيب"
+                                />
+                              </div>
+                              <div>
+                                <Label>وصف الصفحة</Label>
+                                <Textarea
+                                  value={welcomeBody}
+                                  onChange={(e) => setWelcomeBody(e.target.value)}
+                                  placeholder="نص ترحيبي للضيوف"
+                                  rows={3}
+                                />
+                              </div>
+                              <div>
+                                <Label>نص الزر</Label>
+                                <Input
+                                  value={ctaLabel}
+                                  onChange={(e) => setCtaLabel(e.target.value)}
+                                  placeholder="نص زر البدء"
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="album-intro" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة الغلاف</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'album_welcome_hero_image');
+                                    }}
+                                    className="hidden"
+                                    id="album-welcome-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="album-welcome-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                                  >
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {albumWelcomeHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <Label>عنوان الألبوم</Label>
+                                <Input
+                                  value={albumWelcomeTitle}
+                                  onChange={(e) => setAlbumWelcomeTitle(e.target.value)}
+                                  placeholder="عنوان ترحيب الألبوم"
+                                />
+                              </div>
+                              <div>
+                                <Label>وصف الألبوم</Label>
+                                <Textarea
+                                  value={albumWelcomeDescription}
+                                  onChange={(e) => setAlbumWelcomeDescription(e.target.value)}
+                                  placeholder="وصف ترحيبي للألبوم"
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="album" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة غلاف الألبوم</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'album_page_hero_image');
+                                    }}
+                                    className="hidden"
+                                    id="album-page-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="album-page-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                                  >
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {albumPageHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <Label>عنوان الألبوم</Label>
+                                <Input
+                                  value={albumPageTitle}
+                                  onChange={(e) => setAlbumPageTitle(e.target.value)}
+                                  placeholder="عنوان صفحة الألبوم"
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </TabsContent>
+                      
+                      <TabsContent value="screen-settings" className="space-y-6 mt-6">
+                        {/* إعدادات عامة - ميزة البريميوم */}
+                        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
+                              <Crown className="w-4 h-4" />
+                              إعدادات البريميوم
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium">إظهار الهيدر</Label>
+                                <p className="text-xs text-muted-foreground">
+                                  تحكم في إظهار أو إخفاء الهيدر في جميع الصفحات
+                                </p>
+                              </div>
+                              <Switch
+                                checked={showHeader}
+                                onCheckedChange={setShowHeader}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* إعدادات أخرى يمكن إضافتها لاحقاً */}
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">إعدادات عامة</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                              المزيد من إعدادات الشاشات ستكون متاحة قريباً...
+                            </p>
+                          </CardContent>
+                        </Card>
                       </TabsContent>
                     </Tabs>
                   </div>
