@@ -199,25 +199,28 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
           
           {page === "album-welcome" && (
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
-              {/* هيدر */}
+              {/* هيدر شرطي */}
               {customization.show_header !== false && (
                 <header className="relative">
-                  <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                    <div className="relative h-32">
-                      {customization.album_welcome_hero_image ? (
-                        <img 
-                          src={customization.album_welcome_hero_image} 
-                          alt="غلاف الألبوم" 
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-muted" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-                    </div>
-                  </figure>
+                  <div className="w-full h-4 bg-muted mb-1" />
                 </header>
               )}
+              
+              {/* صورة الغلاف */}
+              <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                <div className="relative h-20">
+                  {customization.album_welcome_hero_image ? (
+                    <img 
+                      src={customization.album_welcome_hero_image} 
+                      alt="غلاف الألبوم" 
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-muted" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                </div>
+              </figure>
               
               {/* المحتوى */}
               <main className="px-3 py-2 flex-1 grid place-items-center">
@@ -234,6 +237,11 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                     </button>
                   </div>
                 </section>
+                
+                {/* فوتر شرطي */}
+                {customization.show_header !== false && (
+                  <div className="w-full h-3 bg-muted mt-2" />
+                )}
               </main>
             </div>
           )}
@@ -301,6 +309,11 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                     </div>
                   </div>
                 </section>
+                
+                {/* فوتر شرطي */}
+                {customization.show_header !== false && (
+                  <div className="w-full h-3 bg-muted mt-2" />
+                )}
               </main>
             </div>
           )}
