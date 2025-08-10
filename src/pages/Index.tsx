@@ -12,32 +12,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { PlusCircle, Camera, ArrowRight } from "lucide-react";
 import WelcomeTour from "@/components/onboarding/WelcomeTour";
-
 const Index = () => {
   const [session, setSession] = useState(null);
   const [hasEvents, setHasEvents] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-
   useEffect(() => {
     document.title = "عيون cam — ألبوم صور وفيديو جماعي";
   }, []);
-
   useEffect(() => {
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       setSession(session as any);
-      
       if (session?.user?.id) {
         // Check if user has any events
-        const { data: events } = await supabase
-          .from("events")
-          .select("id")
-          .eq("owner_id", session.user.id)
-          .limit(1);
-        
+        const {
+          data: events
+        } = await supabase.from("events").select("id").eq("owner_id", session.user.id).limit(1);
         const hasEvents = (events?.length || 0) > 0;
         setHasEvents(hasEvents);
-        
+
         // Show onboarding if user is new (no events)
         const seenOnboarding = localStorage.getItem("seenOnboarding");
         if (!hasEvents && !seenOnboarding) {
@@ -46,62 +43,30 @@ const Index = () => {
       }
     })();
   }, []);
-
   const closeOnboarding = () => {
     setShowOnboarding(false);
     localStorage.setItem("seenOnboarding", "true");
   };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-almarai">
+  return <div className="min-h-screen bg-background text-foreground flex flex-col font-almarai">
       <Navbar />
       <main className="flex-1">
         <Hero />
         
         {/* Welcome tour for new users */}
-        {showOnboarding && session && (
-          <WelcomeTour onClose={closeOnboarding} />
-        )}
+        {showOnboarding && session && <WelcomeTour onClose={closeOnboarding} />}
 
         {/* Main content sections for all users */}
-        {!showOnboarding && (
-          <>
+        {!showOnboarding && <>
             <Features />
             <UseCases />
             <HowItWorks />
             <CallToAction />
-          </>
-        )}
+          </>}
 
         {/* Empty state for authenticated users with no events */}
-        {session && !hasEvents && !showOnboarding && (
-          <section className="container mx-auto px-4 py-12">
-            <div className="max-w-md mx-auto text-center" dir="rtl">
-              <h2 className="text-2xl font-bold mb-3">أنشئ مناسبتك الآن</h2>
-              <p className="text-muted-foreground mb-6">
-                ابدأ بإنشاء أول مناسبة لك واجمع كل الصور والذكريات في مكان واحد
-              </p>
-              <div className="space-y-3">
-                <Button asChild className="w-full" size="lg">
-                  <Link to="/create-event">
-                    <PlusCircle className="h-5 w-5 ml-2" />
-                    إنشاء مناسبة جديدة
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/scanner">
-                    <Camera className="h-5 w-5 ml-2" />
-                    مسح رمز QR للمشاركة
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </section>
-        )}
+        {session && !hasEvents && !showOnboarding}
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
