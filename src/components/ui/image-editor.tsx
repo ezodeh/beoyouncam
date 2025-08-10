@@ -156,7 +156,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleClose}>
+      <Dialog open={open} onOpenChange={(newOpen) => !newOpen && handleClose()}>
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
