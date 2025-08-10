@@ -236,8 +236,8 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           <CardHeader className="p-3 pb-0">
             <CardTitle className="flex items-center gap-2 text-sm">
               <QrCode className="h-5 w-5" />
-              نشر الألبوم
-              {eventData?.published_at && new Date(eventData.published_at) > new Date() && (
+              {eventStatus === "منتهية" ? "الألبوم" : "نشر الحدث"}
+              {eventData?.published_at && new Date(eventData.published_at) > new Date() && eventStatus !== "منتهية" && (
                 <span className="text-xs text-muted-foreground block">
                   سيُنشر بعد: {Math.ceil((new Date(eventData.published_at).getTime() - Date.now()) / (1000 * 60 * 60))} ساعة
                 </span>
@@ -254,7 +254,46 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/album/${token}`)}>نسخ رابط الألبوم</Button>
+                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/album/${token}`)}>نسخ الرابط</Button>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+                    if (!svg) return;
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return;
+                    const scale = 4;
+                    const size = 512;
+                    canvas.width = size * scale;
+                    canvas.height = size * scale;
+                    ctx.scale(scale, scale);
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+                    const url = URL.createObjectURL(svgBlob);
+                    const img = document.createElement("img");
+                    img.onload = () => {
+                      ctx.fillStyle = "#ffffff";
+                      ctx.fillRect(0, 0, size, size);
+                      ctx.drawImage(img, 0, 0, size, size);
+                      canvas.toBlob((pngBlob) => {
+                        if (pngBlob) {
+                          const pngUrl = URL.createObjectURL(pngBlob);
+                          const a = document.createElement("a");
+                          a.href = pngUrl; a.download = `album-${token}-qr.png`; a.click();
+                          URL.revokeObjectURL(pngUrl);
+                        }
+                      }, "image/png", 1.0);
+                      URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                  }}>تنزيل PNG</Button>
+                  <Button variant="outline" size="sm" onClick={async () => {
+                    const url = `${window.location.origin}/album/${token}`;
+                    if (navigator.share) {
+                      await navigator.share({ title: 'ألبوم المناسبة', url });
+                    } else {
+                      navigator.clipboard.writeText(url);
+                    }
+                  }}>مشاركة</Button>
                 </div>
               </div>
             ) : (
@@ -266,8 +305,45 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(eventUrl)}>نشر الحدث</Button>
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/event/${token}/camera`)}>كاميرا الحدث</Button>
+                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(eventUrl)}>نسخ الرابط</Button>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+                    if (!svg) return;
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return;
+                    const scale = 4;
+                    const size = 512;
+                    canvas.width = size * scale;
+                    canvas.height = size * scale;
+                    ctx.scale(scale, scale);
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+                    const url = URL.createObjectURL(svgBlob);
+                    const img = document.createElement("img");
+                    img.onload = () => {
+                      ctx.fillStyle = "#ffffff";
+                      ctx.fillRect(0, 0, size, size);
+                      ctx.drawImage(img, 0, 0, size, size);
+                      canvas.toBlob((pngBlob) => {
+                        if (pngBlob) {
+                          const pngUrl = URL.createObjectURL(pngBlob);
+                          const a = document.createElement("a");
+                          a.href = pngUrl; a.download = `event-${token}-qr.png`; a.click();
+                          URL.revokeObjectURL(pngUrl);
+                        }
+                      }, "image/png", 1.0);
+                      URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                  }}>تنزيل PNG</Button>
+                  <Button variant="outline" size="sm" onClick={async () => {
+                    if (navigator.share) {
+                      await navigator.share({ title: 'نشر الحدث', url: eventUrl });
+                    } else {
+                      navigator.clipboard.writeText(eventUrl);
+                    }
+                  }}>مشاركة</Button>
                 </div>
               </div>
             )}
