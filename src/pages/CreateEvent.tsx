@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -904,312 +903,202 @@ export default function CreateEvent() {
                     </Tabs>
                   </div>
 
-                  {/* الاستمارة في الأسفل - منظمة أكثر */}
-                  <div className="mt-8 space-y-8">
-                    {/* قسم صور الصفحات */}
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-semibold">صور الصفحات</h3>
-                      <div className="grid gap-6 md:grid-cols-3">
-                        {/* صورة الترحيب */}
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">صورة الترحيب</Label>
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-                            {welcomePageHeroImage ? (
-                              <div className="space-y-3">
-                                <img src={welcomePageHeroImage} alt="Welcome" className="w-full h-24 object-cover rounded" />
-                                <div className="flex gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      const input = document.createElement('input');
-                                      input.type = 'file';
-                                      input.accept = 'image/*';
-                                      input.onchange = (e) => {
-                                        const file = (e.target as HTMLInputElement).files?.[0];
-                                        if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                                      };
-                                      input.click();
+                  {/* استمارة التخصيص في الأسفل */}
+                  <div className="mt-8">
+                    <Tabs defaultValue="page-customization" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="page-customization">تنسيق الصفحات</TabsTrigger>
+                        <TabsTrigger value="screen-settings">إعدادات الشاشات</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="page-customization" className="space-y-6 mt-6">
+                        <Tabs defaultValue="welcome" className="w-full">
+                          <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
+                            <TabsTrigger value="album-intro">ترحيب الألبوم</TabsTrigger>
+                            <TabsTrigger value="album">صفحة الألبوم</TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="welcome" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة الغلاف</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'welcome_page_hero_image');
                                     }}
-                                    className="flex-1"
+                                    className="hidden"
+                                    id="welcome-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="welcome-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
                                   >
-                                    تغيير
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setWelcomePageHeroImage('')}
-                                    className="flex-1"
-                                  >
-                                    حذف
-                                  </Button>
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {welcomePageHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
                                 </div>
                               </div>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => {
-                                  const input = document.createElement('input');
-                                  input.type = 'file';
-                                  input.accept = 'image/*';
-                                  input.onchange = (e) => {
-                                    const file = (e.target as HTMLInputElement).files?.[0];
-                                    if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                                  };
-                                  input.click();
-                                }}
-                                className="w-full h-24 flex flex-col items-center justify-center"
-                              >
-                                <Upload className="w-6 h-6 mb-2" />
-                                <span className="text-sm">رفع صورة</span>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* صورة المقدمة */}
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">صورة المقدمة</Label>
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-                            {albumWelcomeHeroImage ? (
-                              <div className="space-y-3">
-                                <img src={albumWelcomeHeroImage} alt="Album Intro" className="w-full h-24 object-cover rounded" />
-                                <div className="flex gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      const input = document.createElement('input');
-                                      input.type = 'file';
-                                      input.accept = 'image/*';
-                                      input.onchange = (e) => {
-                                        const file = (e.target as HTMLInputElement).files?.[0];
-                                        if (file) handleImageUpload(file, 'album_welcome_hero_image');
-                                      };
-                                      input.click();
+                              <div>
+                                <Label>عنوان الصفحة</Label>
+                                <Input
+                                  value={welcomeTitle}
+                                  onChange={(e) => setWelcomeTitle(e.target.value)}
+                                  placeholder="عنوان صفحة الترحيب"
+                                />
+                              </div>
+                              <div>
+                                <Label>وصف الصفحة</Label>
+                                <Textarea
+                                  value={welcomeBody}
+                                  onChange={(e) => setWelcomeBody(e.target.value)}
+                                  placeholder="نص ترحيبي للضيوف"
+                                  rows={3}
+                                />
+                              </div>
+                              <div>
+                                <Label>نص الزر</Label>
+                                <Input
+                                  value={ctaLabel}
+                                  onChange={(e) => setCtaLabel(e.target.value)}
+                                  placeholder="نص زر البدء"
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="album-intro" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة الغلاف</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'album_welcome_hero_image');
                                     }}
-                                    className="flex-1"
+                                    className="hidden"
+                                    id="album-welcome-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="album-welcome-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
                                   >
-                                    تغيير
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setAlbumWelcomeHeroImage('')}
-                                    className="flex-1"
-                                  >
-                                    حذف
-                                  </Button>
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {albumWelcomeHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
                                 </div>
                               </div>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => {
-                                  const input = document.createElement('input');
-                                  input.type = 'file';
-                                  input.accept = 'image/*';
-                                  input.onchange = (e) => {
-                                    const file = (e.target as HTMLInputElement).files?.[0];
-                                    if (file) handleImageUpload(file, 'album_welcome_hero_image');
-                                  };
-                                  input.click();
-                                }}
-                                className="w-full h-24 flex flex-col items-center justify-center"
-                              >
-                                <Upload className="w-6 h-6 mb-2" />
-                                <span className="text-sm">رفع صورة</span>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* صورة الألبوم */}
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">صورة الألبوم</Label>
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-                            {albumPageHeroImage ? (
-                              <div className="space-y-3">
-                                <img src={albumPageHeroImage} alt="Album" className="w-full h-24 object-cover rounded" />
-                                <div className="flex gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      const input = document.createElement('input');
-                                      input.type = 'file';
-                                      input.accept = 'image/*';
-                                      input.onchange = (e) => {
-                                        const file = (e.target as HTMLInputElement).files?.[0];
-                                        if (file) handleImageUpload(file, 'album_page_hero_image');
-                                      };
-                                      input.click();
+                              <div>
+                                <Label>عنوان الألبوم</Label>
+                                <Input
+                                  value={albumWelcomeTitle}
+                                  onChange={(e) => setAlbumWelcomeTitle(e.target.value)}
+                                  placeholder="عنوان ترحيب الألبوم"
+                                />
+                              </div>
+                              <div>
+                                <Label>وصف الألبوم</Label>
+                                <Textarea
+                                  value={albumWelcomeDescription}
+                                  onChange={(e) => setAlbumWelcomeDescription(e.target.value)}
+                                  placeholder="وصف ترحيبي للألبوم"
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="album" className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                              <div>
+                                <Label>صورة غلاف الألبوم</Label>
+                                <div className="mt-2">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, 'album_page_hero_image');
                                     }}
-                                    className="flex-1"
+                                    className="hidden"
+                                    id="album-page-hero-upload"
+                                  />
+                                  <label
+                                    htmlFor="album-page-hero-upload"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
                                   >
-                                    تغيير
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setAlbumPageHeroImage('')}
-                                    className="flex-1"
-                                  >
-                                    حذف
-                                  </Button>
+                                    <Upload className="w-4 h-4" />
+                                    رفع صورة
+                                  </label>
+                                  {albumPageHeroImage && (
+                                    <p className="text-xs text-muted-foreground mt-1">تم رفع الصورة ✓</p>
+                                  )}
                                 </div>
                               </div>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => {
-                                  const input = document.createElement('input');
-                                  input.type = 'file';
-                                  input.accept = 'image/*';
-                                  input.onchange = (e) => {
-                                    const file = (e.target as HTMLInputElement).files?.[0];
-                                    if (file) handleImageUpload(file, 'album_page_hero_image');
-                                  };
-                                  input.click();
-                                }}
-                                className="w-full h-24 flex flex-col items-center justify-center"
-                              >
-                                <Upload className="w-6 h-6 mb-2" />
-                                <span className="text-sm">رفع صورة</span>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                              <div>
+                                <Label>عنوان الألبوم</Label>
+                                <Input
+                                  value={albumPageTitle}
+                                  onChange={(e) => setAlbumPageTitle(e.target.value)}
+                                  placeholder="عنوان صفحة الألبوم"
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </TabsContent>
+                      
+                      <TabsContent value="screen-settings" className="space-y-6 mt-6">
+                        {/* إعدادات عامة - ميزة البريميوم */}
+                        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
+                              <Crown className="w-4 h-4" />
+                              إعدادات البريميوم
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium">إظهار الهيدر</Label>
+                                <p className="text-xs text-muted-foreground">
+                                  تحكم في إظهار أو إخفاء الهيدر في جميع الصفحات
+                                </p>
+                              </div>
+                              <Switch
+                                checked={showHeader}
+                                onCheckedChange={setShowHeader}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
 
-                    {/* قسم النصوص والمحتوى */}
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-semibold">نصوص الصفحات</h3>
-                      <div className="grid gap-6 md:grid-cols-2">
-                        {/* نصوص صفحة الترحيب */}
-                        <div className="space-y-4">
-                          <h4 className="font-medium text-primary">صفحة الترحيب</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <Label className="text-sm">عنوان الصفحة</Label>
-                              <Input
-                                value={welcomeTitle}
-                                onChange={(e) => setWelcomeTitle(e.target.value)}
-                                placeholder="عنوان صفحة الترحيب"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm">وصف الصفحة</Label>
-                              <Textarea
-                                value={welcomeBody}
-                                onChange={(e) => setWelcomeBody(e.target.value)}
-                                placeholder="نص ترحيبي للضيوف"
-                                rows={3}
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm">نص الزر</Label>
-                              <Input
-                                value={ctaLabel}
-                                onChange={(e) => setCtaLabel(e.target.value)}
-                                placeholder="نص زر البدء"
-                                className="mt-1"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* نصوص الألبوم */}
-                        <div className="space-y-4">
-                          <h4 className="font-medium text-primary">الألبوم</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <Label className="text-sm">عنوان ترحيب الألبوم</Label>
-                              <Input
-                                value={albumWelcomeTitle}
-                                onChange={(e) => setAlbumWelcomeTitle(e.target.value)}
-                                placeholder="عنوان ترحيب الألبوم"
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm">وصف ترحيب الألبوم</Label>
-                              <Textarea
-                                value={albumWelcomeDescription}
-                                onChange={(e) => setAlbumWelcomeDescription(e.target.value)}
-                                placeholder="وصف ترحيبي للألبوم"
-                                rows={3}
-                                className="mt-1"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm">عنوان صفحة الألبوم</Label>
-                              <Input
-                                value={albumPageTitle}
-                                onChange={(e) => setAlbumPageTitle(e.target.value)}
-                                placeholder="عنوان صفحة الألبوم"
-                                className="mt-1"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* إعدادات متقدمة */}
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-semibold">إعدادات متقدمة</h3>
-                      <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label htmlFor="enable-video" className="text-sm font-medium">تفعيل تسجيل الفيديو</Label>
-                            <p className="text-sm text-muted-foreground">السماح للضيوف بتسجيل مقاطع فيديو</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="enable-video"
-                              checked={enableVideo}
-                              onCheckedChange={setEnableVideo}
-                            />
-                            <Badge variant="secondary">مميز</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* إخفاء اللوجو - في الأسفل */}
-                    <div className="border-t pt-6">
-                      <div className="bg-blue-50 rounded-lg p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label htmlFor="hide-header" className="text-sm font-medium">إخفاء اللوجو والهيدر</Label>
+                        {/* إعدادات أخرى يمكن إضافتها لاحقاً */}
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">إعدادات عامة</CardTitle>
+                          </CardHeader>
+                          <CardContent>
                             <p className="text-sm text-muted-foreground">
-                              إخفاء اللوجو وشريط التنقل من جميع الصفحات لمظهر أكثر احترافية
+                              المزيد من إعدادات الشاشات ستكون متاحة قريباً...
                             </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="hide-header"
-                              checked={!showHeader}
-                              onCheckedChange={(checked) => setShowHeader(!checked)}
-                            />
-                            <Badge variant="secondary">مميز</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </div>
               )}
