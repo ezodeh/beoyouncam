@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { updateEventSettings, hasEventStarted } from "@/lib/eventSettings";
-import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle } from "lucide-react";
+import { Image, Trash2, Download, Eye, EyeOff, Heart, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -651,7 +651,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-right">
-            <Star className="h-5 w-5" />
+            <Heart className="h-5 w-5" />
             المباركات ({blessings.length})
           </CardTitle>
         </CardHeader>
@@ -688,7 +688,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-right">
             <Eye className="h-5 w-5" />
-            ألبومات بعيون ({eyeAlbums.length})
+            عيون ({eyeAlbums.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
