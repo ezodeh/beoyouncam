@@ -65,8 +65,6 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
       targetTime = new Date(new Date(eventData.end_at).getTime() + (12 * 60 * 60 * 1000));
     } else if (albumPublishTime === "after_24h" && eventData?.end_at) {
       targetTime = new Date(new Date(eventData.end_at).getTime() + (24 * 60 * 60 * 1000));
-    } else if (albumPublishTime === "custom_delay" && eventData?.end_at) {
-      targetTime = new Date(new Date(eventData.end_at).getTime() + (customPublishDelay * 60 * 60 * 1000));
     } else if (albumPublishTime === "after_creation" && eventData?.created_at) {
       targetTime = new Date(new Date(eventData.created_at).getTime() + (customPublishDelay * 60 * 60 * 1000));
     }
@@ -342,28 +340,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <SelectItem value="after_creation">بعد إنشاء المناسبة</SelectItem>
                   <SelectItem value="after_12h">بعد 12 ساعة من الانتهاء</SelectItem>
                   <SelectItem value="after_24h">بعد 24 ساعة من الانتهاء</SelectItem>
-                  <SelectItem value="custom_delay">تأخير مخصص</SelectItem>
                   <SelectItem value="specific_time">وقت محدد</SelectItem>
-                  <SelectItem value="manual">نشر يدوي</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Custom Delay */}
-            {albumPublishTime === "custom_delay" && (
-              <div className="space-y-2">
-                <Label htmlFor="customDelay">عدد الساعات للتأخير بعد انتهاء المناسبة</Label>
-                <Input
-                  id="customDelay"
-                  type="number"
-                  min={1}
-                  max={168}
-                  value={customPublishDelay}
-                  onChange={(e) => setCustomPublishDelay(Number(e.target.value))}
-                  placeholder="عدد الساعات"
-                />
-              </div>
-            )}
 
             {/* After Creation Delay */}
             {albumPublishTime === "after_creation" && (
@@ -440,63 +421,9 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               </>
             )}
 
-            {/* Manual Publish Toggle */}
-            {albumPublishTime === "manual" && (
-              <>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 text-right">
-                    <Clock className="h-5 w-5" />
-                    <div>
-                      <Label className="text-base">حالة نشر الألبوم</Label>
-                      <p className="text-sm text-muted-foreground">
-                        {isAlbumPublished ? "الألبوم متاح للضيوف" : "الألبوم مخفي عن الضيوف"}
-                      </p>
-                    </div>
-                  </div>
-                  <Switch 
-                    checked={isAlbumPublished} 
-                    onCheckedChange={toggleAlbumPublish}
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setAlbumPublishTime("specific_time");
-                      setCustomPublishDate(new Date().toISOString().split('T')[0]);
-                    }}
-                    className="flex-1"
-                  >
-                    <Calendar className="h-4 w-4 ml-2" />
-                    تعيين وقت نشر لاحق
-                  </Button>
-                  <Button 
-                    variant="default" 
-                    onClick={toggleAlbumPublish}
-                    disabled={isAlbumPublished}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 ml-2" />
-                    {isAlbumPublished ? "منشور" : "نشر الآن"}
-                  </Button>
-                  {isAlbumPublished && (
-                    <Button 
-                      variant="outline" 
-                      onClick={toggleAlbumPublish}
-                      className="flex-1"
-                    >
-                      <StopCircle className="h-4 w-4 ml-2" />
-                      إلغاء النشر
-                    </Button>
-                  )}
-                </div>
-                
-              </>
-            )}
 
             {/* Countdown and Publish Controls for Scheduled Options */}
-            {!["manual", "specific_time", "immediately"].includes(albumPublishTime) && (
+            {!["specific_time", "immediately"].includes(albumPublishTime) && (
               <>
                 {/* Countdown Display */}
                 {countdown && (
