@@ -83,7 +83,7 @@ const BillingHistory = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div>
                     <div className="text-sm text-muted-foreground">التاريخ</div>
-                    <div className="font-medium">{formatDate(invoice.date, { calendarType: 'gregorian' })}</div>
+                    <div className="font-medium">{formatDate(invoice.date)}</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">المبلغ</div>

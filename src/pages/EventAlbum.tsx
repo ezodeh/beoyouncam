@@ -26,7 +26,6 @@ export default function EventAlbum() {
   const [title, setTitle] = useState<string>(eventName);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState<boolean>(true);
-  const [calendarType, setCalendarType] = useState<'gregorian' | 'hijri'>('gregorian');
 
   useEffect(() => {
     document.title = `الألبوم — ${title} — من عيونكم`;
@@ -46,7 +45,7 @@ export default function EventAlbum() {
       if (!token) return;
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, calendar_type")
+        .select("is_private, published_at, title, cover_url, show_header")
         .eq("token", token)
         .maybeSingle();
       if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
@@ -57,7 +56,6 @@ export default function EventAlbum() {
         setTitle(data.title || eventName);
         setCoverUrl(data.cover_url || null);
         setShowHeader(data.show_header !== false);
-        setCalendarType(data.calendar_type || 'gregorian');
       }
     })();
   }, [token]);
@@ -320,7 +318,7 @@ export default function EventAlbum() {
                             <div className="flex-1 text-right">
                               <h4 className="font-semibold text-foreground">{cong.sender_name || cong.name}</h4>
                               <p className="text-muted-foreground mt-1 leading-relaxed text-sm">{cong.message || cong.content}</p>
-                              <span className="text-xs text-muted-foreground">{formatShortDate(cong.created_at, calendarType)}</span>
+                              <span className="text-xs text-muted-foreground">{formatShortDate(cong.created_at)}</span>
                             </div>
                           </div>
                         </CardContent>

@@ -1,11 +1,25 @@
-// Format date based on calendar preference (default: Gregorian)
+// Utility function to detect if the user's system supports Hijri calendar
+export const detectHijriSupport = (): boolean => {
+  try {
+    // Check if the system/browser supports Hijri calendar
+    const testDate = new Date();
+    const hijriTest = testDate.toLocaleDateString('ar-SA-u-ca-islamic');
+    const gregorianTest = testDate.toLocaleDateString('ar-SA');
+    
+    // If they're different, it means Hijri is supported and working
+    return hijriTest !== gregorianTest;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Format date based on system calendar preference
 export const formatDate = (date: string | Date, options?: {
   includeTime?: boolean;
   dateStyle?: 'full' | 'long' | 'medium' | 'short';
-  calendarType?: 'gregorian' | 'hijri';
 }) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const calendarType = options?.calendarType || 'gregorian';
+  const isHijriSupported = detectHijriSupport();
   
   const baseOptions: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -17,35 +31,22 @@ export const formatDate = (date: string | Date, options?: {
     })
   };
 
-  // Use calendar type from options - default to Gregorian
-  const locale = calendarType === 'hijri' ? 'ar-SA-u-ca-islamic' : 'ar-SA';
+  // Use Hijri calendar only if system supports it, otherwise use Gregorian
+  const locale = isHijriSupported ? 'ar-SA-u-ca-islamic' : 'ar-SA';
   
-  try {
-    return dateObj.toLocaleDateString(locale, baseOptions);
-  } catch (error) {
-    // Fallback to Gregorian if Hijri is not supported
-    return dateObj.toLocaleDateString('ar-SA', baseOptions);
-  }
+  return dateObj.toLocaleDateString(locale, baseOptions);
 };
 
 // Short date format for smaller spaces
-export const formatShortDate = (date: string | Date, calendarType: 'gregorian' | 'hijri' = 'gregorian') => {
+export const formatShortDate = (date: string | Date) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const isHijriSupported = detectHijriSupport();
   
-  const locale = calendarType === 'hijri' ? 'ar-SA-u-ca-islamic' : 'ar-SA';
+  const locale = isHijriSupported ? 'ar-SA-u-ca-islamic' : 'ar-SA';
   
-  try {
-    return dateObj.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  } catch (error) {
-    // Fallback to Gregorian if Hijri is not supported
-    return dateObj.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
+  return dateObj.toLocaleDateString(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 };

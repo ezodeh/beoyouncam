@@ -159,8 +159,7 @@ export function OverviewTab({
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
             {eventData?.start_at ? formatDate(eventData.start_at, {
-            includeTime: true,
-            calendarType: eventData?.calendar_type || 'gregorian'
+            includeTime: true
           }) : '—'}
           </CardContent>
         </Card>
@@ -170,8 +169,7 @@ export function OverviewTab({
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
             {eventData?.end_at ? formatDate(eventData.end_at, {
-            includeTime: true,
-            calendarType: eventData?.calendar_type || 'gregorian'
+            includeTime: true
           }) : '—'}
           </CardContent>
         </Card>
