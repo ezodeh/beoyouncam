@@ -235,7 +235,11 @@ export default function EventCard({ event, linkTo, subtitle, isOwner, isPast, on
         <div className="aspect-video bg-muted overflow-hidden">
           {event.cover_url ? (
             <img src={event.cover_url} alt={`غلاف ${event.title}`} className="w-full h-full object-cover" />
-          ) : null}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <Image className="h-8 w-8" />
+            </div>
+          )}
         </div>
         <div className="p-3">
           <div className="font-nastaliq text-xl">{event.title}</div>
