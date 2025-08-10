@@ -43,7 +43,7 @@ const ManageDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar compact />
       <main className="flex-1 container mx-auto py-8">
         <div className="mb-6">

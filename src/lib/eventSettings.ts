@@ -70,21 +70,21 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
     published_at: data.published_at,
     
     // Privacy and sharing settings
-    password: data.password,
-    share_method: (data.share_method as "email" | "whatsapp") || "email",
-    album_publish_time: data.album_publish_time || "after_event",
-    custom_publish_delay: data.custom_publish_delay || 24,
+    password: (data as any).password,
+    share_method: ((data as any).share_method as "email" | "whatsapp") || "email",
+    album_publish_time: (data as any).album_publish_time || "after_event",
+    custom_publish_delay: (data as any).custom_publish_delay || 24,
     
     // Welcome page customization
-    welcome_title: data.welcome_title,
-    welcome_text: data.welcome_text,
-    invite_button_text: data.invite_button_text,
+    welcome_title: (data as any).welcome_title,
+    welcome_text: (data as any).welcome_text,
+    invite_button_text: (data as any).invite_button_text,
     
     // Album settings
-    album_title: data.album_title,
-    album_description: data.album_description,
-    album_cover_url: data.album_cover_url,
-    is_album_published: data.is_album_published ?? false,
+    album_title: (data as any).album_title,
+    album_description: (data as any).album_description,
+    album_cover_url: (data as any).album_cover_url,
+    is_album_published: (data as any).is_album_published ?? false,
   };
 }
 

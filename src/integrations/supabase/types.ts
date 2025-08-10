@@ -43,58 +43,91 @@ export type Database = {
       }
       events: {
         Row: {
+          album_cover_url: string | null
+          album_description: string | null
+          album_publish_time: string | null
+          album_title: string | null
           calendar_type: Database["public"]["Enums"]["calendar_type"]
           country_code: string | null
           cover_url: string | null
           created_at: string
+          custom_publish_delay: number | null
           description: string | null
           enable_video: boolean
           end_at: string | null
           expected_guests: number
+          invite_button_text: string | null
+          is_album_published: boolean | null
           is_private: boolean
           max_shots: number
           owner_id: string | null
+          password: string | null
           published_at: string | null
+          share_method: string | null
           sign_in_method: string
           start_at: string | null
           title: string
           token: string
+          welcome_text: string | null
+          welcome_title: string | null
         }
         Insert: {
+          album_cover_url?: string | null
+          album_description?: string | null
+          album_publish_time?: string | null
+          album_title?: string | null
           calendar_type?: Database["public"]["Enums"]["calendar_type"]
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_publish_delay?: number | null
           description?: string | null
           enable_video?: boolean
           end_at?: string | null
           expected_guests?: number
+          invite_button_text?: string | null
+          is_album_published?: boolean | null
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null
+          password?: string | null
           published_at?: string | null
+          share_method?: string | null
           sign_in_method: string
           start_at?: string | null
           title: string
           token: string
+          welcome_text?: string | null
+          welcome_title?: string | null
         }
         Update: {
+          album_cover_url?: string | null
+          album_description?: string | null
+          album_publish_time?: string | null
+          album_title?: string | null
           calendar_type?: Database["public"]["Enums"]["calendar_type"]
           country_code?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_publish_delay?: number | null
           description?: string | null
           enable_video?: boolean
           end_at?: string | null
           expected_guests?: number
+          invite_button_text?: string | null
+          is_album_published?: boolean | null
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null
+          password?: string | null
           published_at?: string | null
+          share_method?: string | null
           sign_in_method?: string
           start_at?: string | null
           title?: string
           token?: string
+          welcome_text?: string | null
+          welcome_title?: string | null
         }
         Relationships: []
       }
