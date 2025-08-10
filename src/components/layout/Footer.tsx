@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -30,9 +30,15 @@ const Footer = () => {
           </div>
           <div className="space-y-3">
             <h3 className="text-base font-semibold">تواصل معنا</h3>
-            <p className="text-muted-foreground">
-              نحن هنا لمساعدتك في توثيق أجمل لحظاتك
-            </p>
+            <div className="space-y-2">
+              <p className="text-muted-foreground">
+                نحن هنا لمساعدتك في توثيق أجمل لحظاتك
+              </p>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">info@eyescam.com</span>
+              </div>
+            </div>
           </div>
         </div>
         
