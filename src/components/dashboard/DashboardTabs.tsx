@@ -66,10 +66,7 @@ export function DashboardTabs({ token, eventData, onEventUpdate }: DashboardTabs
         </TabsContent>
 
         <TabsContent value="participants" className="mt-6">
-          <div className="space-y-6">
-            <ParticipantsTab token={token} />
-            <PrivacyTab token={token} eventData={eventData} onEventUpdate={onEventUpdate} />
-          </div>
+          <ParticipantsTab token={token} eventData={eventData} onEventUpdate={onEventUpdate} />
         </TabsContent>
 
         <TabsContent value="customization" className="mt-6">
