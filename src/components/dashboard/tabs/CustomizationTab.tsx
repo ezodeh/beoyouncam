@@ -123,8 +123,8 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                   {/* شريط التنقل */}
                   <nav className="w-full bg-background border-b px-2 py-1">
                     <div className="flex items-center justify-between">
-                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-4 w-auto" />
-                      <div className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">تسجيل الدخول</div>
+                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
+                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
                     </div>
                   </nav>
                   <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
@@ -215,8 +215,8 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <>
                   <nav className="w-full bg-background border-b px-2 py-1">
                     <div className="flex items-center justify-between">
-                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-4 w-auto" />
-                      <div className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">تسجيل الدخول</div>
+                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
+                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
                     </div>
                   </nav>
                   <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
@@ -265,8 +265,8 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <>
                   <nav className="w-full bg-background border-b px-2 py-1">
                     <div className="flex items-center justify-between">
-                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-4 w-auto" />
-                      <div className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">تسجيل الدخول</div>
+                      <img src="/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" alt="عيون cam" className="h-3 w-auto" />
+                      <div className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-center">دخول</div>
                     </div>
                   </nav>
                   <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />

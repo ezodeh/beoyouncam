@@ -216,6 +216,7 @@ export default function CreateEvent() {
     "شكراً بمشاركتكم فرحتنا! صوروا بحب، ما بدنا فلتر مبالغ فيه 🙂."
   );
   const [ctaLabel, setCtaLabel] = useState("للتصوير");
+  const [showHeader, setShowHeader] = useState(true);
 
   // Step 4
   const [guests, setGuests] = useState<number>(5);
@@ -265,6 +266,7 @@ export default function CreateEvent() {
         setWelcomeTitle(d.welcomeTitle ?? "أهلاً وسهلاً في اليوم");
         setWelcomeBody(d.welcomeBody ?? "");
         setCtaLabel(d.ctaLabel ?? "للتصوير");
+        setShowHeader(d.showHeader !== false);
         setGuests(d.guests ?? 100);
         setShotsPerGuest(d.shotsPerGuest ?? 20);
         setEnableVideo(!!d.enableVideo);
@@ -286,12 +288,13 @@ export default function CreateEvent() {
       welcomeTitle,
       welcomeBody,
       ctaLabel,
+      showHeader,
       guests,
       shotsPerGuest,
       enableVideo,
     };
     localStorage.setItem("create_event_draft", JSON.stringify(draft));
-  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, guests, shotsPerGuest, enableVideo]);
+  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, showHeader, guests, shotsPerGuest, enableVideo]);
 
   // auth session
   useEffect(() => {
@@ -411,6 +414,7 @@ export default function CreateEvent() {
         country_code: organizerCountry,
         calendar_type: calendarType,
         enable_video: enableVideo,
+        show_header: showHeader,
       });
       if (insErr) throw insErr;
 
@@ -644,6 +648,24 @@ export default function CreateEvent() {
                   <div className="grid gap-2">
                     <Label>نص زر الدعوة</Label>
                     <Input value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} />
+                  </div>
+                  
+                  {/* إعدادات تنسيق الصفحات */}
+                  <div className="mt-6 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Crown className="w-4 h-4 text-amber-600" />
+                      <Label className="text-amber-700 dark:text-amber-400 font-medium">تنسيق الصفحات (بريميوم)</Label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm">إظهار الهيدر</Label>
+                        <p className="text-xs text-muted-foreground">تحكم في إظهار أو إخفاء الهيدر في جميع صفحات المناسبة</p>
+                      </div>
+                      <Switch
+                        checked={showHeader}
+                        onCheckedChange={setShowHeader}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
