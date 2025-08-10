@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Eye, Smartphone, Heart, Images, Users } from "lucide-react";
+import { Upload, Eye, Smartphone, Heart, Images, Users, Edit } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ImageEditor } from "@/components/ui/image-editor";
 
 interface CustomizationTabProps {
   token: string;
@@ -375,7 +376,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <TabsContent value="welcome" className="space-y-4">
                   <div>
                     <Label>صورة الخلفية</Label>
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
                         <div className="text-center">
                           <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
@@ -391,6 +392,17 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                           }}
                         />
                       </label>
+                      {customization.welcome_page_hero_image && (
+                        <ImageEditor
+                          src={customization.welcome_page_hero_image}
+                          onImageChange={(newSrc) => setCustomization(prev => ({ ...prev, welcome_page_hero_image: newSrc }))}
+                        >
+                          <Button variant="outline" size="sm" className="w-full">
+                            <Edit className="h-4 w-4 ml-2" />
+                            تحرير الصورة
+                          </Button>
+                        </ImageEditor>
+                      )}
                     </div>
                   </div>
                   
@@ -429,7 +441,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <TabsContent value="album-welcome" className="space-y-4">
                   <div>
                     <Label>صورة الخلفية</Label>
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
                         <div className="text-center">
                           <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
@@ -445,6 +457,17 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                           }}
                         />
                       </label>
+                      {customization.album_welcome_hero_image && (
+                        <ImageEditor
+                          src={customization.album_welcome_hero_image}
+                          onImageChange={(newSrc) => setCustomization(prev => ({ ...prev, album_welcome_hero_image: newSrc }))}
+                        >
+                          <Button variant="outline" size="sm" className="w-full">
+                            <Edit className="h-4 w-4 ml-2" />
+                            تحرير الصورة
+                          </Button>
+                        </ImageEditor>
+                      )}
                     </div>
                   </div>
                   
@@ -473,7 +496,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 <TabsContent value="album" className="space-y-4">
                   <div>
                     <Label>صورة الغلاف</Label>
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50">
                         <div className="text-center">
                           <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
@@ -489,6 +512,17 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                           }}
                         />
                       </label>
+                      {customization.album_page_hero_image && (
+                        <ImageEditor
+                          src={customization.album_page_hero_image}
+                          onImageChange={(newSrc) => setCustomization(prev => ({ ...prev, album_page_hero_image: newSrc }))}
+                        >
+                          <Button variant="outline" size="sm" className="w-full">
+                            <Edit className="h-4 w-4 ml-2" />
+                            تحرير الصورة
+                          </Button>
+                        </ImageEditor>
+                      )}
                     </div>
                   </div>
                   
