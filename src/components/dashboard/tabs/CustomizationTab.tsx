@@ -353,8 +353,18 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         </CardHeader>
         <CardContent>
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* التحكم */}
-            <div className="space-y-6">
+            {/* الاستعراض - يظهر أولاً في الموبايل */}
+            <div className="order-2 lg:order-2">
+              <div className="sticky top-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold mb-2">الاستعراض</h3>
+                  <PreviewPhone page={selectedPage} />
+                </div>
+              </div>
+            </div>
+            
+            {/* التحكم - يظهر ثانياً في الموبايل */}
+            <div className="order-1 lg:order-1 space-y-6">
               <Tabs value={selectedPage} onValueChange={setSelectedPage}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="welcome">صفحة الترحيب</TabsTrigger>
@@ -524,14 +534,6 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
               </Button>
             </div>
 
-            {/* المعاينة */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 justify-center">
-                <Eye className="h-4 w-4" />
-                <span className="text-sm font-medium">المعاينة المباشرة</span>
-              </div>
-              <PreviewPhone page={selectedPage} />
-            </div>
           </div>
         </CardContent>
       </Card>
