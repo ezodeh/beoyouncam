@@ -113,73 +113,144 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         <div className="h-full overflow-y-auto">
           {page === "welcome" && (
             <div className="relative h-full flex flex-col" dir="rtl">
-              <div className="relative h-48 overflow-hidden">
-                {customization.welcome_page_hero_image && (
+              {/* شريط العلامة التجارية */}
+              <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+              
+              {/* صورة البطل */}
+              <div className="relative h-48 overflow-hidden bg-secondary">
+                {customization.welcome_page_hero_image ? (
                   <img 
                     src={customization.welcome_page_hero_image} 
                     alt="صورة الترحيب" 
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 h-full w-full object-cover kenburns-slow"
                   />
+                ) : (
+                  <div className="absolute inset-0 bg-muted" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                
+                {/* زر المشاركة */}
+                <div className="absolute top-2 left-2">
+                  <div className="w-6 h-6 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
+                    <div className="w-3 h-3 bg-foreground rounded-sm" />
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 p-4 text-center">
-                <h1 className="text-lg font-bold mb-2">
+              
+              {/* المحتوى */}
+              <div className="flex-1 p-4 text-center flex flex-col justify-center">
+                <h1 className="font-nastaliq text-lg md:text-xl leading-snug font-bold mb-3">
                   {customization.welcome_page_title || "عنوان الحدث"}
                 </h1>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
                   {customization.welcome_page_description || "وصف الحدث"}
                 </p>
-                <Button className="w-full rounded-full text-xs">
+                
+                {/* نموذج التسجيل */}
+                <div className="space-y-2 mb-4">
+                  <div className="h-6 bg-muted rounded text-xs flex items-center justify-center">اسمك</div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <div className="h-6 bg-muted rounded text-xs flex items-center justify-center">+970</div>
+                    <div className="col-span-2 h-6 bg-muted rounded text-xs flex items-center justify-center">5XXXXXXX</div>
+                  </div>
+                </div>
+                
+                <button className="w-full h-8 bg-primary text-primary-foreground rounded-full text-xs font-medium">
                   {customization.welcome_page_button_text || "ابدأ"}
-                </Button>
+                </button>
+                
+                {/* خط الفاصل */}
+                <div className="my-3 flex items-center gap-2">
+                  <div className="h-px bg-border flex-1" />
+                  <span className="text-xs text-muted-foreground">أو</span>
+                  <div className="h-px bg-border flex-1" />
+                </div>
+                
+                {/* زر Google */}
+                <button className="w-full h-8 bg-secondary text-secondary-foreground rounded-full text-xs">
+                  المتابعة بحساب Google
+                </button>
               </div>
             </div>
           )}
           
           {page === "album-welcome" && (
             <div className="relative h-full flex flex-col" dir="rtl">
-              <div className="relative h-48 overflow-hidden">
-                {customization.album_welcome_hero_image && (
+              {/* صورة البطل */}
+              <div className="relative h-48 overflow-hidden bg-secondary">
+                {customization.album_welcome_hero_image ? (
                   <img 
                     src={customization.album_welcome_hero_image} 
                     alt="صورة ترحيب الألبوم" 
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
+                ) : (
+                  <div className="absolute inset-0 bg-muted" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
               </div>
-              <div className="flex-1 p-4 text-center">
-                <h1 className="text-lg font-bold mb-2">
-                  {customization.album_welcome_title || "مرحباً بكم في الألبوم"}
+              
+              {/* المحتوى */}
+              <div className="flex-1 p-4 text-center flex flex-col justify-center">
+                <h1 className="font-nastaliq text-lg leading-snug font-bold mb-3">
+                  {customization.album_welcome_title || "ألبوم الحدث"}
                 </h1>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {customization.album_welcome_description || "استعرض الصور الجميلة"}
+                <p className="text-xs text-muted-foreground mb-6">
+                  {customization.album_welcome_description || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
                 </p>
-                <Button className="w-full rounded-full text-xs">دخول الألبوم</Button>
+                <button className="w-full h-8 bg-primary text-primary-foreground rounded-full text-xs font-medium">
+                  الدخول إلى الألبوم
+                </button>
               </div>
             </div>
           )}
           
           {page === "album" && (
             <div className="relative h-full flex flex-col" dir="rtl">
+              {/* هيدر الألبوم */}
               <div className="relative h-32 overflow-hidden">
-                {customization.album_page_hero_image && (
+                {customization.album_page_hero_image ? (
                   <img 
                     src={customization.album_page_hero_image} 
                     alt="صورة الألبوم" 
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
+                ) : (
+                  <div className="h-full bg-muted" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/10" />
+                
+                {/* زر المشاركة */}
+                <div className="absolute top-2 left-2">
+                  <div className="w-6 h-6 rounded-full bg-background/70 backdrop-blur border border-border flex items-center justify-center">
+                    <div className="w-3 h-3 bg-foreground rounded-sm" />
+                  </div>
+                </div>
+                
+                {/* عنوان الألبوم */}
+                <div className="absolute inset-x-0 bottom-0 p-3">
+                  <h1 className="font-nastaliq text-sm font-bold text-right text-white">
+                    الألبوم — {customization.album_page_title || "ألبوم الصور"}
+                  </h1>
+                </div>
               </div>
+              
+              {/* تبويبات الألبوم */}
               <div className="p-3">
-                <h1 className="text-sm font-bold mb-3 text-center">
-                  {customization.album_page_title || "ألبوم الصور"}
-                </h1>
-                <div className="grid grid-cols-2 gap-2">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="aspect-square bg-muted rounded"></div>
+                <div className="grid grid-cols-3 bg-muted rounded-full p-1 mb-3">
+                  <div className="h-6 rounded-full bg-background text-xs flex items-center justify-center">❤️</div>
+                  <div className="h-6 rounded-full text-xs flex items-center justify-center">📷</div>
+                  <div className="h-6 rounded-full text-xs flex items-center justify-center">👥</div>
+                </div>
+                
+                {/* شبكة الصور */}
+                <div className="grid grid-cols-3 gap-1">
+                  {[1,2,3,4,5,6].map(i => (
+                    <div key={i} className="aspect-square bg-muted rounded relative">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
+                        <div className="w-full h-1 bg-white/50 rounded"></div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
