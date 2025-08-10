@@ -120,7 +120,13 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
               {/* هيدر شرطي */}
               {customization.show_header !== false && (
                 <>
-                  <div className="w-full h-4 bg-muted" />
+                  {/* شريط التنقل */}
+                  <nav className="w-full bg-background border-b px-2 py-1">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold">من عيونكم</div>
+                      <div className="text-xs bg-muted px-2 py-0.5 rounded">تسجيل الدخول</div>
+                    </div>
+                  </nav>
                   <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
                 </>
               )}
@@ -201,7 +207,9 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 
                 {/* فوتر شرطي */}
                 {customization.show_header !== false && (
-                  <div className="w-full h-3 bg-muted mt-2" />
+                  <footer className="w-full bg-muted text-center py-1">
+                    <div className="text-xs text-muted-foreground">© من عيونكم</div>
+                  </footer>
                 )}
               </main>
             </div>
@@ -211,9 +219,12 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
               {/* هيدر شرطي */}
               {customization.show_header !== false && (
-                <header className="relative">
-                  <div className="w-full h-4 bg-muted mb-1" />
-                </header>
+                <nav className="w-full bg-background border-b px-2 py-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold">من عيونكم</div>
+                    <div className="text-xs bg-muted px-2 py-0.5 rounded">تسجيل الدخول</div>
+                  </div>
+                </nav>
               )}
               
               {/* صورة الغلاف */}
@@ -250,7 +261,9 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 
                 {/* فوتر شرطي */}
                 {customization.show_header !== false && (
-                  <div className="w-full h-3 bg-muted mt-2" />
+                  <footer className="w-full bg-muted text-center py-1">
+                    <div className="text-xs text-muted-foreground">© من عيونكم</div>
+                  </footer>
                 )}
               </main>
             </div>
@@ -260,7 +273,12 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
               {/* هيدر شرطي */}
               {customization.show_header !== false && (
-                <div className="w-full h-4 bg-muted" />
+                <nav className="w-full bg-background border-b px-2 py-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold">من عيونكم</div>
+                    <div className="text-xs bg-muted px-2 py-0.5 rounded">تسجيل الدخول</div>
+                  </div>
+                </nav>
               )}
               
               <main className="flex-1">
@@ -327,7 +345,9 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                 
                 {/* فوتر شرطي */}
                 {customization.show_header !== false && (
-                  <div className="w-full h-3 bg-muted mt-2" />
+                  <footer className="w-full bg-muted text-center py-1">
+                    <div className="text-xs text-muted-foreground">© من عيونكم</div>
+                  </footer>
                 )}
               </main>
             </div>
