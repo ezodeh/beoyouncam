@@ -93,10 +93,10 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
   };
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6" dir="rtl">
       <Card>
         <CardHeader>
-          <CardTitle>صورة الغلاف</CardTitle>
+          <CardTitle className="text-right">صورة الغلاف</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {coverUrl && (
@@ -104,14 +104,15 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
               <img src={coverUrl} alt="صورة الغلاف" className="w-full h-full object-cover" />
             </div>
           )}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 justify-end">
             <Button 
               variant="outline" 
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
+              className="flex items-center gap-2"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              {uploading ? "جاري الرفع..." : "رفع صورة"}
+              <span>{uploading ? "جاري الرفع..." : "رفع صورة"}</span>
+              <Upload className="h-4 w-4" />
             </Button>
             <input
               ref={fileInputRef}
@@ -126,113 +127,119 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
 
       <Card>
         <CardHeader>
-          <CardTitle>تفاصيل المناسبة</CardTitle>
+          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">اسم المناسبة</Label>
+            <Label htmlFor="title" className="text-right">اسم المناسبة</Label>
             <Input 
               id="title"
               value={title} 
               onChange={(e) => setTitle(e.target.value)}
               placeholder="أدخل اسم المناسبة"
+              className="text-right"
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="description">الوصف</Label>
+            <Label htmlFor="description" className="text-right">الوصف</Label>
             <Textarea 
               id="description"
               value={description} 
               onChange={(e) => setDescription(e.target.value)}
               placeholder="وصف المناسبة (اختياري)"
               rows={3}
+              className="text-right"
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="start">وقت البداية</Label>
+              <Label htmlFor="start" className="text-right">وقت البداية</Label>
               <Input 
                 id="start"
                 type="datetime-local" 
                 value={startAt} 
                 onChange={(e) => setStartAt(e.target.value)} 
+                className="text-right"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="end">وقت الانتهاء</Label>
+              <Label htmlFor="end" className="text-right">وقت الانتهاء</Label>
               <Input 
                 id="end"
                 type="datetime-local" 
                 value={endAt} 
                 onChange={(e) => setEndAt(e.target.value)} 
+                className="text-right"
               />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="maxShots">عدد الصور المسموحة لكل مشارك</Label>
+            <Label htmlFor="maxShots" className="text-right">عدد الصور المسموحة لكل مشارك</Label>
             <Input 
               id="maxShots"
               type="number" 
               min={1} 
               value={maxShots} 
               onChange={(e) => setMaxShots(Number(e.target.value))} 
+              className="text-right"
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="expectedGuests">عدد الضيوف المتوقع</Label>
+            <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
             <Input
               id="expectedGuests"
               type="number"
               min={0}
               value={expectedGuests}
               onChange={(e) => setExpectedGuests(Number(e.target.value))}
+              className="text-right"
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <Video className="h-4 w-4" />
-                <div>
-                  <Label>تفعيل الفيديو</Label>
-                  <p className="text-sm text-muted-foreground">السماح بتسجيل الفيديو</p>
-                </div>
-              </div>
               <Switch 
                 checked={enableVideo} 
                 onCheckedChange={setEnableVideo}
               />
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <Label>تفعيل الفيديو</Label>
+                  <p className="text-sm text-muted-foreground">السماح بتسجيل الفيديو</p>
+                </div>
+                <Video className="h-4 w-4" />
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
+              <Switch 
+                checked={isPrivate} 
+                onCheckedChange={setIsPrivate}
+              />
               <div className="flex items-center gap-2">
-                {isPrivate ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-                <div>
+                <div className="text-right">
                   <Label>خصوصية المناسبة</Label>
                   <p className="text-sm text-muted-foreground">
                     {isPrivate ? "خاصة - تحتاج دعوة" : "عامة - يمكن للجميع الانضمام"}
                   </p>
                 </div>
+                {isPrivate ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
               </div>
-              <Switch 
-                checked={isPrivate} 
-                onCheckedChange={setIsPrivate}
-              />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="country" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
+            <Label htmlFor="country" className="flex items-center gap-2 justify-end">
               رمز البلد
+              <Globe className="h-4 w-4" />
             </Label>
             <Select value={countryCode} onValueChange={setCountryCode}>
-              <SelectTrigger>
+              <SelectTrigger className="text-right">
                 <SelectValue placeholder="اختر رمز البلد" />
               </SelectTrigger>
               <SelectContent>
@@ -246,18 +253,18 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
           </div>
 
           <Button onClick={handleSave} className="w-full">
-            <Save className="h-4 w-4 mr-2" />
-            حفظ التغييرات
+            <span>حفظ التغييرات</span>
+            <Save className="h-4 w-4 ml-2" />
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-red-600">المنطقة الخطرة</CardTitle>
+          <CardTitle className="text-red-600 text-right">المنطقة الخطرة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+          <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/5 text-right">
             <h4 className="font-semibold text-destructive mb-2">حذف المناسبة نهائياً</h4>
             <p className="text-sm text-muted-foreground mb-4">
               سيتم حذف جميع البيانات والصور والمباركات المرتبطة بهذه المناسبة نهائياً. هذا الإجراء لا يمكن التراجع عنه.
