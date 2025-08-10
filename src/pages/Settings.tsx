@@ -8,8 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Globe, Save, LogOut, Trash2, Shield } from "lucide-react";
+import { User, Mail, Phone, Globe, Save, LogOut, Trash2, Shield, Calendar, Edit3 } from "lucide-react";
+
+interface Event {
+  token: string;
+  title: string;
+  description?: string;
+  expected_guests: number;
+  max_shots: number;
+  created_at: string;
+}
 
 export default function Settings() {
   const [email, setEmail] = useState<string>("");
@@ -20,11 +30,14 @@ export default function Settings() {
   const [gender, setGender] = useState<string>("");
   const [notifications, setNotifications] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [editingEvent, setEditingEvent] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     document.title = "الإعدادات — من عيونكم";
     loadUserData();
+    loadUserEvents();
   }, []);
 
   const loadUserData = async () => {
@@ -93,6 +106,50 @@ export default function Settings() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const loadUserEvents = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: eventsData } = await supabase
+        .from("events")
+        .select("token, title, description, expected_guests, max_shots, created_at")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (eventsData) {
+        setEvents(eventsData as Event[]);
+      }
+    } catch (error) {
+      console.error("Error loading events:", error);
+    }
+  };
+
+  const updateEvent = async (eventToken: string, updates: { title?: string; description?: string }) => {
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update(updates)
+        .eq("token", eventToken);
+
+      if (error) throw error;
+
+      setEvents(prev => prev.map(event => 
+        event.token === eventToken ? { ...event, ...updates } : event
+      ));
+      
+      toast({ title: "تم تحديث المناسبة بنجاح" });
+      setEditingEvent(null);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast({ 
+        title: "خطأ في التحديث", 
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        variant: "destructive"
+      });
     }
   };
 
@@ -297,6 +354,119 @@ export default function Settings() {
                   حذف الحساب نهائياً
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                مناسباتي السابقة
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {events.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">لا توجد مناسبات بعد</p>
+              ) : (
+                events.map((event) => (
+                  <div key={event.token} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">{event.title}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingEvent(editingEvent === event.token ? null : event.token)}
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {editingEvent === event.token ? (
+                      <div className="space-y-3">
+                        <div className="grid gap-2">
+                          <Label>عنوان المناسبة</Label>
+                          <Input
+                            value={event.title}
+                            onChange={(e) => setEvents(prev => 
+                              prev.map(ev => ev.token === event.token ? { ...ev, title: e.target.value } : ev)
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <Label>وصف المناسبة</Label>
+                          <Textarea
+                            value={event.description || ""}
+                            onChange={(e) => setEvents(prev => 
+                              prev.map(ev => ev.token === event.token ? { ...ev, description: e.target.value } : ev)
+                            )}
+                            placeholder="وصف المناسبة"
+                          />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label>عدد الضيوف المتوقع</Label>
+                            <Input
+                              value={event.expected_guests}
+                              readOnly
+                              className="bg-muted"
+                            />
+                            <p className="text-xs text-muted-foreground">لا يمكن تغيير عدد الضيوف</p>
+                          </div>
+                          
+                          <div className="grid gap-2">
+                            <Label>عدد الصور المسموح</Label>
+                            <Input
+                              value={event.max_shots}
+                              readOnly
+                              className="bg-muted"
+                            />
+                            <p className="text-xs text-muted-foreground">لا يمكن تغيير عدد الصور</p>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label>رمز المناسبة</Label>
+                          <Input
+                            value={event.token}
+                            readOnly
+                            className="bg-muted"
+                          />
+                          <p className="text-xs text-muted-foreground">لا يمكن تغيير رمز المناسبة</p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => updateEvent(event.token, {
+                              title: event.title,
+                              description: event.description
+                            })}
+                            size="sm"
+                          >
+                            حفظ التغييرات
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingEvent(null)}
+                            size="sm"
+                          >
+                            إلغاء
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <p><strong>الرمز:</strong> {event.token}</p>
+                        <p><strong>عدد الضيوف:</strong> {event.expected_guests}</p>
+                        <p><strong>عدد الصور:</strong> {event.max_shots}</p>
+                        {event.description && <p><strong>الوصف:</strong> {event.description}</p>}
+                        <p><strong>تاريخ الإنشاء:</strong> {new Date(event.created_at).toLocaleDateString('ar-EG')}</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
