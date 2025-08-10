@@ -270,9 +270,50 @@ export function EventDetailsTab({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-red-600 text-right">المنطقة الخطرة</CardTitle>
+          <CardTitle className="text-amber-600 text-right">إعدادات متقدمة</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Hide/Show Event Section */}
+          <div className="p-4 border border-amber-500/50 rounded-lg bg-amber-50/50 text-right">
+            <h4 className="font-semibold text-amber-700 mb-2">
+              {eventData?.is_hidden ? "إظهار المناسبة" : "إخفاء المناسبة"}
+            </h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              {eventData?.is_hidden 
+                ? "المناسبة مخفية حالياً. يمكنك إظهارها مرة أخرى للضيوف."
+                : "إخفاء المناسبة عن الضيوف مؤقتاً دون حذف البيانات."
+              }
+            </p>
+            <Button 
+              variant={eventData?.is_hidden ? "default" : "secondary"} 
+              onClick={async () => {
+                try {
+                  const { error } = await supabase
+                    .from('events')
+                    .update({ is_hidden: !eventData?.is_hidden })
+                    .eq('token', token);
+                    
+                  if (error) throw error;
+                  
+                  toast({
+                    title: eventData?.is_hidden ? "تم إظهار المناسبة" : "تم إخفاء المناسبة"
+                  });
+                  
+                  onEventUpdate();
+                } catch (error) {
+                  toast({
+                    title: "فشل في تحديث حالة المناسبة",
+                    description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              {eventData?.is_hidden ? "إظهار المناسبة" : "إخفاء المناسبة"}
+            </Button>
+          </div>
+
+          {/* Delete Event Section */}
           <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/5 text-right">
             <h4 className="font-semibold text-destructive mb-2">حذف المناسبة نهائياً</h4>
             <p className="text-sm text-muted-foreground mb-4">
