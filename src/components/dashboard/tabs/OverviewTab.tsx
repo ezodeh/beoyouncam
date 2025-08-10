@@ -9,14 +9,19 @@ import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import QRDesigner from "@/components/dashboard/QRDesigner";
 import { formatDate } from "@/lib/dateUtils";
-
 interface OverviewTabProps {
   token: string;
   eventData: any;
 }
-
-export function OverviewTab({ token, eventData }: OverviewTabProps) {
-  const [stats, setStats] = useState({ participants: 0, photos: 0, messages: 0 });
+export function OverviewTab({
+  token,
+  eventData
+}: OverviewTabProps) {
+  const [stats, setStats] = useState({
+    participants: 0,
+    photos: 0,
+    messages: 0
+  });
   const [countdown, setCountdown] = useState("");
   const [designerOpen, setDesignerOpen] = useState(false);
   const eventStatus = useMemo(() => {
@@ -28,94 +33,65 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
     if (end && now > end) return "منتهية";
     return "غير محددة";
   }, [eventData?.start_at, eventData?.end_at]);
-
   useEffect(() => {
     // Fetch real stats
     const fetchStats = async () => {
-      const [participantsRes, blessingsRes, photosRes] = await Promise.all([
-        supabase.from("participants").select("*", { count: 'exact' }).eq("event_token", token),
-        supabase.from("blessings").select("*", { count: 'exact' }).eq("event_token", token),
-        supabase.storage.from("event-media").list(`events/${token}`, { limit: 1000 })
-      ]);
-
-      const photoCount = photosRes.data?.filter(file => 
-        file.name.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)
-      ).length || 0;
-
+      const [participantsRes, blessingsRes, photosRes] = await Promise.all([supabase.from("participants").select("*", {
+        count: 'exact'
+      }).eq("event_token", token), supabase.from("blessings").select("*", {
+        count: 'exact'
+      }).eq("event_token", token), supabase.storage.from("event-media").list(`events/${token}`, {
+        limit: 1000
+      })]);
+      const photoCount = photosRes.data?.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)).length || 0;
       setStats({
         participants: participantsRes.count || 0,
         photos: photoCount,
         messages: blessingsRes.count || 0
       });
     };
-
     fetchStats();
   }, [token]);
-
   useEffect(() => {
     // Update countdown
     const updateCountdown = () => {
       if (!eventData?.start_at) return;
-      
       const now = new Date().getTime();
       const eventTime = new Date(eventData.start_at).getTime();
       const distance = eventTime - now;
-
       if (distance > 0) {
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        
+        const hours = Math.floor(distance % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
+        const minutes = Math.floor(distance % (1000 * 60 * 60) / (1000 * 60));
         setCountdown(`${days} يوم، ${hours} ساعة، ${minutes} دقيقة`);
       } else {
         setCountdown("المناسبة جارية الآن!");
       }
     };
-
     updateCountdown();
     const interval = setInterval(updateCountdown, 60000);
     return () => clearInterval(interval);
   }, [eventData?.start_at]);
-
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
-
-  return (
-    <div className="grid gap-4 text-right">
+  return <div className="grid gap-4 text-right">
       {/* Cover with overlay actions */}
       <Card className="relative overflow-hidden rounded-xl">
-        <div
-          className="h-[150px] w-full"
-          style={{
-            backgroundImage: eventData?.cover_url ? `url(${eventData.cover_url})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          {!eventData?.cover_url && (
-            <div className="h-full w-full bg-muted" />
-          )}
+        <div className="h-[150px] w-full" style={{
+        backgroundImage: eventData?.cover_url ? `url(${eventData.cover_url})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
+          {!eventData?.cover_url && <div className="h-full w-full bg-muted" />}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Link to={`/manage/${token}?tab=album`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            التحكم بالألبوم
-          </Link>
-          <Link to={`/album/${token}`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            تعديل شاشة الألبوم
-          </Link>
-          <Link to={`/manage/${token}?tab=details`} className="rounded-full border px-1.5 py-[2px] text-[10px] bg-background/80 backdrop-blur">
-            تعديل شاشة الحدث
-          </Link>
-        </div>
+        
         <div className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-2">
           <div className="text-white">
             <h2 className="text-base font-bold font-nastaliq">{eventData?.title || "مناسبة جديدة"}</h2>
-            {eventData?.start_at && (
-              <div className="flex items-center gap-1 text-white/90">
+            {eventData?.start_at && <div className="flex items-center gap-1 text-white/90">
                 <Clock className="h-4 w-4" />
                 <span className="text-[11px]">{countdown}</span>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </Card>
@@ -136,13 +112,13 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                         <stop offset="100%" stopColor="hsl(var(--accent))" />
                       </linearGradient>
                     </defs>
-                    <Pie
-                      data={[{ name: 'حضور', value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100)) }, { name: 'متبق', value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants) }]}
-                      dataKey="value"
-                      innerRadius={36}
-                      outerRadius={46}
-                      paddingAngle={2}
-                    >
+                    <Pie data={[{
+                    name: 'حضور',
+                    value: Math.min(stats.participants, Number(eventData?.expected_guests ?? 100))
+                  }, {
+                    name: 'متبق',
+                    value: Math.max(0, Number(eventData?.expected_guests ?? 100) - stats.participants)
+                  }]} dataKey="value" innerRadius={36} outerRadius={46} paddingAngle={2}>
                       <Cell fill="url(#attendanceGrad)" />
                       <Cell fill="hsl(var(--muted-foreground) / 0.2)" />
                     </Pie>
@@ -182,7 +158,9 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ البداية</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.start_at ? formatDate(eventData.start_at, { includeTime: true }) : '—'}
+            {eventData?.start_at ? formatDate(eventData.start_at, {
+            includeTime: true
+          }) : '—'}
           </CardContent>
         </Card>
         <Card>
@@ -190,7 +168,9 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             <CardTitle className="text-sm">تاريخ الانتهاء</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-1 text-[12px]">
-            {eventData?.end_at ? formatDate(eventData.end_at, { includeTime: true }) : '—'}
+            {eventData?.end_at ? formatDate(eventData.end_at, {
+            includeTime: true
+          }) : '—'}
           </CardContent>
         </Card>
       </div>
@@ -200,11 +180,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <Link to={`/manage/${token}?tab=album`} className="block">
           <Card>
             <CardContent className="p-3">
-              <div className="flex items-center gap-2 flex-row-reverse">
+              <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-primary/10">
                   <Image className="h-5 w-5 text-primary" />
                 </div>
-                <div className="text-right">
+                <div>
                   <div className="text-base font-bold">{stats.photos}</div>
                   <div className="text-[11px] text-muted-foreground">عدد الذكريات</div>
                 </div>
@@ -216,11 +196,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
         <Link to={`/album/${token}`} className="block">
           <Card>
             <CardContent className="p-3">
-              <div className="flex items-center gap-2 flex-row-reverse">
+              <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-primary/10">
                   <Image className="h-5 w-5 text-primary" />
                 </div>
-                <div className="text-right">
+                <div>
                   <div className="text-base font-bold">عرض</div>
                   <div className="text-[11px] text-muted-foreground">الألبوم العام</div>
                 </div>
@@ -234,125 +214,103 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
       <div className="space-y-2">
         <Card>
           <CardHeader className="p-3 pb-0">
-            <CardTitle className="flex items-center gap-2 text-sm flex-row-reverse">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <QrCode className="h-5 w-5" />
-              {eventStatus === "منتهية" ? "الألبوم" : "نشر الحدث"}
-              {eventData?.published_at && new Date(eventData.published_at) > new Date() && eventStatus !== "منتهية" && (
-                <span className="text-xs text-muted-foreground block">
+              نشر الألبوم
+              {eventData?.published_at && new Date(eventData.published_at) > new Date() && <span className="text-xs text-muted-foreground block">
                   سيُنشر بعد: {Math.ceil((new Date(eventData.published_at).getTime() - Date.now()) / (1000 * 60 * 60))} ساعة
-                </span>
-              )}
+                </span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center p-3">
-            {eventStatus === "منتهية" ? (
-              // Show album link when event is ended
-              <div className="space-y-3">
-                <div className="bg-white p-2 rounded-lg inline-block">
-                  <div id="overview-qr-wrap">
-                    <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}`} size={72} level="H" />
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/album/${token}`)}>نسخ الرابط</Button>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const svg = document.querySelector<SVGSVGElement>("#overview-qr");
-                    if (!svg) return;
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) return;
-                    const scale = 4;
-                    const size = 512;
-                    canvas.width = size * scale;
-                    canvas.height = size * scale;
-                    ctx.scale(scale, scale);
-                    const svgData = new XMLSerializer().serializeToString(svg);
-                    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-                    const url = URL.createObjectURL(svgBlob);
-                    const img = document.createElement("img");
-                    img.onload = () => {
-                      ctx.fillStyle = "#ffffff";
-                      ctx.fillRect(0, 0, size, size);
-                      ctx.drawImage(img, 0, 0, size, size);
-                      canvas.toBlob((pngBlob) => {
-                        if (pngBlob) {
-                          const pngUrl = URL.createObjectURL(pngBlob);
-                          const a = document.createElement("a");
-                          a.href = pngUrl; a.download = `album-${token}-qr.png`; a.click();
-                          URL.revokeObjectURL(pngUrl);
-                        }
-                      }, "image/png", 1.0);
-                      URL.revokeObjectURL(url);
-                    };
-                    img.src = url;
-                  }}>تنزيل PNG</Button>
-                  <Button variant="outline" size="sm" onClick={async () => {
-                    const url = `${window.location.origin}/album/${token}`;
-                    if (navigator.share) {
-                      await navigator.share({ title: 'ألبوم المناسبة', url });
-                    } else {
-                      navigator.clipboard.writeText(url);
-                    }
-                  }}>مشاركة</Button>
-                </div>
+            <div className="bg-white p-2 rounded-lg inline-block mb-2">
+              <div id="overview-qr-wrap">
+                <QRCode id="overview-qr" value={eventUrl} size={72} level="H" />
               </div>
-            ) : (
-              // Show event link and camera when event is active or upcoming
-              <div className="space-y-3">
-                <div className="bg-white p-2 rounded-lg inline-block">
-                  <div id="overview-qr-wrap">
-                    <QRCode id="overview-qr" value={eventUrl} size={72} level="H" />
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(eventUrl)}>نسخ الرابط</Button>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const svg = document.querySelector<SVGSVGElement>("#overview-qr");
-                    if (!svg) return;
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) return;
-                    const scale = 4;
-                    const size = 512;
-                    canvas.width = size * scale;
-                    canvas.height = size * scale;
-                    ctx.scale(scale, scale);
-                    const svgData = new XMLSerializer().serializeToString(svg);
-                    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-                    const url = URL.createObjectURL(svgBlob);
-                    const img = document.createElement("img");
-                    img.onload = () => {
-                      ctx.fillStyle = "#ffffff";
-                      ctx.fillRect(0, 0, size, size);
-                      ctx.drawImage(img, 0, 0, size, size);
-                      canvas.toBlob((pngBlob) => {
-                        if (pngBlob) {
-                          const pngUrl = URL.createObjectURL(pngBlob);
-                          const a = document.createElement("a");
-                          a.href = pngUrl; a.download = `event-${token}-qr.png`; a.click();
-                          URL.revokeObjectURL(pngUrl);
-                        }
-                      }, "image/png", 1.0);
-                      URL.revokeObjectURL(url);
-                    };
-                    img.src = url;
-                  }}>تنزيل PNG</Button>
-                  <Button variant="outline" size="sm" onClick={async () => {
-                    if (navigator.share) {
-                      await navigator.share({ title: 'نشر الحدث', url: eventUrl });
-                    } else {
-                      navigator.clipboard.writeText(eventUrl);
-                    }
-                  }}>مشاركة</Button>
-                </div>
-              </div>
-            )}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(eventUrl)}>نسخ الرابط</Button>
+              <Button variant="outline" size="sm" onClick={() => {
+              const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+              if (!svg) return;
+
+              // Clone and enhance the SVG
+              const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
+
+              // Set larger dimensions and proper viewBox
+              const size = 1024;
+              clonedSvg.setAttribute("width", size.toString());
+              clonedSvg.setAttribute("height", size.toString());
+              clonedSvg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+
+              // Ensure proper background
+              const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              rect.setAttribute("width", "100%");
+              rect.setAttribute("height", "100%");
+              rect.setAttribute("fill", "white");
+              clonedSvg.insertBefore(rect, clonedSvg.firstChild);
+              const serializer = new XMLSerializer();
+              const source = serializer.serializeToString(clonedSvg);
+              const blob = new Blob([source], {
+                type: "image/svg+xml;charset=utf-8"
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `event-${token}-qr-large.svg`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}>SVG (كبير)</Button>
+              <Button variant="outline" size="sm" onClick={() => {
+              const svg = document.querySelector<SVGSVGElement>("#overview-qr");
+              if (!svg) return;
+              const canvas = document.createElement("canvas");
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return;
+
+              // Set ultra high resolution (8x for maximum quality)
+              const scale = 8;
+              const size = 1024; // Larger base size (1024x1024)
+              canvas.width = size * scale; // Final: 8192x8192 pixels
+              canvas.height = size * scale;
+
+              // Scale the context for ultra high DPI
+              ctx.scale(scale, scale);
+              const svgData = new XMLSerializer().serializeToString(svg);
+              const svgBlob = new Blob([svgData], {
+                type: "image/svg+xml;charset=utf-8"
+              });
+              const url = URL.createObjectURL(svgBlob);
+              const img = document.createElement("img");
+              img.onload = () => {
+                // Fill white background
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, size, size);
+
+                // Draw the QR code
+                ctx.drawImage(img, 0, 0, size, size);
+                canvas.toBlob(pngBlob => {
+                  if (pngBlob) {
+                    const pngUrl = URL.createObjectURL(pngBlob);
+                    const a = document.createElement("a");
+                    a.href = pngUrl;
+                    a.download = `event-${token}-qr-ultra-hd.png`;
+                    a.click();
+                    URL.revokeObjectURL(pngUrl);
+                  }
+                }, "image/png", 1.0);
+                URL.revokeObjectURL(url);
+              };
+              img.src = url;
+            }}>PNG (فائق 8K)</Button>
+              <Button variant="outline" size="sm" onClick={() => setDesignerOpen(true)}>تصميم</Button>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="p-3 pb-0">
-            <CardTitle className="flex items-center gap-2 text-sm flex-row-reverse">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <ExternalLink className="h-5 w-5" />
               روابط سريعة
             </CardTitle>
@@ -360,25 +318,24 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           <CardContent className="p-3 space-y-2">
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/camera`}>
-                <Camera className="h-5 w-5 mr-2" />
                 <span className="text-sm">فتح الكاميرا</span>
+                <Camera className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/album/${token}`}>
-                <Image className="h-5 w-5 mr-2" />
                 <span className="text-sm">عرض الألبوم</span>
+                <Image className="h-5 w-5 ml-2" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="w-full flex items-center justify-between flex-row-reverse">
               <Link to={`/event/${token}/invites`}>
-                <Share2 className="h-5 w-5 mr-2" />
                 <span className="text-sm">إرسال دعوات</span>
+                <Share2 className="h-5 w-5 ml-2" />
               </Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
