@@ -267,7 +267,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_event_owner: {
+        Args: { event_token: string; user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       calendar_type: "gregorian" | "hijri"
