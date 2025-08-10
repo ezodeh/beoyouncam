@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { updateEventSettings, hasEventStarted } from "@/lib/eventSettings";
-import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send } from "lucide-react";
+import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send, StopCircle } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -45,9 +45,37 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   const [customPublishDate, setCustomPublishDate] = useState(eventData?.custom_publish_date || "");
   const [customPublishTime, setCustomPublishTime] = useState(eventData?.custom_publish_time || "");
   
-  // Check if event has started to determine SMS restriction
+  // Check if event has started to determine WhatsApp restriction  
   const eventHasStarted = hasEventStarted(eventData);
-  const canChangeSMSSettings = !eventHasStarted;
+  const canChangeWhatsAppSettings = !eventHasStarted;
+
+  // Countdown state for scheduled publishing
+  const [countdown, setCountdown] = useState("");
+
+  // Calculate countdown for specific time publishing
+  useEffect(() => {
+    if (albumPublishTime === "specific_time" && customPublishDate && customPublishTime) {
+      const publishDateTime = new Date(`${customPublishDate}T${customPublishTime}`);
+      
+      const interval = setInterval(() => {
+        const now = new Date();
+        const timeLeft = publishDateTime.getTime() - now.getTime();
+        
+        if (timeLeft > 0) {
+          const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+          
+          setCountdown(`${days}د ${hours}س ${minutes}ق ${seconds}ث`);
+        } else {
+          setCountdown("حان وقت النشر!");
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [albumPublishTime, customPublishDate, customPublishTime]);
 
   useEffect(() => {
     fetchPhotos();
@@ -250,7 +278,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               <Select 
                 value={shareMethod} 
                 onValueChange={setShareMethod}
-                disabled={!canChangeSMSSettings && shareMethod === "sms"}
+                disabled={!canChangeWhatsAppSettings && shareMethod === "whatsapp"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر طريقة المشاركة" />
@@ -262,31 +290,25 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                       البريد الإلكتروني (افتراضي)
                     </div>
                   </SelectItem>
-                  <SelectItem value="whatsapp">
+                  <SelectItem value="whatsapp" disabled={!canChangeWhatsAppSettings && shareMethod !== "whatsapp"}>
                     <div className="flex items-center gap-2">
                       <MessageCircle className="h-4 w-4" />
-                      واتساب
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="sms" disabled={!canChangeSMSSettings && shareMethod !== "sms"}>
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      SMS {!canChangeSMSSettings ? "(لا يمكن التغيير بعد بدء المناسبة)" : "(يتطلب أرقام هاتف)"}
+                      واتساب {!canChangeWhatsAppSettings ? "(لا يمكن التغيير بعد بدء المناسبة)" : "(يتطلب أرقام هاتف)"}
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-              {!canChangeSMSSettings && shareMethod === "sms" && (
+              {!canChangeWhatsAppSettings && shareMethod === "whatsapp" && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-700">
                     لا يمكن تغيير طريقة المشاركة بعد بدء المناسبة لضمان توافق البيانات المجمعة.
                   </p>
                 </div>
               )}
-              {shareMethod === "sms" && (
+              {shareMethod === "whatsapp" && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    تذكير: عند اختيار SMS، تأكد من تفعيل جمع أرقام الهاتف في إعدادات الخصوصية.
+                    تذكير: عند اختيار واتساب، تأكد من تفعيل جمع أرقام الهاتف في إعدادات الخصوصية.
                   </p>
                 </div>
               )}
@@ -345,26 +367,61 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
             {/* Specific Time */}
             {albumPublishTime === "specific_time" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="publishDate">تاريخ النشر</Label>
-                  <Input
-                    id="publishDate"
-                    type="date"
-                    value={customPublishDate}
-                    onChange={(e) => setCustomPublishDate(e.target.value)}
-                  />
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="publishDate">تاريخ النشر</Label>
+                    <Input
+                      id="publishDate"
+                      type="date"
+                      value={customPublishDate}
+                      onChange={(e) => setCustomPublishDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="publishTime">وقت النشر</Label>
+                    <Input
+                      id="publishTime"
+                      type="time"
+                      value={customPublishTime}
+                      onChange={(e) => setCustomPublishTime(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="publishTime">وقت النشر</Label>
-                  <Input
-                    id="publishTime"
-                    type="time"
-                    value={customPublishTime}
-                    onChange={(e) => setCustomPublishTime(e.target.value)}
-                  />
+                
+                {/* Countdown */}
+                {countdown && customPublishDate && customPublishTime && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Clock className="h-4 w-4" />
+                      <span className="font-medium">العد التنازلي للنشر: {countdown}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Publish Now Button for Specific Time */}
+                <div className="flex gap-2">
+                  <Button 
+                    variant="default" 
+                    onClick={toggleAlbumPublish}
+                    disabled={isAlbumPublished}
+                    className="flex-1"
+                  >
+                    <Send className="h-4 w-4 ml-2" />
+                    نشر الآن
+                  </Button>
+                  {isAlbumPublished && (
+                    <Button 
+                      variant="outline" 
+                      onClick={toggleAlbumPublish}
+                      className="flex-1"
+                    >
+                      <StopCircle className="h-4 w-4 ml-2" />
+                      إلغاء النشر
+                    </Button>
+                  )}
                 </div>
-              </div>
+              </>
             )}
 
             {/* Manual Publish Toggle */}
@@ -374,7 +431,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <div className="flex items-center gap-3 text-right">
                     <Clock className="h-5 w-5" />
                     <div>
-                      <Label className="text-base">نشر الألبوم الآن</Label>
+                      <Label className="text-base">حالة نشر الألبوم</Label>
                       <p className="text-sm text-muted-foreground">
                         {isAlbumPublished ? "الألبوم متاح للضيوف" : "الألبوم مخفي عن الضيوف"}
                       </p>
@@ -389,7 +446,10 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => setCustomPublishDate(new Date().toISOString().split('T')[0])}
+                    onClick={() => {
+                      setAlbumPublishTime("specific_time");
+                      setCustomPublishDate(new Date().toISOString().split('T')[0]);
+                    }}
                     className="flex-1"
                   >
                     <Calendar className="h-4 w-4 ml-2" />
@@ -402,10 +462,45 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                     className="flex-1"
                   >
                     <Send className="h-4 w-4 ml-2" />
-                    نشر الآن
+                    {isAlbumPublished ? "منشور" : "نشر الآن"}
                   </Button>
+                  {isAlbumPublished && (
+                    <Button 
+                      variant="outline" 
+                      onClick={toggleAlbumPublish}
+                      className="flex-1"
+                    >
+                      <StopCircle className="h-4 w-4 ml-2" />
+                      إلغاء النشر
+                    </Button>
+                  )}
                 </div>
               </>
+            )}
+
+            {/* General Publish Controls for Other Options */}
+            {!["manual", "specific_time"].includes(albumPublishTime) && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="default" 
+                  onClick={toggleAlbumPublish}
+                  disabled={isAlbumPublished}
+                  className="flex-1"
+                >
+                  <Send className="h-4 w-4 ml-2" />
+                  {isAlbumPublished ? "منشور" : "نشر الآن"}
+                </Button>
+                {isAlbumPublished && (
+                  <Button 
+                    variant="outline" 
+                    onClick={toggleAlbumPublish}
+                    className="flex-1"
+                  >
+                    <StopCircle className="h-4 w-4 ml-2" />
+                    إلغاء النشر
+                  </Button>
+                )}
+              </div>
             )}
 
             {albumPublishTime === "manual" && (
