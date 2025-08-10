@@ -5,13 +5,13 @@ const Features = () => {
   const features = [
     {
       icon: Camera,
-      title: "بعيون أصحابك",
-      description: "كل صاحب يوثّق اللحظات من زاويته الخاصة، فتحصل على ذكريات من كل الجهات"
+      title: "بعيون ضيوفك",
+      description: "كل ضيف يوثّق اللحظات من زاويته الخاصة، فتحصل على ذكريات من كل الجهات"
     },
     {
       icon: Share2,
       title: "مشاركة بسيطة",
-      description: "رابط واحد أو رمز QR يكفي ليبدأ أصحابك بتوثيق اللحظات معك"
+      description: "رابط واحد أو رمز QR يكفي ليبدأ ضيوفك بتوثيق اللحظات معك"
     },
     {
       icon: Users,
@@ -31,7 +31,7 @@ const Features = () => {
     {
       icon: Globe,
       title: "ألبوم خاص أو عام",
-      description: "اختر إن كنت تريد مشاركة الألبوم مع الجمهور أو إبقاؤه بين الأصحاب فقط"
+      description: "اختر إن كنت تريد مشاركة الألبوم مع الجمهور أو إبقاؤه بين الضيوف فقط"
     }
   ];
 
@@ -39,9 +39,9 @@ const Features = () => {
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">شوف مناسبتك بعيون أصحابك</h2>
+          <h2 className="text-3xl font-bold mb-4">شوف مناسبتك بعيون ضيوفك</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            كل صاحب عنده منظور مختلف ولقطة خاصة، اجمع كل هاي اللقطات في مكان واحد
+            كل ضيف عنده منظور مختلف ولقطة خاصة، اجمع كل هاي اللقطات في مكان واحد
           </p>
         </div>
         

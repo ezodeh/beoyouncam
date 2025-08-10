@@ -1,4 +1,4 @@
-import heroImage from "@/assets/hero-neutral.jpg";
+import heroImage from "@/assets/hero-phone-camera.jpg";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import PointerGlow from "@/components/visuals/PointerGlow";
@@ -14,10 +14,10 @@ const Hero = () => {
       <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center py-16">
         <div className="space-y-6">
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight font-nastaliq">
-            شوف مناسبتك بعيون أصحابك — كل لقطة من زاوية مختلفة
+            شوف مناسبتك بعيون ضيوفك — كل لقطة من زاوية مختلفة
           </h1>
           <p className="text-lg text-muted-foreground">
-            خلّي أصحابك يوثّقوا أجمل اللحظات من منظورهم الخاص. بس رابط أو QR وكل شي بيصير جاهز.
+            خلّي ضيوفك يوثّقوا أجمل اللحظات من منظورهم الخاص. بس رابط أو QR وكل شي بيصير جاهز.
           </p>
           <div className="flex items-center gap-3">
             <Button
@@ -42,7 +42,7 @@ const Hero = () => {
             </Button>
           </div>
           <ul className="grid grid-cols-2 gap-3 pt-4 text-sm text-muted-foreground">
-            <li>• كل صاحب بيشارك من زاويته</li>
+            <li>• كل ضيف بيشارك من زاويته</li>
             <li>• مشاركة فورية عبر رابط أو QR</li>
             <li>• لا حاجة لتنزيل تطبيق</li>
             <li>• ألبوم مشترك للذكريات</li>

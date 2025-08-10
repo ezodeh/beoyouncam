@@ -10,10 +10,10 @@ const CallToAction = () => {
         <Card className="max-w-4xl mx-auto">
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              جاهز تشوف مناسبتك بعيون أصحابك؟
+              جاهز تشوف مناسبتك بعيون ضيوفك؟
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              انضم لآلاف الأصحاب اللي بيستخدموا عيون cam لحفظ أحلى اللحظات
+              انضم لآلاف الضيوف اللي بيستخدموا عيون cam لحفظ أحلى اللحظات
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
@@ -33,14 +33,14 @@ const CallToAction = () => {
             </div>
             
             <div className="mt-6 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <span>✓ مجاناً لحد 5 أصحاب</span>
+              <span>✓ مجاناً لحد 5 ضيوف</span>
               <span>✓ بدون تنزيل تطبيق</span>
               <span>✓ سهل الاستخدام</span>
               <span>✓ آمن ومحمي</span>
             </div>
             
             <p className="text-xs text-muted-foreground mt-4">
-              * الخطة المجانية: 5 أصحاب، 10 لقطات بدون الميزات الإضافية
+              * الخطة المجانية: 5 ضيوف، 10 لقطات بدون الميزات الإضافية
             </p>
           </CardContent>
         </Card>
