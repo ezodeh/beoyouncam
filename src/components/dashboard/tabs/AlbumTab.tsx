@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { updateEventSettings } from "@/lib/eventSettings";
-import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2 } from "lucide-react";
+import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -38,6 +38,10 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   const [isAlbumPublished, setIsAlbumPublished] = useState(eventData?.is_album_published ?? false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Album sharing settings
+  const [shareMethod, setShareMethod] = useState(eventData?.share_method || "email");
+  const [customPublishDelay, setCustomPublishDelay] = useState(eventData?.custom_publish_delay || 24);
 
   useEffect(() => {
     fetchPhotos();
@@ -170,6 +174,8 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         album_cover_url: albumCoverUrl,
         album_publish_time: albumPublishTime,
         is_album_published: isAlbumPublished,
+        share_method: shareMethod,
+        custom_publish_delay: customPublishDelay,
       };
 
       const success = await updateEventSettings(token, settings);
@@ -281,8 +287,31 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
             </div>
           </div>
 
-          {/* Publish Settings */}
+          {/* Album Sharing Settings */}
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="shareMethod">طريقة المشاركة</Label>
+              <Select value={shareMethod} onValueChange={setShareMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر طريقة المشاركة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      البريد الإلكتروني
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="whatsapp">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      واتساب
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="publishTime">وقت نشر الألبوم</Label>
               <Select value={albumPublishTime} onValueChange={setAlbumPublishTime}>
@@ -294,10 +323,27 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <SelectItem value="after_event">بعد انتهاء المناسبة</SelectItem>
                   <SelectItem value="after_12h">بعد 12 ساعة</SelectItem>
                   <SelectItem value="after_24h">بعد 24 ساعة</SelectItem>
+                  <SelectItem value="custom">مخصص</SelectItem>
                   <SelectItem value="manual">نشر يدوي</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Custom Delay */}
+            {albumPublishTime === "custom" && (
+              <div className="space-y-2">
+                <Label htmlFor="customDelay">عدد الساعات للتأخير</Label>
+                <Input
+                  id="customDelay"
+                  type="number"
+                  min={1}
+                  max={168}
+                  value={customPublishDelay}
+                  onChange={(e) => setCustomPublishDelay(Number(e.target.value))}
+                  placeholder="عدد الساعات"
+                />
+              </div>
+            )}
 
             {/* Manual Publish Toggle */}
             {albumPublishTime === "manual" && (
@@ -315,6 +361,14 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   checked={isAlbumPublished} 
                   onCheckedChange={toggleAlbumPublish}
                 />
+              </div>
+            )}
+
+            {albumPublishTime === "manual" && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  النشر اليدوي: لن يظهر الألبوم للضيوف إلا عندما تختار نشره بنفسك من لوحة التحكم.
+                </p>
               </div>
             )}
           </div>

@@ -25,10 +25,6 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
   const [eventPassword, setEventPassword] = useState(eventData?.password || "");
   const [showPassword, setShowPassword] = useState(false);
   
-  // Album sharing settings
-  const [shareMethod, setShareMethod] = useState(eventData?.share_method || "email");
-  const [albumPublishTime, setAlbumPublishTime] = useState(eventData?.album_publish_time || "after_event");
-  const [customPublishDelay, setCustomPublishDelay] = useState(eventData?.custom_publish_delay || 24);
   
   // Welcome texts
   const [welcomeTitle, setWelcomeTitle] = useState(eventData?.welcome_title || "مرحباً بكم في مناسبتنا");
@@ -40,9 +36,6 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
       const settings = {
         is_private: isPrivate,
         password: eventPassword || null,
-        share_method: shareMethod,
-        album_publish_time: albumPublishTime,
-        custom_publish_delay: customPublishDelay,
         welcome_title: welcomeTitle,
         welcome_text: welcomeText,
         invite_button_text: inviteButtonText,
@@ -119,82 +112,6 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
         </CardContent>
       </Card>
 
-      {/* Album Publishing Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-right">
-            <MessageCircle className="h-5 w-5" />
-            إعدادات نشر الألبوم
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Share Method */}
-          <div className="space-y-2">
-            <Label htmlFor="shareMethod">طريقة المشاركة</Label>
-            <Select value={shareMethod} onValueChange={setShareMethod}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر طريقة المشاركة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="email">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    البريد الإلكتروني
-                  </div>
-                </SelectItem>
-                <SelectItem value="whatsapp">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    واتساب
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Album Publish Time */}
-          <div className="space-y-2">
-            <Label htmlFor="publishTime">وقت نشر الألبوم</Label>
-            <Select value={albumPublishTime} onValueChange={setAlbumPublishTime}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر وقت النشر" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="immediately">فوراً</SelectItem>
-                <SelectItem value="after_event">بعد انتهاء المناسبة</SelectItem>
-                <SelectItem value="after_12h">بعد 12 ساعة</SelectItem>
-                <SelectItem value="after_24h">بعد 24 ساعة</SelectItem>
-                <SelectItem value="custom">مخصص</SelectItem>
-                <SelectItem value="manual">نشر يدوي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Custom Delay */}
-          {albumPublishTime === "custom" && (
-            <div className="space-y-2">
-              <Label htmlFor="customDelay">عدد الساعات للتأخير</Label>
-              <Input
-                id="customDelay"
-                type="number"
-                min={1}
-                max={168}
-                value={customPublishDelay}
-                onChange={(e) => setCustomPublishDelay(Number(e.target.value))}
-                placeholder="عدد الساعات"
-              />
-            </div>
-          )}
-
-          {albumPublishTime === "manual" && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-700">
-                النشر اليدوي: لن يظهر الألبوم للضيوف إلا عندما تختار نشره بنفسك من لوحة التحكم.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Welcome Page Customization */}
       <Card>
