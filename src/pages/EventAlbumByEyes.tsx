@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Share2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Dummy data - will be replaced with real data from Supabase
 const dummyPhotos = [
@@ -45,9 +46,27 @@ export default function EventAlbumByEyes() {
 
   const [shareCount, setShareCount] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isEventOwner, setIsEventOwner] = useState<boolean>(false);
   
   // Extract person name from URL or use fallback
   const personName = name || "الضيف";
+
+  useEffect(() => {
+    const checkOwnership = async () => {
+      if (!token) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      const { data } = await supabase
+        .from("events")
+        .select("owner_id")
+        .eq("token", token)
+        .single();
+      
+      setIsEventOwner(session.user.id === data?.owner_id);
+    };
+    checkOwnership();
+  }, [token]);
 
   // Lightbox functions
   const openAt = (index: number) => setLightboxIndex(index);
@@ -62,6 +81,45 @@ export default function EventAlbumByEyes() {
       try { await (navigator as any).share({ title, url }); setShareCount((c)=>c+1); } catch(_){}
     } else {
       try { await navigator.clipboard.writeText(url); setShareCount((c)=>c+1); toast({ title: "تم نسخ رابط المشاركة" }); } catch(_){}
+    }
+  };
+
+  const deleteParticipantMedia = async () => {
+    if (!confirm(`هل أنت متأكد من حذف جميع صور ${name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    try {
+      // الحصول على معرف المشارك
+      const { data: participant } = await supabase
+        .from("participants")
+        .select("id")
+        .eq("event_token", token)
+        .eq("name", name)
+        .single();
+
+      if (!participant) return;
+
+      // حذف الملفات من media_submissions
+      const { data: submissions } = await supabase
+        .from("media_submissions")
+        .select("file_path, file_name")
+        .eq("participant_id", participant.id);
+
+      if (submissions && submissions.length > 0) {
+        // حذف الملفات من التخزين
+        const filePaths = submissions.map(s => s.file_path);
+        await supabase.storage
+          .from("event-media")
+          .remove(filePaths);
+
+        // حذف السجلات من قاعدة البيانات
+        await supabase
+          .from("media_submissions")
+          .delete()
+          .eq("participant_id", participant.id);
+      }
+
+      toast({ title: `تم حذف جميع صور ${name}` });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر حذف الصور", variant: "destructive" });
     }
   };
 
@@ -102,6 +160,19 @@ export default function EventAlbumByEyes() {
 
         <section className="container mx-auto px-4 py-6 grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
+            {isEventOwner && dummyPhotos.length > 0 && (
+              <div className="mb-4 flex justify-end">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={deleteParticipantMedia}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  حذف جميع صور {name}
+                </Button>
+              </div>
+            )}
             {dummyPhotos.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
                 {dummyPhotos.map((p, idx) => (

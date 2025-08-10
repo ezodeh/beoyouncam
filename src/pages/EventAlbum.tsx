@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2, Heart, Users, ExternalLink, MessageSquare, Send } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, Share2, Heart, Users, ExternalLink, MessageSquare, Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
@@ -26,6 +26,7 @@ export default function EventAlbum() {
   const [title, setTitle] = useState<string>(eventName);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState<boolean>(true);
+  const [isEventOwner, setIsEventOwner] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = `الألبوم — ${title} — من عيونكم`;
@@ -43,9 +44,10 @@ export default function EventAlbum() {
   useEffect(() => {
     (async () => {
       if (!token) return;
+      const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id")
         .eq("token", token)
         .maybeSingle();
       if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
@@ -56,6 +58,7 @@ export default function EventAlbum() {
         setTitle(data.title || eventName);
         setCoverUrl(data.cover_url || null);
         setShowHeader(data.show_header !== false);
+        setIsEventOwner(session?.user?.id === data.owner_id);
       }
     })();
   }, [token]);
@@ -123,6 +126,85 @@ export default function EventAlbum() {
       toast({ title: "تم إضافة المباركة", description: "شكراً لك" });
     } catch (error) {
       toast({ title: "خطأ", description: "تعذّر إضافة المباركة" });
+    }
+  };
+
+  const deleteBlessings = async () => {
+    if (!confirm("هل أنت متأكد من حذف جميع المباركات؟")) return;
+    try {
+      const { error } = await supabase
+        .from("blessings")
+        .delete()
+        .eq("event_token", token);
+      if (error) throw error;
+      setCongratulations([]);
+      toast({ title: "تم حذف جميع المباركات" });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر حذف المباركات", variant: "destructive" });
+    }
+  };
+
+  const deleteBlessing = async (blessingId: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المباركة؟")) return;
+    try {
+      const { error } = await supabase
+        .from("blessings")
+        .delete()
+        .eq("id", blessingId);
+      if (error) throw error;
+      setCongratulations(prev => prev.filter(c => c.id !== blessingId));
+      toast({ title: "تم حذف المباركة" });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر حذف المباركة", variant: "destructive" });
+    }
+  };
+
+  const deleteAllMedia = async () => {
+    if (!confirm("هل أنت متأكد من حذف جميع الصور والفيديوهات؟ هذا الإجراء لا يمكن التراجع عنه.")) return;
+    try {
+      // حذف الملفات من التخزين
+      const prefix = `events/${token}`;
+      const { data: files } = await supabase.storage
+        .from("event-media")
+        .list(prefix);
+      
+      if (files && files.length > 0) {
+        const filePaths = files.map(f => `${prefix}/${f.name}`);
+        await supabase.storage
+          .from("event-media")
+          .remove(filePaths);
+      }
+
+      // حذف سجلات media_submissions
+      await supabase
+        .from("media_submissions")
+        .delete()
+        .eq("event_token", token);
+
+      setMedia([]);
+      toast({ title: "تم حذف جميع الوسائط" });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر حذف الوسائط", variant: "destructive" });
+    }
+  };
+
+  const deleteMediaItem = async (mediaItem: MediaItem) => {
+    if (!confirm("هل أنت متأكد من حذف هذه الصورة؟")) return;
+    try {
+      const filePath = `events/${token}/${mediaItem.name}`;
+      await supabase.storage
+        .from("event-media")
+        .remove([filePath]);
+
+      await supabase
+        .from("media_submissions")
+        .delete()
+        .eq("file_name", mediaItem.name);
+
+      setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
+      toast({ title: "تم حذف الصورة" });
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذّر حذف الصورة", variant: "destructive" });
     }
   };
 
@@ -269,6 +351,19 @@ export default function EventAlbum() {
 
             <TabsContent value="photos" className="mt-6">
               <div className="max-w-5xl mx-auto">
+                {isEventOwner && imageItems.length > 0 && (
+                  <div className="mb-4 flex justify-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteAllMedia}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      حذف جميع الصور
+                    </Button>
+                  </div>
+                )}
                 {loadingMedia ? (
                   <div className="text-center text-sm text-muted-foreground py-10">جارٍ تحميل الصور…</div>
                 ) : imageItems.length === 0 ? (
@@ -276,7 +371,7 @@ export default function EventAlbum() {
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
                     {imageItems.map((it, idx) => (
-                      <div key={it.name + idx} className="relative">
+                      <div key={it.name + idx} className="relative group">
                         <button
                           className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring w-full"
                           onClick={() => setLightboxIndex(idx)}
@@ -284,6 +379,18 @@ export default function EventAlbum() {
                         >
                           <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
                         </button>
+                        {isEventOwner && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMediaItem(it);
+                            }}
+                            className="absolute top-1 left-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            aria-label="حذف الصورة"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                           <p className="text-white text-xs text-right font-medium">{it.participantName}</p>
                         </div>
@@ -296,6 +403,19 @@ export default function EventAlbum() {
 
             <TabsContent value="congratulations" className="mt-6">
               <div className="space-y-6 max-w-3xl mx-auto">
+                {isEventOwner && congratulations.length > 0 && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteBlessings}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      حذف جميع المباركات
+                    </Button>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" dir="rtl">
                   {congratulations.length === 0 ? (
@@ -304,13 +424,25 @@ export default function EventAlbum() {
                     </div>
                   ) : (
                     congratulations.map((cong) => (
-                      <Card key={cong.id} className="cursor-pointer" onClick={() => { 
+                      <Card key={cong.id} className="cursor-pointer relative group" onClick={() => { 
                         const idx = congratulations.findIndex(c => c.id === cong.id);
                         setCongratIndex(idx);
                         setActiveCongrat(cong); 
                         setShowCongratsDialog(true); 
                       }}>
                         <CardContent className="p-4">
+                          {isEventOwner && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteBlessing(cong.id);
+                              }}
+                              className="absolute top-2 left-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="حذف المباركة"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          )}
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold">
                               {(cong.sender_name || cong.name || "؟").charAt(0)}
@@ -398,10 +530,47 @@ export default function EventAlbum() {
             </TabsContent>
 
             <TabsContent value="albums" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                <div className="col-span-full text-center text-sm text-muted-foreground py-10">
-                  لا توجد ألبومات بعيون الأحباب حتى الآن
-                </div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 max-w-4xl mx-auto">
+                {personalAlbums.map((album) => (
+                  <div key={album.id} className="relative group">
+                    <Link
+                      to={`/album/${token}/by/${encodeURIComponent(album.person_name)}`}
+                      className="group block"
+                      aria-label={`عرض ألبوم ${album.person_name}`}
+                    >
+                      <Card className="group-hover:shadow-lg group-hover:scale-[1.02] transition-all duration-200">
+                        <CardContent className="p-3">
+                          <div className="aspect-square overflow-hidden rounded-lg bg-muted mb-2">
+                            <img
+                              src={album.latest_photo}
+                              alt={`آخر صورة من ألبوم ${album.person_name}`}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <h3 className="font-semibold text-center">{album.person_name}</h3>
+                          <p className="text-xs text-muted-foreground text-center">{album.photo_count} صورة</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    {isEventOwner && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (confirm(`هل أنت متأكد من حذف جميع صور ${album.person_name}؟`)) {
+                            // حذف الألبوم الشخصي
+                            setPersonalAlbums(prev => prev.filter(a => a.id !== album.id));
+                            toast({ title: `تم حذف ألبوم ${album.person_name}` });
+                          }
+                        }}
+                        className="absolute top-2 left-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`حذف ألبوم ${album.person_name}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </TabsContent>
           </Tabs>
