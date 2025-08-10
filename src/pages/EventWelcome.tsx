@@ -28,7 +28,7 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null } | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean } | null>(null);
   useEffect(() => {
     const title = eventDetails?.title || eventName;
     document.title = `الترحيب — ${title} — من عيونكم`;
@@ -42,7 +42,7 @@ export default function EventWelcome() {
       if (!token) return;
       const { data: row, error } = await supabase
         .from("events")
-        .select("title, description, sign_in_method, cover_url, start_at, end_at")
+        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header")
         .eq("token", token as string)
         .maybeSingle();
       const data: any = row;
@@ -216,8 +216,12 @@ export default function EventWelcome() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
-      <Navbar compact fullBleed />
-      <div className="brand-strip w-full" />
+      {eventDetails?.show_header !== false && (
+        <>
+          <Navbar compact fullBleed />
+          <div className="brand-strip w-full" />
+        </>
+      )}
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
         <div className="relative h-[38vh] md:h-[48vh]">
           <img src={eventDetails?.cover_url || heroImage} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
@@ -290,6 +294,8 @@ export default function EventWelcome() {
         </section>
       </main>
       
-      <Footer />
+      {eventDetails?.show_header !== false && (
+        <Footer />
+      )}
     </div>;
 }

@@ -12,6 +12,7 @@ export default function EventAlbumIntro() {
   const eventName = new URLSearchParams(location.search).get("title") || "ألبومكم";
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [title, setTitle] = useState<string>(eventName);
+  const [showHeader, setShowHeader] = useState<boolean>(true);
   useEffect(() => {
     document.title = `مقدمة الألبوم — ${title} — من عيونكم`;
   }, [title]);
@@ -22,12 +23,13 @@ export default function EventAlbumIntro() {
       if (!token) return;
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url")
+        .select("is_private, published_at, title, cover_url, show_header")
         .eq("token", token)
         .maybeSingle();
       if (!data) return;
       setTitle(data.title || eventName);
       setCoverUrl(data.cover_url || null);
+      setShowHeader(data.show_header !== false);
       if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
         navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
       }
@@ -36,7 +38,11 @@ export default function EventAlbumIntro() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
-      <Navbar compact fullBleed />
+      {showHeader && (
+        <Navbar compact fullBleed />
+      )}
+      
+      {/* Header with cover image */}
       <header className="relative">
         <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
           <div className="relative h-[38vh] md:h-[48vh]">
@@ -62,7 +68,9 @@ export default function EventAlbumIntro() {
           </div>
         </section>
       </main>
-      <Footer />
+      {showHeader && (
+        <Footer />
+      )}
     </div>
   );
 }

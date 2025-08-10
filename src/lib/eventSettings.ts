@@ -32,6 +32,7 @@ export interface EventSettings {
   album_description?: string;
   album_cover_url?: string;
   is_album_published?: boolean;
+  show_header?: boolean;
 }
 
 export interface UserProfile {
@@ -85,6 +86,7 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
     album_description: (data as any).album_description,
     album_cover_url: (data as any).album_cover_url,
     is_album_published: (data as any).is_album_published ?? false,
+    show_header: (data as any).show_header !== false,
   };
 }
 

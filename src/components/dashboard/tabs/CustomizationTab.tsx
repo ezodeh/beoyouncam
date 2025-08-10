@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Eye, Smartphone, Heart, Images, Users } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +26,7 @@ interface PageCustomization {
   album_welcome_description?: string;
   album_page_hero_image?: string;
   album_page_title?: string;
+  show_header?: boolean;
 }
 
 export function CustomizationTab({ token, eventData, onEventUpdate }: CustomizationTabProps) {
@@ -44,6 +46,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         album_welcome_description: eventData.album_description || "",
         album_page_hero_image: eventData.album_cover_url || "",
         album_page_title: eventData.album_title || "الألبوم",
+        show_header: eventData.show_header !== false,
       });
     }
   }, [eventData]);
@@ -88,6 +91,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
       if (customization.album_welcome_description) updateData.album_description = customization.album_welcome_description;
       if (customization.album_page_hero_image && !updateData.album_cover_url) updateData.album_cover_url = customization.album_page_hero_image;
       if (customization.album_page_title && !updateData.album_title) updateData.album_title = customization.album_page_title;
+      if (typeof customization.show_header === 'boolean') updateData.show_header = customization.show_header;
 
       const { error } = await supabase
         .from('events')
@@ -196,22 +200,24 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
           {page === "album-welcome" && (
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
               {/* هيدر */}
-              <header className="relative">
-                <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
-                  <div className="relative h-32">
-                    {customization.album_welcome_hero_image ? (
-                      <img 
-                        src={customization.album_welcome_hero_image} 
-                        alt="غلاف الألبوم" 
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-muted" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
-                  </div>
-                </figure>
-              </header>
+              {customization.show_header !== false && (
+                <header className="relative">
+                  <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
+                    <div className="relative h-32">
+                      {customization.album_welcome_hero_image ? (
+                        <img 
+                          src={customization.album_welcome_hero_image} 
+                          alt="غلاف الألبوم" 
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-muted" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
+                    </div>
+                  </figure>
+                </header>
+              )}
               
               {/* المحتوى */}
               <main className="px-3 py-2 flex-1 grid place-items-center">
@@ -454,6 +460,31 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                   </div>
                 </TabsContent>
               </Tabs>
+
+              {/* إعدادات عامة - ميزة البريميوم */}
+              <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
+                    ⭐ إعدادات البريميوم
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-sm font-medium">إظهار الهيدر</Label>
+                      <p className="text-xs text-muted-foreground">
+                        تحكم في إظهار أو إخفاء الهيدر في جميع الصفحات
+                      </p>
+                    </div>
+                    <Switch
+                      checked={customization.show_header !== false}
+                      onCheckedChange={(checked) => 
+                        setCustomization(prev => ({ ...prev, show_header: checked }))
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
               <Button onClick={handleSave} disabled={loading} className="w-full">
                 {loading ? "جاري الحفظ..." : "حفظ التغييرات"}

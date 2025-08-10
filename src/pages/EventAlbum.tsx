@@ -25,6 +25,7 @@ export default function EventAlbum() {
 
   const [title, setTitle] = useState<string>(eventName);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [showHeader, setShowHeader] = useState<boolean>(true);
 
   useEffect(() => {
     document.title = `الألبوم — ${title} — من عيونكم`;
@@ -42,7 +43,11 @@ export default function EventAlbum() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data } = await supabase.from("events").select("is_private, published_at, title, cover_url").eq("token", token).maybeSingle();
+      const { data } = await supabase
+        .from("events")
+        .select("is_private, published_at, title, cover_url, show_header")
+        .eq("token", token)
+        .maybeSingle();
       if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
         navigate(`/event/${token}/soon?title=${encodeURIComponent(title)}`);
         return;
@@ -50,6 +55,7 @@ export default function EventAlbum() {
       if (data) {
         setTitle(data.title || eventName);
         setCoverUrl(data.cover_url || null);
+        setShowHeader(data.show_header !== false);
       }
     })();
   }, [token]);
@@ -216,7 +222,9 @@ export default function EventAlbum() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
-      <Navbar />
+      {showHeader && (
+        <Navbar />
+      )}
       <main className="flex-1">
         <header className="relative">
           <figure className="h-44 sm:h-56 md:h-64 w-full overflow-hidden">
@@ -449,7 +457,9 @@ export default function EventAlbum() {
         </div>
       )}
 
-      <Footer />
+      {showHeader && (
+        <Footer />
+      )}
     </div>
   );
 }

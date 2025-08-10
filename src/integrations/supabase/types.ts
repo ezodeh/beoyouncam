@@ -64,6 +64,7 @@ export type Database = {
           password: string | null
           published_at: string | null
           share_method: string | null
+          show_header: boolean | null
           sign_in_method: string
           start_at: string | null
           title: string
@@ -93,6 +94,7 @@ export type Database = {
           password?: string | null
           published_at?: string | null
           share_method?: string | null
+          show_header?: boolean | null
           sign_in_method: string
           start_at?: string | null
           title: string
@@ -122,6 +124,7 @@ export type Database = {
           password?: string | null
           published_at?: string | null
           share_method?: string | null
+          show_header?: boolean | null
           sign_in_method?: string
           start_at?: string | null
           title?: string
