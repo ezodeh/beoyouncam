@@ -227,67 +227,15 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Album Settings */}
+      {/* Album Sharing Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-right">
-            <Image className="h-5 w-5" />
-            إعدادات الألبوم
+            <Share2 className="h-5 w-5" />
+            إعدادات المشاركة
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Album Cover */}
-          <div className="space-y-4">
-            <Label>صورة غلاف الألبوم</Label>
-            {albumCoverUrl && (
-              <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border">
-                <img src={albumCoverUrl} alt="غلاف الألبوم" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-              >
-                <Upload className="h-4 w-4 ml-2" />
-                {uploading ? "جاري الرفع..." : "رفع صورة الغلاف"}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {/* Album Info */}
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="albumTitle">عنوان الألبوم</Label>
-              <Input
-                id="albumTitle"
-                value={albumTitle}
-                onChange={(e) => setAlbumTitle(e.target.value)}
-                placeholder="عنوان الألبوم"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="albumDescription">وصف الألبوم</Label>
-              <Textarea
-                id="albumDescription"
-                value={albumDescription}
-                onChange={(e) => setAlbumDescription(e.target.value)}
-                placeholder="وصف قصير للألبوم"
-                rows={3}
-              />
-            </div>
-          </div>
-
-          {/* Album Sharing Settings */}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="shareMethod">طريقة المشاركة</Label>
@@ -375,7 +323,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
           <Button onClick={handleSaveAlbumSettings} className="w-full">
             <Save className="h-4 w-4 ml-2" />
-            حفظ إعدادات الألبوم
+            حفظ إعدادات المشاركة
           </Button>
         </CardContent>
       </Card>
