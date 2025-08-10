@@ -170,6 +170,7 @@ export function getSupportedCountries() {
     { code: "+963", name: "Syria", nameAr: "سوريا" },
     { code: "+964", name: "Iraq", nameAr: "العراق" },
     { code: "+970", name: "Palestine", nameAr: "فلسطين" },
+    { code: "+972", name: "Palestine/Israel", nameAr: "مناطق ال48" },
     { code: "+20", name: "Egypt", nameAr: "مصر" },
     { code: "+216", name: "Tunisia", nameAr: "تونس" },
     { code: "+213", name: "Algeria", nameAr: "الجزائر" },

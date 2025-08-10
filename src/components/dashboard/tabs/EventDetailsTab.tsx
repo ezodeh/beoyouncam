@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Save, Video, Lock, Unlock, Globe } from "lucide-react";
+import { Upload, Save, Video, Lock, Unlock, Globe, Eye, EyeOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateEventSettings, getSupportedCountries } from "@/lib/eventSettings";
@@ -34,6 +34,7 @@ export function EventDetailsTab({
   const [enableVideo, setEnableVideo] = useState(eventData?.enable_video ?? true);
   const [isPrivate, setIsPrivate] = useState(eventData?.is_private ?? false);
   const [password, setPassword] = useState(eventData?.password || "");
+  const [showPassword, setShowPassword] = useState(false);
   const [countryCode, setCountryCode] = useState(eventData?.country_code || "+962");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -154,9 +155,6 @@ export function EventDetailsTab({
               onValueChange={(value) => {
                 if (value === "custom") {
                   setShowCustomGuestInput(true);
-                } else if (value === "unlimited") {
-                  setExpectedGuests(999999);
-                  setShowCustomGuestInput(false);
                 } else if (value === "undefined") {
                   setExpectedGuests(0);
                   setShowCustomGuestInput(false);
@@ -179,8 +177,6 @@ export function EventDetailsTab({
                 <SelectItem value="200">200</SelectItem>
                 <SelectItem value="300">300</SelectItem>
                 <SelectItem value="500">500</SelectItem>
-                <SelectItem value="1000">1000</SelectItem>
-                <SelectItem value="unlimited">غير محدود 💎</SelectItem>
                 <SelectItem value="custom">عدد مخصص</SelectItem>
               </SelectContent>
             </Select>
@@ -217,9 +213,9 @@ export function EventDetailsTab({
                 {isPrivate ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                 <div className="text-right">
                   <Label>خصوصية المناسبة</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {isPrivate ? "خاصة - تحتاج دعوة" : "عامة - يمكن للجميع الانضمام"}
-                  </p>
+                   <p className="text-sm text-muted-foreground">
+                     {isPrivate ? "خاصة - تحتاج كلمة سر" : "عامة - يمكن للجميع الانضمام"}
+                   </p>
                 </div>
               </div>
             </div>
@@ -228,17 +224,23 @@ export function EventDetailsTab({
           {isPrivate && (
             <div className="grid gap-2">
               <Label htmlFor="password" className="text-right">كلمة المرور (للمناسبات الخاصة)</Label>
-              <Input 
-                id="password"
-                type="text"
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="أدخل كلمة مرور أو اتركها فارغة"
-                className="text-right" 
-              />
-              <p className="text-sm text-muted-foreground text-right">
-                {password ? `كلمة المرور الحالية: ${password}` : "لا توجد كلمة مرور محددة حالياً"}
-              </p>
+              <div className="relative">
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="أدخل كلمة مرور"
+                  className="text-right pr-10" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
           )}
 
