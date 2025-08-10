@@ -80,7 +80,8 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
           const hours = Math.floor(timeLeft / (1000 * 60 * 60));
           const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          setCountdown(`سيتم النشر بعد : ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية`);
+          const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          setCountdown(`سيتم النشر بعد : ${formattedTime}`);
         } else {
           setCountdown("حان وقت النشر!");
         }
