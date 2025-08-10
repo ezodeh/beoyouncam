@@ -206,6 +206,7 @@ export default function CreateEvent() {
   const [timing, setTiming] = useState<AlbumTiming>("manual");
   const [customPublishAt, setCustomPublishAt] = useState<Date | null>(null);
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
+  const [password, setPassword] = useState("");
   const [autoShareToGuests, setAutoShareToGuests] = useState(false);
   const [shareChannel, setShareChannel] = useState<"sms" | "email" | "none">("none");
 
@@ -272,6 +273,7 @@ export default function CreateEvent() {
         setTiming(d.timing ?? "manual");
         setCustomPublishAt(d.customPublishAt ? new Date(d.customPublishAt) : null);
         setPrivacy(d.privacy ?? "private");
+        setPassword(d.password ?? "");
         setAutoShareToGuests(!!d.autoShareToGuests);
         setShareChannel(d.shareChannel ?? "none");
         setWelcomeTitle(d.welcomeTitle ?? "أهلاً وسهلاً في اليوم");
@@ -294,6 +296,7 @@ export default function CreateEvent() {
       timing,
       customPublishAt,
       privacy,
+      password,
       autoShareToGuests,
       shareChannel,
       welcomeTitle,
@@ -305,7 +308,7 @@ export default function CreateEvent() {
       enableVideo,
     };
     localStorage.setItem("create_event_draft", JSON.stringify(draft));
-  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, showHeader, guests, shotsPerGuest, enableVideo]);
+  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, password, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, showHeader, guests, shotsPerGuest, enableVideo]);
 
   // auth session
   useEffect(() => {
@@ -399,6 +402,7 @@ export default function CreateEvent() {
     }
     if (currentStep === 2) {
       if (timing === "custom" && !customPublishAt) e.customPublishAt = "حدد وقت النشر";
+      if (privacy === "private" && !password.trim()) e.password = "كلمة المرور مطلوبة للألبوم الخاص";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -466,6 +470,7 @@ export default function CreateEvent() {
         expected_guests: guests,
         owner_id: userId,
         is_private: isPrivate,
+        password: isPrivate ? password.trim() : null,
         published_at: publicationAt,
         country_code: organizerCountry,
         calendar_type: calendarType,
@@ -634,6 +639,27 @@ export default function CreateEvent() {
                       </Pill>
                     </div>
                   </div>
+
+                  {privacy === "private" && (
+                    <div className="grid gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label>كلمة مرور الألبوم</Label>
+                        {errors.password && (
+                          <span className="text-xs text-destructive">{errors.password}</span>
+                        )}
+                      </div>
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="أدخل كلمة مرور للألبوم"
+                        className="text-right"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        ستكون مطلوبة للوصول إلى الألبوم
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <Label>مشاركة الألبوم للحضور تلقائيًا</Label>
