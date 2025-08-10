@@ -117,8 +117,13 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         <div className="h-full overflow-y-auto">
           {page === "welcome" && (
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
-              {/* شريط العلامة التجارية */}
-              <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+              {/* هيدر شرطي */}
+              {customization.show_header !== false && (
+                <>
+                  <div className="w-full h-4 bg-muted" />
+                  <div className="brand-strip w-full h-1 bg-gradient-to-r from-primary to-secondary" />
+                </>
+              )}
               
               {/* صورة البطل */}
               <figure className="relative w-full mb-1 overflow-hidden bg-secondary rounded-none">
@@ -193,6 +198,11 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                     </button>
                   </div>
                 </section>
+                
+                {/* فوتر شرطي */}
+                {customization.show_header !== false && (
+                  <div className="w-full h-3 bg-muted mt-2" />
+                )}
               </main>
             </div>
           )}
@@ -248,6 +258,11 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
           
           {page === "album" && (
             <div className="min-h-full bg-background text-foreground flex flex-col" dir="rtl">
+              {/* هيدر شرطي */}
+              {customization.show_header !== false && (
+                <div className="w-full h-4 bg-muted" />
+              )}
+              
               <main className="flex-1">
                 {/* هيدر الألبوم */}
                 <header className="relative">
