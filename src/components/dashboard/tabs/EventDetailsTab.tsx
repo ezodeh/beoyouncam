@@ -290,7 +290,7 @@ export function EventDetailsTab({
                 try {
                   const { error } = await supabase
                     .from('events')
-                    .update({ is_hidden: !eventData?.is_hidden })
+                    .update({ is_hidden: !eventData?.is_hidden } as any)
                     .eq('token', token);
                     
                   if (error) throw error;

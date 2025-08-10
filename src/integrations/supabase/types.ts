@@ -58,6 +58,7 @@ export type Database = {
           expected_guests: number
           invite_button_text: string | null
           is_album_published: boolean | null
+          is_hidden: boolean
           is_private: boolean
           max_shots: number
           owner_id: string | null
@@ -88,6 +89,7 @@ export type Database = {
           expected_guests?: number
           invite_button_text?: string | null
           is_album_published?: boolean | null
+          is_hidden?: boolean
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           expected_guests?: number
           invite_button_text?: string | null
           is_album_published?: boolean | null
+          is_hidden?: boolean
           is_private?: boolean
           max_shots?: number
           owner_id?: string | null
