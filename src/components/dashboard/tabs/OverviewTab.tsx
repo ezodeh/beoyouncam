@@ -222,7 +222,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                 </div>
                 <div className="text-right">
                   <div className="text-base font-bold">عرض</div>
-                  <div className="text-[11px] text-muted-foreground">الألبوم العام</div>
+                  <div className="text-[11px] text-muted-foreground">عرض الالبوم الان</div>
                 </div>
               </div>
             </CardContent>
