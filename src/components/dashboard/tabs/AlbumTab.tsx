@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { updateEventSettings } from "@/lib/eventSettings";
-import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle } from "lucide-react";
+import { updateEventSettings, hasEventStarted } from "@/lib/eventSettings";
+import { Image, Trash2, Download, Eye, EyeOff, Star, Upload, Save, Clock, Share2, Mail, MessageCircle, Calendar, Send } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -42,6 +42,12 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
   // Album sharing settings
   const [shareMethod, setShareMethod] = useState(eventData?.share_method || "email");
   const [customPublishDelay, setCustomPublishDelay] = useState(eventData?.custom_publish_delay || 24);
+  const [customPublishDate, setCustomPublishDate] = useState(eventData?.custom_publish_date || "");
+  const [customPublishTime, setCustomPublishTime] = useState(eventData?.custom_publish_time || "");
+  
+  // Check if event has started to determine SMS restriction
+  const eventHasStarted = hasEventStarted(eventData);
+  const canChangeSMSSettings = !eventHasStarted;
 
   useEffect(() => {
     fetchPhotos();
@@ -176,6 +182,8 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         is_album_published: isAlbumPublished,
         share_method: shareMethod,
         custom_publish_delay: customPublishDelay,
+        custom_publish_date: customPublishDate,
+        custom_publish_time: customPublishTime,
       };
 
       const success = await updateEventSettings(token, settings);
@@ -239,7 +247,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="shareMethod">طريقة المشاركة</Label>
-              <Select value={shareMethod} onValueChange={setShareMethod}>
+              <Select 
+                value={shareMethod} 
+                onValueChange={setShareMethod}
+                disabled={!canChangeSMSSettings && shareMethod === "sms"}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر طريقة المشاركة" />
                 </SelectTrigger>
@@ -247,7 +259,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   <SelectItem value="email">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      البريد الإلكتروني
+                      البريد الإلكتروني (افتراضي)
                     </div>
                   </SelectItem>
                   <SelectItem value="whatsapp">
@@ -256,8 +268,28 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                       واتساب
                     </div>
                   </SelectItem>
+                  <SelectItem value="sms" disabled={!canChangeSMSSettings && shareMethod !== "sms"}>
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      SMS {!canChangeSMSSettings ? "(لا يمكن التغيير بعد بدء المناسبة)" : "(يتطلب أرقام هاتف)"}
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              {!canChangeSMSSettings && shareMethod === "sms" && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-700">
+                    لا يمكن تغيير طريقة المشاركة بعد بدء المناسبة لضمان توافق البيانات المجمعة.
+                  </p>
+                </div>
+              )}
+              {shareMethod === "sms" && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    تذكير: عند اختيار SMS، تأكد من تفعيل جمع أرقام الهاتف في إعدادات الخصوصية.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -269,18 +301,20 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 <SelectContent>
                   <SelectItem value="immediately">فوراً</SelectItem>
                   <SelectItem value="after_event">بعد انتهاء المناسبة</SelectItem>
-                  <SelectItem value="after_12h">بعد 12 ساعة</SelectItem>
-                  <SelectItem value="after_24h">بعد 24 ساعة</SelectItem>
-                  <SelectItem value="custom">مخصص</SelectItem>
+                  <SelectItem value="after_creation">بعد إنشاء المناسبة</SelectItem>
+                  <SelectItem value="after_12h">بعد 12 ساعة من الانتهاء</SelectItem>
+                  <SelectItem value="after_24h">بعد 24 ساعة من الانتهاء</SelectItem>
+                  <SelectItem value="custom_delay">تأخير مخصص</SelectItem>
+                  <SelectItem value="specific_time">وقت محدد</SelectItem>
                   <SelectItem value="manual">نشر يدوي</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Custom Delay */}
-            {albumPublishTime === "custom" && (
+            {albumPublishTime === "custom_delay" && (
               <div className="space-y-2">
-                <Label htmlFor="customDelay">عدد الساعات للتأخير</Label>
+                <Label htmlFor="customDelay">عدد الساعات للتأخير بعد انتهاء المناسبة</Label>
                 <Input
                   id="customDelay"
                   type="number"
@@ -293,23 +327,85 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               </div>
             )}
 
-            {/* Manual Publish Toggle */}
-            {albumPublishTime === "manual" && (
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3 text-right">
-                  <Clock className="h-5 w-5" />
-                  <div>
-                    <Label className="text-base">نشر الألبوم الآن</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {isAlbumPublished ? "الألبوم متاح للضيوف" : "الألبوم مخفي عن الضيوف"}
-                    </p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={isAlbumPublished} 
-                  onCheckedChange={toggleAlbumPublish}
+            {/* After Creation Delay */}
+            {albumPublishTime === "after_creation" && (
+              <div className="space-y-2">
+                <Label htmlFor="creationDelay">عدد الساعات بعد إنشاء المناسبة</Label>
+                <Input
+                  id="creationDelay"
+                  type="number"
+                  min={1}
+                  max={168}
+                  value={customPublishDelay}
+                  onChange={(e) => setCustomPublishDelay(Number(e.target.value))}
+                  placeholder="عدد الساعات بعد إنشاء المناسبة"
                 />
               </div>
+            )}
+
+            {/* Specific Time */}
+            {albumPublishTime === "specific_time" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="publishDate">تاريخ النشر</Label>
+                  <Input
+                    id="publishDate"
+                    type="date"
+                    value={customPublishDate}
+                    onChange={(e) => setCustomPublishDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publishTime">وقت النشر</Label>
+                  <Input
+                    id="publishTime"
+                    type="time"
+                    value={customPublishTime}
+                    onChange={(e) => setCustomPublishTime(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Manual Publish Toggle */}
+            {albumPublishTime === "manual" && (
+              <>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 text-right">
+                    <Clock className="h-5 w-5" />
+                    <div>
+                      <Label className="text-base">نشر الألبوم الآن</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {isAlbumPublished ? "الألبوم متاح للضيوف" : "الألبوم مخفي عن الضيوف"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={isAlbumPublished} 
+                    onCheckedChange={toggleAlbumPublish}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCustomPublishDate(new Date().toISOString().split('T')[0])}
+                    className="flex-1"
+                  >
+                    <Calendar className="h-4 w-4 ml-2" />
+                    تعيين وقت نشر لاحق
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    onClick={toggleAlbumPublish}
+                    disabled={isAlbumPublished}
+                    className="flex-1"
+                  >
+                    <Send className="h-4 w-4 ml-2" />
+                    نشر الآن
+                  </Button>
+                </div>
+              </>
             )}
 
             {albumPublishTime === "manual" && (
