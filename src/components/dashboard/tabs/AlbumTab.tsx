@@ -466,7 +466,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
               <>
                 <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <p className="text-sm text-orange-700">
-                    ⚡ النشر الفوري: سيتم إرسال رابط الألبوم فوراً لجميع الضيوف عبر {shareMethod === "whatsapp" ? "واتساب" : "البريد الإلكتروني"}.
+                    اضغط على "نشر الآن" لإرسال رابط الألبوم للضيوف.
                   </p>
                 </div>
                 
