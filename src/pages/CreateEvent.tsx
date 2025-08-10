@@ -1115,14 +1115,18 @@ export default function CreateEvent() {
                   <Button variant="hero" onClick={next} disabled={!canNext} className="rounded-full">
                     التالي<ChevronLeft className="mr-1 h-4 w-4" />
                   </Button>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Drawer open={!!quickEdit} onOpenChange={(o) => { if (!o) setQuickEdit(null); }}>
-          <DrawerContent className="p-4">
+                 ) : null}
+               </div>
+             </CardContent>
+           </Card>
+         </div>
+         
+         <Drawer open={!!quickEdit} onOpenChange={(o) => { if (!o) setQuickEdit(null); }}>
+           <DrawerContent className="p-4">
+             <DrawerHeader>
+               <DrawerTitle>تعديل سريع</DrawerTitle>
+             </DrawerHeader>
+             <div className="grid gap-4" dir="rtl">
             <DrawerHeader>
               <DrawerTitle>تعديل سريع</DrawerTitle>
             </DrawerHeader>
@@ -1195,10 +1199,7 @@ export default function CreateEvent() {
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
-              </div>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
+        </div>
       </main>
       <Footer />
     </div>
