@@ -47,21 +47,33 @@ export default function EventAlbum() {
       const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, is_album_published")
         .eq("token", token)
         .maybeSingle();
-      if (data?.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(title)}`);
-        return;
-      }
+      
       if (data) {
         setTitle(data.title || eventName);
         setCoverUrl(data.cover_url || null);
         setShowHeader(data.show_header !== false);
         setIsEventOwner(session?.user?.id === data.owner_id);
+        
+        // Check if album is published
+        if (!data.is_album_published && !isEventOwner) {
+          navigate(`/event/${token}/soon?title=${encodeURIComponent(title)}`);
+          return;
+        }
+        
+        // Check if private and requires password
+        if (data.is_private && data.password && !isEventOwner) {
+          const hasAccess = sessionStorage.getItem(`album_access_${token}`);
+          if (!hasAccess) {
+            navigate(`/album/${token}/private${location.search}`);
+            return;
+          }
+        }
       }
     })();
-  }, [token]);
+  }, [token, isEventOwner, location.search]);
 
   // وسائط الألبوم من التخزين
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -391,9 +403,17 @@ export default function EventAlbum() {
                             <Trash2 className="h-3 w-3" />
                           </button>
                         )}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                          <p className="text-white text-xs text-right font-medium">{it.participantName}</p>
-                        </div>
+                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                           <button 
+                             className="text-white text-xs text-right font-medium hover:underline"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               navigate(`/album/${token}/by/${encodeURIComponent(it.participantName)}`);
+                             }}
+                           >
+                             {it.participantName}
+                           </button>
+                         </div>
                       </div>
                     ))}
                   </div>
@@ -608,10 +628,18 @@ export default function EventAlbum() {
             <img src={imageItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
           </div>
           
-          {/* اسم المصور */}
-          <div className="absolute bottom-6 right-6 bg-black/70 text-white px-3 py-2 rounded-lg">
-            <p className="font-nastaliq text-lg">بعيون: {imageItems[lightboxIndex].participantName}</p>
-          </div>
+           {/* اسم المصور */}
+           <div className="absolute bottom-6 right-6 bg-black/70 text-white px-3 py-2 rounded-lg">
+             <button 
+               className="font-nastaliq text-lg hover:underline" 
+               onClick={() => {
+                 closeLightbox();
+                 navigate(`/album/${token}/by/${encodeURIComponent(imageItems[lightboxIndex].participantName)}`);
+               }}
+             >
+               بعيون: {imageItems[lightboxIndex].participantName}
+             </button>
+           </div>
 
           <div className="absolute inset-y-0 start-0 z-10 flex items-center p-4">
             <button className="p-2 rounded-full bg-white/10 hover:bg-white/20" onClick={prevImage} aria-label="السابق">

@@ -119,6 +119,10 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
     if (imgRef.current && aspect) {
       const { width, height } = imgRef.current;
       setCrop(centerAspectCrop(width, height, aspect));
+      // Reset scale and rotation as well
+      setScale(1);
+      setRotation(0);
+      setHasChanges(true);
     }
   };
 
@@ -228,7 +232,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
               <Card>
                 <CardContent className="p-4 space-y-4">
                   <Button onClick={resetCrop} variant="outline" className="w-full">
-                    إعادة تعيين الاقتصاص
+                    إعادة تعيين كل شيء
                   </Button>
                   <Button 
                     onClick={generateCroppedImage} 

@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false); // مطلوب للتسجيل فقط
   const [loading, setLoading] = useState(false);
   const [phone, setPhone] = useState("");
@@ -82,18 +84,31 @@ const signIn = async () => {
 };
 
 const signUp = async () => {
+  if (!name.trim()) { alert("الاسم مطلوب"); return; }
+  if (!email.trim()) { alert("البريد الإلكتروني مطلوب"); return; }
+  if (!password) { alert("كلمة المرور مطلوبة"); return; }
+  if (!phone.trim()) { alert("رقم الهاتف مطلوب"); return; }
+  if (!country) { alert("اختيار البلد مطلوب"); return; }
+  if (!birthdate) { alert("تاريخ الميلاد مطلوب"); return; }
   if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
   setLoading(true);
   const redirectUrl = `${window.location.origin}/account`;
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
+  const { data, error } = await supabase.auth.signUp({ 
+    email, 
+    password, 
+    options: { 
+      emailRedirectTo: redirectUrl,
+      data: { full_name: name }
+    } 
+  });
   setLoading(false);
   if (error) { alert(error.message); return; }
   try {
-    const pending = { phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
+    const pending = { display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
     localStorage.setItem("pendingProfile", JSON.stringify(pending));
     const uid = data.user?.id;
     if (uid) {
-      await supabase.from("profiles").upsert({ id: uid, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() });
+      await supabase.from("profiles").upsert({ id: uid, display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() });
     }
   } catch {}
   alert("تم إرسال رسالة تأكيد إلى بريدك.");
@@ -106,7 +121,7 @@ const signInGoogle = async () => {
 const signUpGoogle = async () => {
   if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
   try {
-    const pending = { phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
+    const pending = { display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
     localStorage.setItem("pendingProfile", JSON.stringify(pending));
   } catch {}
   await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
@@ -123,10 +138,26 @@ const signUpGoogle = async () => {
               <TabsTrigger value="signup">تسجيل حساب</TabsTrigger>
             </TabsList>
             <TabsContent value="signin" className="mt-4 grid gap-3">
-              <Label className="text-right">البريد الإلكتروني</Label>
-              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
-              <Label className="text-right">كلمة المرور</Label>
-              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" className="text-right" />
+              <Label className="text-right">البريد الإلكتروني *</Label>
+              <Input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
+              <Label className="text-right">كلمة المرور *</Label>
+              <div className="relative">
+                <Input 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={password} 
+                  onChange={(e)=>setPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  className="text-right pr-10" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
 <Button className="w-full rounded-full" disabled={loading} onClick={signIn}>دخول</Button>
                 <Button variant="secondary" className="w-full rounded-full flex items-center gap-2" onClick={signInGoogle}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -139,16 +170,34 @@ const signUpGoogle = async () => {
                 </Button>
             </TabsContent>
 <TabsContent value="signup" className="mt-4 grid gap-3">
-              <Label className="text-right">البريد الإلكتروني</Label>
-              <Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
-              <Label className="text-right">كلمة المرور</Label>
-              <Input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" className="text-right" />
+              <Label className="text-right">الاسم الكامل *</Label>
+              <Input type="text" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="اسمك الكامل" className="text-right" />
+              <Label className="text-right">البريد الإلكتروني *</Label>
+              <Input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" className="text-right" />
+              <Label className="text-right">كلمة المرور *</Label>
+              <div className="relative">
+                <Input 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={password} 
+                  onChange={(e)=>setPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  className="text-right pr-10" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
 
-              <Label className="text-right">الهاتف</Label>
-              <Input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" className="text-right" />
+              <Label className="text-right">الهاتف *</Label>
+              <Input type="tel" required value={phone} onChange={(e)=>setPhone(e.target.value)} placeholder="05xxxxxxxx" className="text-right" />
 
-              <Label className="text-right">البلد</Label>
-              <Select value={country} onValueChange={setCountry}>
+              <Label className="text-right">البلد *</Label>
+              <Select value={country} onValueChange={setCountry} required>
                 <SelectTrigger className="text-right">
                   <SelectValue placeholder="اختر البلد" />
                 </SelectTrigger>
@@ -162,8 +211,8 @@ const signUpGoogle = async () => {
               </Select>
 
               <div className="grid gap-2">
-                <Label className="text-right">الجنس</Label>
-                <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4 justify-end">
+                <Label className="text-right">الجنس *</Label>
+                <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4 justify-end" required>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Label htmlFor="g-female">أنثى</Label>
                     <RadioGroupItem id="g-female" value="female" />
@@ -179,15 +228,15 @@ const signUpGoogle = async () => {
                 </RadioGroup>
               </div>
 
-              <Label className="text-right">تاريخ الميلاد</Label>
-              <Input type="date" value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} className="text-right" />
+              <Label className="text-right">تاريخ الميلاد *</Label>
+              <Input type="date" required value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} className="text-right" />
 
               <label className="flex items-center gap-2 text-sm mt-1 justify-start">
                 <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
                 <span dir="rtl">أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
               </label>
 
-              <Button className="w-full rounded-full" disabled={loading || !agree} onClick={signUp}>إنشاء حساب</Button>
+              <Button className="w-full rounded-full" disabled={loading || !agree || !name.trim() || !email.trim() || !password || !phone.trim() || !country || !birthdate} onClick={signUp}>إنشاء حساب</Button>
               <Button variant="secondary" className="w-full rounded-full flex items-center gap-2" disabled={!agree} onClick={signUpGoogle}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

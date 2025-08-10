@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { detectCountryCode, getSupportedCountries } from "@/lib/eventSettings";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { ImageEditor } from "@/components/ui/image-editor";
 
 // Album timing type
 
@@ -203,12 +204,12 @@ export default function CreateEvent() {
   
 
   // Step 2
-  const [timing, setTiming] = useState<AlbumTiming>("manual");
+  const [timing, setTiming] = useState<AlbumTiming>();
   const [customPublishAt, setCustomPublishAt] = useState<Date | null>(null);
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
   const [password, setPassword] = useState("");
   const [autoShareToGuests, setAutoShareToGuests] = useState(false);
-  const [shareChannel, setShareChannel] = useState<"whatsapp" | "email" | "none">("none");
+  const [shareChannel, setShareChannel] = useState<"whatsapp" | "email" | "none">();
 
   // Step 3 - Page Customization
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -270,12 +271,12 @@ export default function CreateEvent() {
         setDescription(d.description ?? "");
         setStartAt(d.startAt ? new Date(d.startAt) : null);
         setEndAt(d.endAt ? new Date(d.endAt) : null);
-        setTiming(d.timing ?? "manual");
+        setTiming(d.timing);
         setCustomPublishAt(d.customPublishAt ? new Date(d.customPublishAt) : null);
         setPrivacy(d.privacy ?? "private");
         setPassword(d.password ?? "");
         setAutoShareToGuests(!!d.autoShareToGuests);
-        setShareChannel(d.shareChannel ?? "none");
+        setShareChannel(d.shareChannel);
         setWelcomeTitle(d.welcomeTitle ?? "أهلاً وسهلاً في اليوم");
         setWelcomeBody(d.welcomeBody ?? "");
         setCtaLabel(d.ctaLabel ?? "للتصوير");
@@ -394,10 +395,13 @@ export default function CreateEvent() {
   // validation
   function validate(currentStep = step) {
     const e: Record<string, string> = {};
+    const now = new Date();
     if (currentStep === 1) {
       if (!title.trim()) e.title = "الاسم مطلوب";
       if (!startAt) e.startAt = "مطلوب";
       if (!endAt) e.endAt = "مطلوب";
+      if (startAt && startAt < now) e.startAt = "لا يمكن إنشاء مناسبة في الماضي";
+      if (endAt && endAt < now) e.endAt = "لا يمكن أن ينتهي الحدث في الماضي";
       if (startAt && endAt && startAt >= endAt) e.endAt = "يجب أن يكون بعد وقت البداية";
     }
     if (currentStep === 2) {

@@ -221,7 +221,7 @@ const MobileCamera: React.FC<Props> = ({
         url: URL.createObjectURL(file),
         type: "image" as const
       }, ...r].slice(0, 20));
-      setViewerIndex(0);
+      // Don't auto-open fullscreen
       setLeft(newLeft);
       toast({
         title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
@@ -272,7 +272,7 @@ const MobileCamera: React.FC<Props> = ({
           url: URL.createObjectURL(file),
           type: "video" as const
         }, ...r].slice(0, 20));
-        setViewerIndex(0);
+        // Don't auto-open fullscreen
         setLeft(newLeft);
         toast({
           title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
@@ -442,7 +442,9 @@ const MobileCamera: React.FC<Props> = ({
         console.log("📸 MobileCamera: Taking photo from timer");
         clearTimeout(pressTimer.current);
         pressTimer.current = null;
-        capturePhoto();
+        if (supportsVideo && enableVideo) {
+          capturePhoto();
+        }
       }
       // إذا كان الفيديو معطل، فالصورة تم التقاطها في onShutterDown
     }
@@ -472,9 +474,9 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       </div>;
   }
-  return <div className="relative w-full h-[calc(100dvh-48px)] overflow-hidden overscroll-none pb-[env(safe-area-inset-bottom)]" dir="rtl">
+  return <div className="relative w-full h-screen overflow-hidden overscroll-none" dir="rtl">
       {/* Preview */}
-    <video ref={videoRef} className="absolute inset-0 w-full h-full object-contain bg-black touch-none will-change-transform" style={{
+    <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" style={{
       transform: `scale(${zoom})`,
       filter: effects[effectIndex].css || "none"
     }} onPointerDown={onVideoPointerDown} onPointerMove={onVideoPointerMove} onPointerUp={onVideoPointerUp} onPointerCancel={onVideoPointerUp} playsInline muted autoPlay />

@@ -161,13 +161,42 @@ export default function EventWelcome() {
       } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // Auto-fill form with user data from Google/auth
+          // Auto-fill form with user data from Google/auth
         const userData = session.user;
         const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
         const userEmail = userData.email || "";
         
         if (fullName) setName(fullName);
         if (userEmail) setEmail(userEmail);
+        
+        // Check if user already has profile data
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          
+          if (profile) {
+            if (profile.display_name) setName(profile.display_name);
+            if (profile.phone) {
+              // Extract country code and phone from profile
+              const phoneMatch = profile.phone?.match(/^(\+\d{1,4})(.+)$/);
+              if (phoneMatch) {
+                setCountry(phoneMatch[1]);
+                // Remove leading zeros from phone number
+                const cleanPhone = phoneMatch[2].replace(/^0+/, '');
+                // Set phone without country code
+                const phoneInput = document.querySelector('input[type="tel"]') as HTMLInputElement;
+                if (phoneInput) {
+                  phoneInput.value = cleanPhone;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.log("Error fetching profile:", error);
+        }
         
         // Check if user is already a participant first
         const { data: existingParticipant } = await supabase

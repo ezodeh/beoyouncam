@@ -151,7 +151,7 @@ export default function EventFinalSubmit() {
                 </Button>
 
                 <div className="text-center text-sm">
-                  <Link to={`/event/${token}/camera`} className="underline hover:no-underline">
+                  <Link to={`/event/${token}/camera${window.location.search}`} className="underline hover:no-underline">
                     الرجوع إلى شاشة الكاميرا
                   </Link>
                 </div>
