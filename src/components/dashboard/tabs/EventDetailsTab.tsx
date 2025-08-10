@@ -10,15 +10,19 @@ import { Upload, Save, Video, Lock, Unlock, Globe } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateEventSettings, getSupportedCountries } from "@/lib/eventSettings";
-
 interface EventDetailsTabProps {
   token: string;
   eventData: any;
   onEventUpdate: () => void;
 }
-
-export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetailsTabProps) {
-  const { toast } = useToast();
+export function EventDetailsTab({
+  token,
+  eventData,
+  onEventUpdate
+}: EventDetailsTabProps) {
+  const {
+    toast
+  } = useToast();
   const [title, setTitle] = useState(eventData?.title || "");
   const [description, setDescription] = useState(eventData?.description || "");
   const [startAt, setStartAt] = useState(eventData?.start_at ? eventData.start_at.slice(0, 16) : "");
@@ -31,29 +35,29 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
   const [countryCode, setCountryCode] = useState(eventData?.country_code || "+962");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
     try {
       const fileName = `cover-${token}-${Date.now()}.${file.name.split('.').pop()}`;
-      const { data, error } = await supabase.storage
-        .from('event-media')
-        .upload(fileName, file);
-
+      const {
+        data,
+        error
+      } = await supabase.storage.from('event-media').upload(fileName, file);
       if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('event-media')
-        .getPublicUrl(fileName);
-
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('event-media').getPublicUrl(fileName);
       setCoverUrl(publicUrl);
-      toast({ title: "تم رفع الصورة بنجاح" });
+      toast({
+        title: "تم رفع الصورة بنجاح"
+      });
     } catch (error) {
-      toast({ 
-        title: "خطأ في رفع الصورة", 
+      toast({
+        title: "خطأ في رفع الصورة",
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
         variant: "destructive"
       });
@@ -61,7 +65,6 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
       setUploading(false);
     }
   };
-
   const handleSave = async () => {
     try {
       const settings = {
@@ -74,92 +77,26 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
         cover_url: coverUrl || null,
         enable_video: enableVideo,
         is_private: isPrivate,
-        country_code: countryCode,
+        country_code: countryCode
       };
-
       const success = await updateEventSettings(token, settings);
-      
       if (!success) throw new Error("فشل في حفظ الإعدادات");
-
-      toast({ title: "تم حفظ التغييرات بنجاح" });
+      toast({
+        title: "تم حفظ التغييرات بنجاح"
+      });
       onEventUpdate();
     } catch (error) {
-      toast({ 
-        title: "فشل في الحفظ", 
+      toast({
+        title: "فشل في الحفظ",
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
         variant: "destructive"
       });
     }
   };
-
-  return (
-    <div className="grid gap-6" dir="rtl">
+  return <div className="grid gap-6" dir="rtl">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-right">صورة الغلاف</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col items-center gap-4">
-            {coverUrl ? (
-              <div className="relative group">
-                <div className="aspect-video w-full max-w-md rounded-lg overflow-hidden border bg-muted">
-                  <img 
-                    src={coverUrl} 
-                    alt="صورة الغلاف" 
-                    className="w-full h-full object-cover transition-all group-hover:scale-105" 
-                  />
-                </div>
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all rounded-lg flex items-center justify-center">
-                  <Button 
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    تغيير الصورة
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="aspect-video w-full max-w-md rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                <Upload className="h-12 w-12" />
-                <p className="text-sm font-medium">لا توجد صورة غلاف</p>
-                <p className="text-xs">اضغط لرفع صورة</p>
-              </div>
-            )}
-            
-            <div className="flex items-center gap-3">
-              <Button 
-                variant={coverUrl ? "outline" : "default"}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                <span>{uploading ? "جاري الرفع..." : coverUrl ? "تغيير الصورة" : "رفع صورة الغلاف"}</span>
-              </Button>
-              
-              {coverUrl && (
-                <Button 
-                  variant="outline"
-                  onClick={() => setCoverUrl("")}
-                  className="text-destructive hover:text-destructive"
-                >
-                  إزالة الصورة
-                </Button>
-              )}
-            </div>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/jpg"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </div>
-        </CardContent>
+        
+        
       </Card>
 
       <Card>
@@ -169,81 +106,39 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
         <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="title" className="text-right">اسم المناسبة</Label>
-            <Input 
-              id="title"
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="أدخل اسم المناسبة"
-              className="text-right"
-            />
+            <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="أدخل اسم المناسبة" className="text-right" />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="description" className="text-right">الوصف</Label>
-            <Textarea 
-              id="description"
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="وصف المناسبة (اختياري)"
-              rows={3}
-              className="text-right"
-            />
+            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="وصف المناسبة (اختياري)" rows={3} className="text-right" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="start" className="text-right">وقت البداية</Label>
-              <Input 
-                id="start"
-                type="datetime-local" 
-                value={startAt} 
-                onChange={(e) => setStartAt(e.target.value)} 
-                className="text-right"
-              />
+              <Input id="start" type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)} className="text-right" />
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="end" className="text-right">وقت الانتهاء</Label>
-              <Input 
-                id="end"
-                type="datetime-local" 
-                value={endAt} 
-                onChange={(e) => setEndAt(e.target.value)} 
-                className="text-right"
-              />
+              <Input id="end" type="datetime-local" value={endAt} onChange={e => setEndAt(e.target.value)} className="text-right" />
             </div>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="maxShots" className="text-right">عدد الصور المسموحة لكل مشارك</Label>
-            <Input 
-              id="maxShots"
-              type="number" 
-              min={1} 
-              value={maxShots} 
-              onChange={(e) => setMaxShots(Number(e.target.value))} 
-              className="text-right"
-            />
+            <Input id="maxShots" type="number" min={1} value={maxShots} onChange={e => setMaxShots(Number(e.target.value))} className="text-right" />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
-            <Input
-              id="expectedGuests"
-              type="number"
-              min={0}
-              value={expectedGuests}
-              onChange={(e) => setExpectedGuests(Number(e.target.value))}
-              className="text-right"
-            />
+            <Input id="expectedGuests" type="number" min={0} value={expectedGuests} onChange={e => setExpectedGuests(Number(e.target.value))} className="text-right" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
-              <Switch 
-                checked={enableVideo} 
-                onCheckedChange={setEnableVideo}
-              />
+              <Switch checked={enableVideo} onCheckedChange={setEnableVideo} />
               <div className="flex items-center gap-2">
                 <div className="text-right">
                   <Label>تفعيل الفيديو</Label>
@@ -254,10 +149,7 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
             </div>
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
-              <Switch 
-                checked={isPrivate} 
-                onCheckedChange={setIsPrivate}
-              />
+              <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
               <div className="flex items-center gap-2">
                 <div className="text-right">
                   <Label>خصوصية المناسبة</Label>
@@ -280,11 +172,9 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
                 <SelectValue placeholder="اختر رمز البلد" />
               </SelectTrigger>
               <SelectContent>
-                {getSupportedCountries().map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
+                {getSupportedCountries().map(country => <SelectItem key={country.code} value={country.code}>
                     {country.nameAr} ({country.code})
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -306,100 +196,91 @@ export function EventDetailsTab({ token, eventData, onEventUpdate }: EventDetail
             <p className="text-sm text-muted-foreground mb-4">
               سيتم حذف جميع البيانات والصور والمباركات المرتبطة بهذه المناسبة نهائياً. هذا الإجراء لا يمكن التراجع عنه.
             </p>
-            <Button 
-              variant="destructive" 
-              onClick={async () => {
-                const firstConfirm = window.confirm("هل أنت متأكد من حذف هذه المناسبة نهائياً؟\n\nسيتم حذف:\n- جميع الصور\n- جميع المباركات\n- جميع بيانات المشاركين\n- المناسبة كاملة");
-                if (!firstConfirm) return;
-                
-                const secondConfirm = window.confirm("تأكيد أخير: هذا الإجراء لا يمكن التراجع عنه!\n\nاضغط موافق للمتابعة أو إلغاء للتوقف.");
-                if (!secondConfirm) return;
-                
-                try {
-                  console.log("بدء عملية حذف المناسبة:", token);
-                  
-                  // Delete all photos from storage first
-                  console.log("حذف الصور من التخزين...");
-                  try {
-                    const { data: files } = await supabase.storage
-                      .from("event-media")
-                      .list(`events/${token}`, { limit: 1000 });
-                    
-                    if (files && files.length > 0) {
-                      const filePaths = files.map(file => `events/${token}/${file.name}`);
-                      const { error: storageError } = await supabase.storage
-                        .from("event-media")
-                        .remove(filePaths);
-                      if (storageError) console.error("خطأ في حذف الصور:", storageError);
-                    }
-                  } catch (storageErr) {
-                    console.error("خطأ في الوصول للصور:", storageErr);
-                  }
-                  
-                  // Delete cover image if exists
-                  console.log("حذف صورة الغلاف...");
-                  if (eventData?.cover_url) {
-                    try {
-                      const coverFileName = eventData.cover_url.split('/').pop();
-                      if (coverFileName && coverFileName.includes(token)) {
-                        await supabase.storage.from("event-media").remove([coverFileName]);
-                      }
-                    } catch (coverErr) {
-                      console.error("خطأ في حذف صورة الغلاف:", coverErr);
-                    }
-                  }
-                  
-                  // Delete blessings
-                  console.log("حذف المباركات...");
-                  const { error: blessingsError } = await supabase
-                    .from("blessings")
-                    .delete()
-                    .eq("event_token", token);
-                  if (blessingsError) console.error("خطأ في حذف المباركات:", blessingsError);
-                  
-                  // Delete participants
-                  console.log("حذف المشاركين...");
-                  const { error: participantsError } = await supabase
-                    .from("participants")
-                    .delete()
-                    .eq("event_token", token);
-                  if (participantsError) console.error("خطأ في حذف المشاركين:", participantsError);
-                  
-                  // Delete the event itself
-                  console.log("حذف المناسبة...");
-                  const { error: eventError } = await supabase
-                    .from("events")
-                    .delete()
-                    .eq("token", token);
-                  
-                  if (eventError) {
-                    console.error("خطأ في حذف المناسبة:", eventError);
-                    throw eventError;
-                  }
-                  
-                  console.log("تم حذف المناسبة بنجاح");
-                  toast({ title: "تم حذف المناسبة نهائياً بنجاح" });
-                  
-                  // Redirect to account page after a short delay
-                  setTimeout(() => {
-                    window.location.href = "/account";
-                  }, 1000);
-                  
-                } catch (error) {
-                  console.error("خطأ عام في حذف المناسبة:", error);
-                  toast({
-                    title: "فشل في حذف المناسبة",
-                    description: "حدث خطأ أثناء الحذف. يرجى المحاولة مرة أخرى.",
-                    variant: "destructive"
-                  });
+            <Button variant="destructive" onClick={async () => {
+            const firstConfirm = window.confirm("هل أنت متأكد من حذف هذه المناسبة نهائياً؟\n\nسيتم حذف:\n- جميع الصور\n- جميع المباركات\n- جميع بيانات المشاركين\n- المناسبة كاملة");
+            if (!firstConfirm) return;
+            const secondConfirm = window.confirm("تأكيد أخير: هذا الإجراء لا يمكن التراجع عنه!\n\nاضغط موافق للمتابعة أو إلغاء للتوقف.");
+            if (!secondConfirm) return;
+            try {
+              console.log("بدء عملية حذف المناسبة:", token);
+
+              // Delete all photos from storage first
+              console.log("حذف الصور من التخزين...");
+              try {
+                const {
+                  data: files
+                } = await supabase.storage.from("event-media").list(`events/${token}`, {
+                  limit: 1000
+                });
+                if (files && files.length > 0) {
+                  const filePaths = files.map(file => `events/${token}/${file.name}`);
+                  const {
+                    error: storageError
+                  } = await supabase.storage.from("event-media").remove(filePaths);
+                  if (storageError) console.error("خطأ في حذف الصور:", storageError);
                 }
-              }}
-            >
+              } catch (storageErr) {
+                console.error("خطأ في الوصول للصور:", storageErr);
+              }
+
+              // Delete cover image if exists
+              console.log("حذف صورة الغلاف...");
+              if (eventData?.cover_url) {
+                try {
+                  const coverFileName = eventData.cover_url.split('/').pop();
+                  if (coverFileName && coverFileName.includes(token)) {
+                    await supabase.storage.from("event-media").remove([coverFileName]);
+                  }
+                } catch (coverErr) {
+                  console.error("خطأ في حذف صورة الغلاف:", coverErr);
+                }
+              }
+
+              // Delete blessings
+              console.log("حذف المباركات...");
+              const {
+                error: blessingsError
+              } = await supabase.from("blessings").delete().eq("event_token", token);
+              if (blessingsError) console.error("خطأ في حذف المباركات:", blessingsError);
+
+              // Delete participants
+              console.log("حذف المشاركين...");
+              const {
+                error: participantsError
+              } = await supabase.from("participants").delete().eq("event_token", token);
+              if (participantsError) console.error("خطأ في حذف المشاركين:", participantsError);
+
+              // Delete the event itself
+              console.log("حذف المناسبة...");
+              const {
+                error: eventError
+              } = await supabase.from("events").delete().eq("token", token);
+              if (eventError) {
+                console.error("خطأ في حذف المناسبة:", eventError);
+                throw eventError;
+              }
+              console.log("تم حذف المناسبة بنجاح");
+              toast({
+                title: "تم حذف المناسبة نهائياً بنجاح"
+              });
+
+              // Redirect to account page after a short delay
+              setTimeout(() => {
+                window.location.href = "/account";
+              }, 1000);
+            } catch (error) {
+              console.error("خطأ عام في حذف المناسبة:", error);
+              toast({
+                title: "فشل في حذف المناسبة",
+                description: "حدث خطأ أثناء الحذف. يرجى المحاولة مرة أخرى.",
+                variant: "destructive"
+              });
+            }
+          }}>
               حذف المناسبة نهائياً
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
