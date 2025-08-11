@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, ArrowLeft, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
+import Navbar from "@/components/layout/Navbar";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 interface Props {
@@ -497,26 +498,17 @@ const MobileCamera: React.FC<Props> = ({
       </div>;
   }
   return <div className="relative w-full h-screen overflow-hidden overscroll-none" dir="rtl">
-      {/* Header */}
+      {/* Navbar */}
       {showHeader && (
-        <div className="absolute top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
-          <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 text-sm hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>رجوع</span>
-            </button>
-            <h1 className="text-lg font-semibold text-center flex-1">{eventName}</h1>
-            <button
-              onClick={() => setShowHeader(false)}
-              className="p-2 hover:bg-background/60 rounded-full transition-colors"
-              aria-label="إخفاء الهيدر"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="absolute top-0 left-0 right-0 z-40">
+          <Navbar compact={true} />
+          <button
+            onClick={() => setShowHeader(false)}
+            className="absolute top-2 left-2 p-2 bg-background/80 hover:bg-background/90 rounded-full border border-border shadow-lg backdrop-blur-sm transition-colors"
+            aria-label="إخفاء الهيدر"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -549,7 +541,9 @@ const MobileCamera: React.FC<Props> = ({
       {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center">
           <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
         </div>}
-      <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
+        
+      {/* Left icons column - adjust top position when header is shown */}
+      <div className={`absolute left-3 flex flex-col items-center gap-4 z-30 ${showHeader ? 'top-20' : 'top-8'}`}>
         <Button size="icon" variant="secondary" className="rounded-full" onClick={() => {
         setCamAnim(true);
         setTimeout(() => setCamAnim(false), 400);
