@@ -679,7 +679,7 @@ const MobileCamera: React.FC<Props> = ({
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-3">
+      <div className="absolute inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-0">
         {recording ? <div className="w-24 h-24 rounded-full">
             <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-brand-gradient text-brand-foreground animate-pulse" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط" />
           </div> : <div className="w-24 h-24 rounded-full p-0 bg-brand-gradient">
@@ -691,8 +691,8 @@ const MobileCamera: React.FC<Props> = ({
           </div>}
       </div>
       
-      {/* Hint text - moved higher to be visible */}
-      <div className="absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] flex justify-center z-40">
+      {/* Hint text - moved below shutter button */}
+      <div className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] flex justify-center z-40">
         <div className="rounded-full bg-background/90 border border-border px-4 py-2 text-sm shadow-lg backdrop-blur-sm">
           {hint}
         </div>
