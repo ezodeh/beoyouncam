@@ -61,6 +61,32 @@ const MobileCamera: React.FC<Props> = ({
     setLeft(Math.max(0, maxShots - recent.length));
   }, [maxShots]);
 
+  // Save and restore recent photos from localStorage
+  useEffect(() => {
+    const storageKey = `recentPhotos:${token}`;
+    
+    // Load saved photos on mount
+    const savedPhotos = localStorage.getItem(storageKey);
+    if (savedPhotos) {
+      try {
+        const parsed = JSON.parse(savedPhotos);
+        console.log("📷 MobileCamera: Restored recent photos:", parsed.length);
+        setRecent(parsed);
+      } catch (e) {
+        console.error("📷 MobileCamera: Error loading saved photos:", e);
+      }
+    }
+  }, [token]);
+
+  // Save recent photos to localStorage whenever they change
+  useEffect(() => {
+    if (recent.length > 0) {
+      const storageKey = `recentPhotos:${token}`;
+      localStorage.setItem(storageKey, JSON.stringify(recent));
+      console.log("📷 MobileCamera: Saved recent photos to localStorage:", recent.length);
+    }
+  }, [recent, token]);
+
   // استنتاج الاسم من جلسة المستخدم إن لم يكن في التخزين المحلي
   useEffect(() => {
     (async () => {

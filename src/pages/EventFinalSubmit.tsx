@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
@@ -34,6 +34,7 @@ const defaultBlessings = [
 export default function EventFinalSubmit() {
   const { token } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
@@ -53,12 +54,16 @@ export default function EventFinalSubmit() {
     }
   });
 
-  // Auto-fill user data if logged in
+  // Auto-fill user data if logged in and greeting from URL
   useEffect(() => {
     if (isUserDataLoaded) return;
     
     (async () => {
       try {
+        // Read greeting from URL parameters
+        const urlParams = new URLSearchParams(location.search);
+        const greetingFromUrl = urlParams.get('greeting');
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -78,13 +83,19 @@ export default function EventFinalSubmit() {
           setValue("name", storedName);
         }
         
+        // Set greeting from URL if provided, otherwise use default
+        if (greetingFromUrl) {
+          console.log("📝 Setting greeting from URL:", greetingFromUrl);
+          setValue("blessing", greetingFromUrl);
+        }
+        
         setIsUserDataLoaded(true);
       } catch (error) {
         console.error("Error loading user data:", error);
         setIsUserDataLoaded(true);
       }
     })();
-  }, [setValue, token, isUserDataLoaded]);
+  }, [setValue, token, isUserDataLoaded, location.search]);
 
   async function onSubmit(values: FormData) {
     // هنا يمكن إرسال القيم إلى الـ API لتخزين تفاصيل التسليم
