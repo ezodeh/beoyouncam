@@ -543,7 +543,7 @@ const MobileCamera: React.FC<Props> = ({
         </div>}
 
       {/* Event title - positioned below navbar when visible, at top when hidden */}
-      <div className={`absolute inset-x-0 text-center z-30 ${showHeader ? 'top-20' : 'top-6'}`}>
+      <div className={`absolute inset-x-0 text-center z-30 ${showHeader ? 'top-24' : 'top-12'}`}>
         <h1 className="text-xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">{eventName}</h1>
       </div>
         
