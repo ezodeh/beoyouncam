@@ -369,7 +369,8 @@ const MobileCamera: React.FC<Props> = ({
       }
 
       toast({
-        title: "تم الرفع ✅"
+        title: "تم الرفع ✅",
+        duration: 1000, // ثانية واحدة فقط
       });
     } catch (e) {
       toast({
