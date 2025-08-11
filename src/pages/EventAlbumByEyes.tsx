@@ -39,6 +39,14 @@ export default function EventAlbumByEyes() {
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Debug: log URL parameters
+  useEffect(() => {
+    console.log("🔍 URL Parameters:", { token, name });
+    console.log("🌐 Current URL:", window.location.href);
+    console.log("🔗 Search params:", window.location.search);
+    console.log("📍 Pathname:", window.location.pathname);
+  }, [token, name]);
+
   useEffect(() => {
     document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
@@ -50,34 +58,66 @@ export default function EventAlbumByEyes() {
   // Extract person name from URL or use fallback
   const personName = name || "الضيف";
 
+  // Debug info display
+  if (!token || !name) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center" dir="rtl">
+        <div className="text-center p-8 border border-border rounded-lg">
+          <h2 className="text-xl font-bold mb-4">معلومات التشخيص</h2>
+          <p>Token: {token || "غير موجود"}</p>
+          <p>Name: {name || "غير موجود"}</p>
+          <p>URL: {window.location.href}</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            يرجى التأكد من أن الرابط صحيح ويحتوي على token و name
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const checkOwnership = async () => {
       if (!token) return;
+      console.log("🔐 Checking ownership for token:", token);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("events")
         .select("owner_id")
         .eq("token", token)
-        .single();
+        .maybeSingle();
       
+      if (error) {
+        console.error("❌ Error checking ownership:", error);
+        return;
+      }
+      
+      console.log("✅ Event data:", data);
       setIsEventOwner(session.user.id === data?.owner_id);
     };
     
     const fetchEventData = async () => {
       if (!token) return;
+      console.log("📄 Fetching event data for token:", token);
+      
       try {
         const { data, error } = await supabase
           .from("events")
           .select("title, cover_url, album_cover_url")
           .eq("token", token)
-          .single();
+          .maybeSingle();
         
-        if (error) throw error;
+        if (error) {
+          console.error("❌ Error fetching event:", error);
+          return;
+        }
+        
+        console.log("✅ Event found:", data);
         setEventData(data);
       } catch (error) {
-        console.error("Error fetching event data:", error);
+        console.error("❌ Exception fetching event data:", error);
       }
     };
 
