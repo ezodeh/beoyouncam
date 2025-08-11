@@ -38,9 +38,9 @@ const EventCapture = () => {
   }, [token]);
 
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
-  const isNarrow = typeof window !== "undefined" ? window.innerWidth < 900 : false;
-  const isMobile = isMobileUA && isNarrow;
+  const isMobileUA = /Android|iPhone|iPad|iPod|Mobile|Touch/i.test(ua);
+  const isNarrow = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
+  const isMobile = isMobileUA || isNarrow;
   
   console.log("📱 EventCapture: Device detection - UA:", ua);
   console.log("📱 EventCapture: isMobileUA:", isMobileUA, "isNarrow:", isNarrow, "isMobile:", isMobile);

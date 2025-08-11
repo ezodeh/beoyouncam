@@ -164,7 +164,11 @@ const MobileCamera: React.FC<Props> = ({
         console.log("🎥 MobileCamera: Trying fallback camera access...");
         const fallbackConstraints: MediaStreamConstraints = {
           audio: false,
-          video: { facingMode }
+          video: { 
+            facingMode,
+            width: { ideal: 720 },
+            height: { ideal: 1280 }
+          }
         };
         
         const s = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
@@ -177,7 +181,20 @@ const MobileCamera: React.FC<Props> = ({
         console.log("🎥 MobileCamera: Fallback camera setup complete");
       } catch (fallbackError) {
         console.error("🎥 MobileCamera: Fallback camera access failed:", fallbackError);
-        setPermissionDenied(true);
+        // Try basic constraints as last resort
+        try {
+          const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          streamRef.current = basicStream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = basicStream;
+            await videoRef.current.play();
+          }
+          setPermissionDenied(false);
+          console.log("🎥 MobileCamera: Basic camera setup complete");
+        } catch (basicError) {
+          console.error("🎥 MobileCamera: All camera access attempts failed:", basicError);
+          setPermissionDenied(true);
+        }
       }
     }
   }
