@@ -215,16 +215,16 @@ const signUpGoogle = async () => {
                 <Label className="text-right">الجنس *</Label>
                 <RadioGroup value={gender} onValueChange={(v)=>setGender(v as any)} className="flex items-center gap-4 justify-end" required>
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <Label htmlFor="g-female">أنثى</Label>
-                    <RadioGroupItem id="g-female" value="female" />
+                    <Label htmlFor="g-other">أخرى</Label>
+                    <RadioGroupItem id="g-other" value="other" />
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Label htmlFor="g-male">ذكر</Label>
                     <RadioGroupItem id="g-male" value="male" />
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <Label htmlFor="g-other">أخرى</Label>
-                    <RadioGroupItem id="g-other" value="other" />
+                    <Label htmlFor="g-female">أنثى</Label>
+                    <RadioGroupItem id="g-female" value="female" />
                   </div>
                 </RadioGroup>
               </div>
