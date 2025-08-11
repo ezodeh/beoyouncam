@@ -541,6 +541,11 @@ const MobileCamera: React.FC<Props> = ({
       {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center">
           <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
         </div>}
+
+      {/* Event title - positioned below navbar when visible, at top when hidden */}
+      <div className={`absolute inset-x-0 text-center z-30 ${showHeader ? 'top-20' : 'top-6'}`}>
+        <h1 className="text-xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">{eventName}</h1>
+      </div>
         
       {/* Left icons column - adjust top position when header is shown */}
       <div className={`absolute left-3 flex flex-col items-center gap-4 z-30 ${showHeader ? 'top-20' : 'top-8'}`}>
