@@ -56,11 +56,16 @@ export default function EventSoon() {
       </figure>
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto text-center">
-          <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventName}</h1>
           {isAlbumPage ? (
-            <p className="mt-3 text-muted-foreground">لم يتم نشر الألبوم بعد</p>
+            <>
+              <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {eventName}</h1>
+              <p className="mt-3 text-muted-foreground">لم يتم نشر الألبوم بعد</p>
+            </>
           ) : (
-            <p className="mt-3 text-muted-foreground">المناسبة لسه ما بدأت — جهّزوا حالكم!</p>
+            <>
+              <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventName}</h1>
+              <p className="mt-3 text-muted-foreground">المناسبة لسه ما بدأت — جهّزوا حالكم!</p>
+            </>
           )}
           
           {/* Show countdown only for events, not albums */}
