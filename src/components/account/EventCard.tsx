@@ -443,7 +443,7 @@ export default function EventCard({
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="font-semibold mb-2">{event.title}</h3>
+              <h3 className="font-nastaliq font-semibold mb-2">{event.title}</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {isPast ? "باركود الألبوم" : "باركود المناسبة"}
               </p>
