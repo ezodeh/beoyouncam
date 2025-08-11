@@ -304,16 +304,29 @@ export default function EventAlbum() {
       const filePath = `events/${token}/${mediaItem.name}`;
       console.log("📁 مسار الملف للحذف:", filePath);
       
-      const { error: storageError } = await supabase.storage
+      // محاولة الحذف مع تسجيل تفصيلي للأخطاء
+      const { data, error: storageError } = await supabase.storage
         .from("event-media")
         .remove([filePath]);
       
+      console.log("📊 نتيجة الحذف:", { data, error: storageError });
+      
       if (storageError) {
-        console.error("خطأ في حذف من التخزين:", storageError);
-        throw storageError;
+        console.error("❌ خطأ في حذف من التخزين:", storageError);
+        toast({ 
+          title: "خطأ في الحذف", 
+          description: `فشل الحذف: ${storageError.message}`, 
+          variant: "destructive" 
+        });
+        return;
       }
       
-      console.log("✅ تم حذف الملف من التخزين");
+      // التحقق من نجاح الحذف
+      if (data && data.length > 0) {
+        console.log("✅ تم حذف الملف من التخزين بنجاح:", data);
+      } else {
+        console.warn("⚠️ لم يتم حذف أي ملف - قد يكون الملف غير موجود");
+      }
 
       // تحديث الواجهة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
