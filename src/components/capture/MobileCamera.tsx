@@ -53,13 +53,20 @@ const MobileCamera: React.FC<Props> = ({
   const [zoom, setZoom] = useState<number>(1);
   useEffect(() => {
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
-    setLeft(Math.max(0, maxShots - recent.length));
+    const newLeft = Math.max(0, maxShots - recent.length);
+    // تجنب التحديث المؤقت بوضع تأخير بسيط
+    setTimeout(() => {
+      setLeft(newLeft);
+    }, 100);
   }, [maxShots, recent.length]);
 
   // Monitor changes to maxShots prop during runtime
   useEffect(() => {
     console.log("🔄 MobileCamera: maxShots prop changed to:", maxShots);
-    setLeft(Math.max(0, maxShots - recent.length));
+    const newLeft = Math.max(0, maxShots - recent.length);
+    setTimeout(() => {
+      setLeft(newLeft);
+    }, 100);
   }, [maxShots]);
 
   // Save and restore recent photos from localStorage
@@ -492,6 +499,9 @@ const MobileCamera: React.FC<Props> = ({
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
   function onVideoPointerDown(e: React.PointerEvent<HTMLVideoElement>) {
+    // تجنب تعارض تبديل الكاميرا مع الزوم
+    if (camAnim) return;
+    
     (e.currentTarget as HTMLVideoElement).setPointerCapture?.(e.pointerId);
     pointersRef.current.set(e.pointerId, {
       x: e.clientX,
@@ -504,7 +514,9 @@ const MobileCamera: React.FC<Props> = ({
     }
   }
   function onVideoPointerMove(e: React.PointerEvent<HTMLVideoElement>) {
-    if (!pointersRef.current.has(e.pointerId)) return;
+    // تجنب الحركة أثناء تبديل الكاميرا
+    if (camAnim || !pointersRef.current.has(e.pointerId)) return;
+    
     pointersRef.current.set(e.pointerId, {
       x: e.clientX,
       y: e.clientY
@@ -731,7 +743,7 @@ const MobileCamera: React.FC<Props> = ({
           <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border cursor-pointer shadow-2xl backdrop-blur-md hover:bg-background transition-colors">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
-            <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={e => {
+            <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={async (e) => {
             const f = e.target.files?.[0];
             if (!f) return;
             
@@ -751,7 +763,36 @@ const MobileCamera: React.FC<Props> = ({
               });
               return;
             }
-            uploadFile(f, f.type.startsWith("video") ? "video" : "image").then(() => setLeft(n => Math.max(0, n - 1)));
+            
+            // إضافة الصورة إلى اللقطات المحلية أولاً
+            const fileUrl = URL.createObjectURL(f);
+            const fileType = f.type.startsWith("video") ? "video" : "image";
+            
+            setRecent(r => [{
+              url: fileUrl,
+              type: fileType as "image" | "video"
+            }, ...r].slice(0, 20));
+            
+            // تحديث العداد
+            const newLeft = Math.max(0, left - 1);
+            setLeft(newLeft);
+            
+            try {
+              await uploadFile(f, fileType);
+              toast({
+                title: `تم الرفع ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+              });
+            } catch (e) {
+              // إرجاع العداد في حالة فشل الرفع
+              setLeft(n => Math.min(maxShots, n + 1));
+              // إزالة الصورة من اللقطات المحلية
+              setRecent(r => r.filter(item => item.url !== fileUrl));
+              setShowRetry({
+                file: f,
+                kind: fileType
+              });
+            }
+            
             e.currentTarget.value = "";
           }} />
           </label>
@@ -812,13 +853,53 @@ const MobileCamera: React.FC<Props> = ({
             {recent.length === 0 && <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>}
             {recent.map((item, idx) => <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer" onClick={() => setViewerIndex(idx)}>
                 {item.type === "image" ? <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" /> : <video src={item.url} className="w-full h-24 object-cover" controls />}
-                  <button className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" aria-label="حذف" onClick={e => {
-              e.stopPropagation();
-              setRecent(r => r.filter((_, i) => i !== idx));
-              setLeft(n => Math.min(maxShots, n + 1));
-            }}>
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  <button className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" aria-label="حذف" onClick={async (e) => {
+                    e.stopPropagation();
+                    
+                    // تأكيد الحذف
+                    const confirmed = confirm("⚠️ هل أنت متأكد من حذف هذه اللقطة نهائياً؟");
+                    if (!confirmed) return;
+                    
+                    try {
+                      // حذف من الحالة المحلية أولاً للاستجابة السريعة
+                      const urlToDelete = item.url;
+                      setRecent(r => r.filter(i => i.url !== urlToDelete));
+                      
+                      // محاولة العثور على الملف في التخزين للحذف
+                      const fileName = urlToDelete.split('/').pop() || '';
+                      if (fileName) {
+                        const filePath = `events/${token}/${fileName}`;
+                        
+                        // حذف من التخزين
+                        const { error } = await supabase.storage
+                          .from("event-media")
+                          .remove([filePath]);
+                        
+                        if (error) {
+                          console.warn("⚠️ خطأ في حذف من التخزين:", error);
+                        }
+                        
+                        // حذف من قاعدة البيانات
+                        await supabase
+                          .from("media_submissions")
+                          .delete()
+                          .eq("file_path", filePath);
+                      }
+                      
+                      // تحديث العداد
+                      setLeft(n => Math.min(maxShots, n + 1));
+                      
+                      toast({ title: "تم حذف اللقطة" });
+                      
+                    } catch (error) {
+                      console.error("❌ خطأ في حذف اللقطة:", error);
+                      // إرجاع اللقطة للقائمة في حالة الخطأ
+                      setRecent(r => [item, ...r]);
+                      toast({ title: "خطأ في الحذف", variant: "destructive" });
+                    }
+                   }}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
               </div>)}
           </div>
           <DialogFooter>

@@ -304,7 +304,7 @@ export default function EventAlbum() {
       const filePath = `events/${token}/${mediaItem.name}`;
       console.log("📁 مسار الملف للحذف:", filePath);
       
-      // محاولة الحذف مع تسجيل تفصيلي للأخطاء
+      // 1. حذف من التخزين
       const { data, error: storageError } = await supabase.storage
         .from("event-media")
         .remove([filePath]);
@@ -321,23 +321,42 @@ export default function EventAlbum() {
         return;
       }
       
-      // التحقق من نجاح الحذف
-      if (data && data.length > 0) {
-        console.log("✅ تم حذف الملف من التخزين بنجاح:", data);
-      } else {
-        console.warn("⚠️ لم يتم حذف أي ملف - قد يكون الملف غير موجود");
+      // 2. حذف من قاعدة البيانات إذا كان موجوداً
+      const { error: dbError } = await supabase
+        .from("media_submissions")
+        .delete()
+        .eq("file_path", filePath);
+      
+      if (dbError) {
+        console.warn("⚠️ خطأ في حذف من قاعدة البيانات (قد لا يكون موجوداً):", dbError);
       }
-
-      // تحديث الواجهة المحلية
+      
+      // 3. تحديث الواجهة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
       
-      // إغلاق الـ lightbox إذا كانت الصورة المحذوفة معروضة
+      // 4. حذف من التخزين المحلي (localStorage) للكاميرا
+      const storageKey = `recentPhotos:${token}`;
+      const savedPhotos = localStorage.getItem(storageKey);
+      if (savedPhotos) {
+        try {
+          const parsed = JSON.parse(savedPhotos);
+          const filtered = parsed.filter((item: any) => 
+            !item.url.includes(mediaItem.name)
+          );
+          localStorage.setItem(storageKey, JSON.stringify(filtered));
+          console.log("🗑️ تم حذف الصورة من التخزين المحلي للكاميرا");
+        } catch (e) {
+          console.warn("⚠️ خطأ في تحديث التخزين المحلي:", e);
+        }
+      }
+      
+      // 5. إغلاق الـ lightbox إذا كانت الصورة المحذوفة معروضة
       if (lightboxIndex !== null && imageItems[lightboxIndex]?.name === mediaItem.name) {
         setLightboxIndex(null);
       }
       
-      toast({ title: "تم حذف الصورة نهائياً" });
-      console.log("✅ تم إكمال عملية الحذف بنجاح");
+      toast({ title: "تم حذف الصورة نهائياً من جميع الأماكن" });
+      console.log("✅ تم إكمال عملية الحذف بنجاح من جميع الأماكن");
       
     } catch (error) {
       console.error("❌ خطأ في حذف الصورة:", error);
