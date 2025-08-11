@@ -74,11 +74,6 @@ export default function EventAlbumIntro() {
         navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
         return;
       }
-      
-      // Check for private events (existing logic)
-      if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
-      }
     })();
   }, [token]);
 
