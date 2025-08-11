@@ -35,8 +35,10 @@ export default function EventCard({
   const [qrOpen, setQrOpen] = useState(false);
   const [actionDialog, setActionDialog] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const svgId = `qr-svg-${event.token}`;
   const shareUrl = `${window.location.origin}/event/${event.token}`;
+  const albumUrl = `${window.location.origin}/album/${event.token}`;
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -334,7 +336,7 @@ export default function EventCard({
               <Camera className="h-4 w-4" />
               <span>الكاميرا</span>
             </Link>
-            <button onClick={webShare} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="مشاركة الرابط">
+            <button onClick={() => setInviteDialogOpen(true)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="مشاركة الرابط">
               <Share2 className="h-4 w-4" />
               <span>مشاركة</span>
             </button>
@@ -418,6 +420,75 @@ export default function EventCard({
                 <Share2 className="h-4 w-4" />
                 نسخ رابط
               </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              دعوة المناسبة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="font-semibold mb-2">{event.title}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {isPast ? "باركود الألبوم" : "باركود المناسبة"}
+              </p>
+              <div className="flex justify-center mb-4">
+                <QRCode 
+                  value={isPast ? albumUrl : shareUrl} 
+                  size={200} 
+                  level="H" 
+                />
+              </div>
+              <div className="text-xs text-muted-foreground font-mono break-all mb-4 p-2 bg-muted rounded">
+                {isPast ? albumUrl : shareUrl}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const url = isPast ? albumUrl : shareUrl;
+                  navigator.clipboard.writeText(url);
+                  toast({
+                    title: "تم نسخ الرابط",
+                    description: "يمكنك الآن مشاركته"
+                  });
+                }}
+                className="w-full"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                نسخ الرابط
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: event.title,
+                      url: isPast ? albumUrl : shareUrl
+                    });
+                  } else {
+                    const url = isPast ? albumUrl : shareUrl;
+                    navigator.clipboard.writeText(url);
+                    toast({
+                      title: "تم نسخ الرابط",
+                      description: "ميزة Web Share غير مدعومة"
+                    });
+                  }
+                }}
+                className="w-full"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                مشاركة
+              </Button>
             </div>
           </div>
         </DialogContent>
