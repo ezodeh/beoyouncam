@@ -691,8 +691,8 @@ const MobileCamera: React.FC<Props> = ({
           </div>}
       </div>
       
-      {/* Hint text - moved below shutter button */}
-      <div className="absolute inset-x-0 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] flex justify-center z-40">
+      {/* Hint text - positioned between shutter and bottom buttons */}
+      <div className="absolute inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] flex justify-center z-40">
         <div className="rounded-full bg-background/90 border border-border px-4 py-2 text-sm shadow-lg backdrop-blur-sm">
           {hint}
         </div>
