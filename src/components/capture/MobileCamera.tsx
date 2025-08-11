@@ -578,13 +578,16 @@ const MobileCamera: React.FC<Props> = ({
         </button>}
 
       {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
-      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-30">
         <div className="mx-3 flex items-center justify-between">
-          <Link to={`/event/${token}/invites`} className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border">
+          <Link 
+            to={`/event/${token}/invites`} 
+            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border shadow-lg backdrop-blur-sm hover:bg-background/95 transition-colors"
+          >
             <Users className="h-4 w-4" />
             <span>QR دعوة</span>
           </Link>
-          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/80 border border-border cursor-pointer">
+          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border cursor-pointer shadow-lg backdrop-blur-sm hover:bg-background/95 transition-colors">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
             <input type="file" accept="image/*,video/*" className="hidden" onChange={e => {
