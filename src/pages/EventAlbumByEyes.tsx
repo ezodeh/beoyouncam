@@ -9,8 +9,6 @@ import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 
 // Dummy data - will be replaced with real data from Supabase
-const [photos, setPhotos] = useState<any[]>([]);
-const [loading, setLoading] = useState(true);
 
 const dummyMessages = [
   { id: 1, name: "أحمد", text: "مبارك عليكم العرس وعقبال مليون سنة سعيدة" },
