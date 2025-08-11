@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,30 +25,18 @@ export default function EventAlbumIntro() {
   }, [title]);
 
   const navigate = useNavigate();
-  
   useEffect(() => {
     (async () => {
       if (!token) return;
       
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("🔍 Session check:", { 
-        hasSession: !!session, 
-        userId: session?.user?.id,
-        userEmail: session?.user?.email 
-      });
-      
       const { data } = await supabase
         .from("events")
         .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password")
         .eq("token", token)
         .maybeSingle();
         
-      if (!data) {
-        console.log("❌ No event data found for token:", token);
-        return;
-      }
-      
-      console.log("📄 Event data:", data);
+      if (!data) return;
       
       setEventDetails(data);
       setTitle(data.title || eventName);
@@ -57,12 +45,6 @@ export default function EventAlbumIntro() {
       
       // Determine if current user is the event owner
       const currentIsEventOwner = session?.user?.id === data.owner_id;
-      console.log("👤 Ownership check:", {
-        sessionUserId: session?.user?.id,
-        eventOwnerId: data.owner_id,
-        isOwner: currentIsEventOwner,
-        comparison: `"${session?.user?.id}" === "${data.owner_id}"`
-      });
       
       // Check if private album needs password verification
       if (data.is_private && data.password && !currentIsEventOwner) {
@@ -91,6 +73,11 @@ export default function EventAlbumIntro() {
         console.log("🚫 Album not published and user is not owner, redirecting to soon page");
         navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
         return;
+      }
+      
+      // Check for private events (existing logic)
+      if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
       }
     })();
   }, [token]);
