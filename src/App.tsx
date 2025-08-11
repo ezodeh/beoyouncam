@@ -17,7 +17,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EventAlbum from "./pages/EventAlbum";
 import EventAlbumIntro from "./pages/EventAlbumIntro";
 import EventAlbumByEyes from "./pages/EventAlbumByEyes";
-
+import EventAlbumPrivate from "./pages/EventAlbumPrivate";
 import EventFinalSubmit from "./pages/EventFinalSubmit";
 import EventSubmitSuccess from "./pages/EventSubmitSuccess";
 import ThemeProvider from "@/components/theme/ThemeProvider";
@@ -71,7 +71,7 @@ const App = () => {
                 <Route path="/gallery/:token" element={<Gallery />} />
                 <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
                 <Route path="/album/:token" element={<EventAlbum />} />
-                
+                <Route path="/album/:token/private" element={<EventAlbumPrivate />} />
                 <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
                 <Route path="/event/:token/invites" element={<Invites />} />
                 <Route path="/manage/:token" element={<ManageDashboard />} />
