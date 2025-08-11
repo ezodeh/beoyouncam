@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { QrCode, Download, Copy, Image, X } from "lucide-react";
+import { QrCode, Download, Copy, Image, X, Maximize } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -14,6 +14,7 @@ interface QRCodesTabProps {
 export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
   const { toast } = useToast();
   const [enlargedQR, setEnlargedQR] = useState<{ url: string; title: string } | null>(null);
+  const [fullscreenQR, setFullscreenQR] = useState(false);
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
   const albumUrl = `${window.location.origin}/album/${token}`;
 
@@ -247,11 +248,8 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
 
       {/* Enlarged QR Dialog */}
       <Dialog open={!!enlargedQR} onOpenChange={() => setEnlargedQR(null)}>
-        <DialogContent className="max-w-md p-8">
+        <DialogContent className={`${fullscreenQR ? 'max-w-full h-screen' : 'max-w-md'} p-8`}>
           <div className="flex items-center justify-between mb-4">
-            <DialogTitle className="text-lg font-semibold">
-              {enlargedQR?.title}
-            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -260,11 +258,22 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
             >
               <X className="h-4 w-4" />
             </Button>
+            <DialogTitle className="text-lg font-semibold">
+              {enlargedQR?.title}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFullscreenQR(!fullscreenQR)}
+              className="h-8 w-8 p-0"
+            >
+              <Maximize className="h-4 w-4" />
+            </Button>
           </div>
           <div className="text-center">
             <div className="bg-white p-6 rounded-lg inline-block border shadow-sm">
               {enlargedQR && (
-                <QRCode value={enlargedQR.url} size={280} level="H" />
+                <QRCode value={enlargedQR.url} size={fullscreenQR ? 400 : 280} level="H" />
               )}
             </div>
             <p className="mt-4 text-sm text-muted-foreground">

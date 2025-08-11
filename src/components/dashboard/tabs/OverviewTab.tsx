@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, Clock, QrCode, Users, Album, Share2, ExternalLink, Camera, Images, X } from "lucide-react";
+import { Calendar, Clock, QrCode, Users, Album, Share2, ExternalLink, Camera, Images, X, Maximize } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const [stats, setStats] = useState({ participants: 0, photos: 0, messages: 0 });
   const [countdown, setCountdown] = useState("");
   const [enlargedQR, setEnlargedQR] = useState<{ url: string; title: string } | null>(null);
+  const [fullscreenQR, setFullscreenQR] = useState(false);
   const [designerOpen, setDesignerOpen] = useState(false);
   const eventStatus = useMemo(() => {
     const now = Date.now();
@@ -80,6 +81,11 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
   }, [eventData?.start_at]);
 
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
+
+  const closeAllDialogs = () => {
+    setEnlargedQR(null);
+    setFullscreenQR(false);
+  };
 
   return (
     <div className="grid gap-4 text-right" dir="rtl">
@@ -375,11 +381,8 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
 
       {/* Enlarged QR Dialog */}
       <Dialog open={!!enlargedQR} onOpenChange={() => setEnlargedQR(null)}>
-        <DialogContent className="max-w-md p-8">
+        <DialogContent className={`${fullscreenQR ? 'max-w-full h-screen' : 'max-w-md'} p-8`}>
           <div className="flex items-center justify-between mb-4">
-            <DialogTitle className="text-lg font-semibold">
-              {enlargedQR?.title}
-            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -388,11 +391,22 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             >
               <X className="h-4 w-4" />
             </Button>
+            <DialogTitle className="text-lg font-semibold">
+              {enlargedQR?.title}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFullscreenQR(!fullscreenQR)}
+              className="h-8 w-8 p-0"
+            >
+              <Maximize className="h-4 w-4" />
+            </Button>
           </div>
           <div className="text-center">
             <div className="bg-white p-6 rounded-lg inline-block border shadow-sm">
               {enlargedQR && (
-                <QRCode value={enlargedQR.url} size={280} level="H" />
+                <QRCode value={enlargedQR.url} size={fullscreenQR ? 400 : 280} level="H" />
               )}
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
