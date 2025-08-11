@@ -131,7 +131,7 @@ const signUpGoogle = async () => {
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <div className="w-full max-w-sm">
-          <h1 className="text-3xl font-extrabold text-center mb-6 font-scheherazade">أهلاً بك</h1>
+          <h1 className="text-3xl font-extrabold text-center mb-6 font-nastaliq">يا هلا بكم يا هلا بكم</h1>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="signin">تسجيل الدخول</TabsTrigger>
