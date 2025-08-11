@@ -322,7 +322,6 @@ export default function EventAlbumByEyes() {
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
               <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>
-              <p className="text-sm text-muted-foreground">رمز المناسبة: {token}</p>
             </div>
           </div>
         </header>
