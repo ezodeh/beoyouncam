@@ -50,7 +50,8 @@ const MobileCamera: React.FC<Props> = ({
   const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
   useEffect(() => {
-    if (recent.length === 0) setLeft(maxShots);
+    console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
+    setLeft(Math.max(0, maxShots - recent.length));
   }, [maxShots, recent.length]);
 
   // استنتاج الاسم من جلسة المستخدم إن لم يكن في التخزين المحلي
