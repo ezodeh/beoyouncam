@@ -48,11 +48,15 @@ export default function EventCamera() {
           navigate(`/event/${token}/ended?${qs.toString()}`);
           return;
         }
-        if (!isNaN(queryShots)) {
+        console.log("🔢 EventCamera: Database data - max_shots:", row.max_shots, "queryShots:", queryShots);
+        if (!isNaN(queryShots) && queryShots > 0) {
+          console.log("🔢 EventCamera: Using query shots:", queryShots);
           setMaxShots(Math.max(1, queryShots));
-        } else if (typeof row.max_shots === "number") {
+        } else if (typeof row.max_shots === "number" && row.max_shots > 0) {
+          console.log("🔢 EventCamera: Using database max_shots:", row.max_shots);
           setMaxShots(Math.max(1, row.max_shots));
         }
+        console.log("🔢 EventCamera: Final maxShots will be:", typeof row.max_shots === "number" ? row.max_shots : queryShots);
       }
     })();
   }, [location.search, navigate, token]);
