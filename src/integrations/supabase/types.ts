@@ -153,6 +153,7 @@ export type Database = {
           media_type: string
           metadata: Json | null
           participant_id: string | null
+          thumbnail_path: string | null
         }
         Insert: {
           created_at?: string
@@ -163,6 +164,7 @@ export type Database = {
           media_type: string
           metadata?: Json | null
           participant_id?: string | null
+          thumbnail_path?: string | null
         }
         Update: {
           created_at?: string
@@ -173,6 +175,7 @@ export type Database = {
           media_type?: string
           metadata?: Json | null
           participant_id?: string | null
+          thumbnail_path?: string | null
         }
         Relationships: [
           {
