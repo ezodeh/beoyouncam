@@ -172,6 +172,7 @@ function Pill({ selected, children, onClick, disabled = false }: any) {
 }
 
 export default function CreateEvent() {
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // SEO
   useEffect(() => {
     document.title = "إنشاء مناسبة — عيون cam";
@@ -294,6 +295,7 @@ export default function CreateEvent() {
         setGuests(d.guests ?? 100);
         setShotsPerGuest(d.shotsPerGuest ?? 20);
         setEnableVideo(!!d.enableVideo);
+        setHasUnsavedChanges(false); // Reset after loading draft
       } catch {}
     }
   }, []);
@@ -319,7 +321,34 @@ export default function CreateEvent() {
       enableVideo,
     };
     localStorage.setItem("create_event_draft", JSON.stringify(draft));
-  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, password, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, showHeader, guests, shotsPerGuest, enableVideo]);
+    
+    // Mark as having unsaved changes if any field has content
+    const hasContent = title.trim() || description.trim() || startAt || endAt || 
+                       timing || welcomeTitle !== "أهلاً وسهلاً في اليوم" || 
+                       welcomeBody !== "شكراً بمشاركتكم فرحتنا! صوروا بحب، ما بدنا فلتر مبالغ فيه 🙂." ||
+                       ctaLabel !== "للتصوير" || guests !== 100 || shotsPerGuest !== 20 || 
+                       enableVideo || welcomePageHeroFile || welcomePageHeroImage;
+    setHasUnsavedChanges(Boolean(hasContent));
+  }, [title, description, startAt, endAt, timing, customPublishAt, privacy, password, autoShareToGuests, shareChannel, welcomeTitle, welcomeBody, ctaLabel, showHeader, guests, shotsPerGuest, enableVideo, welcomePageHeroFile, welcomePageHeroImage]);
+
+  // Warning before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'هل أنت متأكد من مغادرة الصفحة؟ لن يتم حفظ التغييرات.';
+        return 'هل أنت متأكد من مغادرة الصفحة؟ لن يتم حفظ التغييرات.';
+      }
+    };
+
+    if (hasUnsavedChanges) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
 
   // auth session
   useEffect(() => {
@@ -505,6 +534,7 @@ export default function CreateEvent() {
       if (insErr) throw insErr;
 
       localStorage.removeItem("create_event_draft");
+      setHasUnsavedChanges(false); // Clear unsaved changes flag after successful submission
       toast({ title: "تم إنشاء المناسبة" });
       navigate(`/manage/${token}`);
     } catch (err: any) {
