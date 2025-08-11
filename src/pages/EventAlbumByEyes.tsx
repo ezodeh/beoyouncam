@@ -9,10 +9,8 @@ import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 
 // Dummy data - will be replaced with real data from Supabase
-const dummyPhotos = [
-  { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 },
-  { id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }
-];
+const [photos, setPhotos] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
 const dummyMessages = [
   { id: 1, name: "أحمد", text: "مبارك عليكم العرس وعقبال مليون سنة سعيدة" },
@@ -39,6 +37,8 @@ const mediaItems = [
 export default function EventAlbumByEyes() {
   const { token, name } = useParams();
   const { toast } = useToast();
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = `بعيون ${name} — من عيونكم`;
@@ -66,13 +66,61 @@ export default function EventAlbumByEyes() {
       setIsEventOwner(session.user.id === data?.owner_id);
     };
     checkOwnership();
+    fetchPhotos();
   }, [token]);
+
+  const fetchPhotos = async () => {
+    if (!token || !name) return;
+    setLoading(true);
+    try {
+      // Get participant ID by name
+      const { data: participant } = await supabase
+        .from("participants")
+        .select("id")
+        .eq("event_token", token)
+        .eq("name", name)
+        .single();
+
+      if (!participant) {
+        setPhotos([]);
+        return;
+      }
+
+      // Get media submissions for this participant
+      const { data: submissions } = await supabase
+        .from("media_submissions")
+        .select("*")
+        .eq("participant_id", participant.id)
+        .order("created_at", { ascending: false });
+
+      if (submissions) {
+        const photosWithUrls = submissions.map(submission => {
+          const { data: { publicUrl } } = supabase.storage
+            .from("event-media")
+            .getPublicUrl(submission.file_path);
+          
+          return {
+            id: submission.id,
+            src: publicUrl,
+            alt: `صورة من ${name}`,
+            type: submission.media_type === "video" ? "video" : "image"
+          };
+        });
+        setPhotos(photosWithUrls);
+      }
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+      setPhotos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Lightbox functions
   const openAt = (index: number) => setLightboxIndex(index);
   const close = () => setLightboxIndex(null);
-  const prev = () => setLightboxIndex(prev => prev === null ? null : prev > 0 ? prev - 1 : mediaItems.length - 1);
-  const next = () => setLightboxIndex(prev => prev === null ? null : prev < mediaItems.length - 1 ? prev + 1 : 0);
+  const prev = () => setLightboxIndex(prev => prev === null ? null : prev > 0 ? prev - 1 : photos.length - 1);
+  const next = () => setLightboxIndex(prev => prev === null ? null : prev < photos.length - 1 ? prev + 1 : 0);
 
   const sharePage = async () => {
     const url = window.location.href;
@@ -160,41 +208,49 @@ export default function EventAlbumByEyes() {
 
         <section className="container mx-auto px-4 py-6 grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
-            {isEventOwner && dummyPhotos.length > 0 && (
-              <div className="mb-4 flex justify-end">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={deleteParticipantMedia}
-                  className="gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  حذف جميع صور {name}
-                </Button>
-              </div>
-            )}
-            {dummyPhotos.length > 0 ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-                {dummyPhotos.map((p, idx) => (
-                  <button
-                    key={p.id}
-                    onClick={() => openAt(idx)}
-                    className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
-                    aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
-                  >
-                    <img
-                      src={mediaItems[idx].src}
-                      alt={mediaItems[idx].alt}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground">
+                جاري تحميل الصور...
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                لا يوجد صور
-              </div>
+              <>
+                {isEventOwner && photos.length > 0 && (
+                  <div className="mb-4 flex justify-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteParticipantMedia}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      حذف جميع صور {name}
+                    </Button>
+                  </div>
+                )}
+                {photos.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
+                    {photos.map((photo, idx) => (
+                      <button
+                        key={photo.id}
+                        onClick={() => openAt(idx)}
+                        className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+                        aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
+                      >
+                        <img
+                          src={photo.src}
+                          alt={photo.alt}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    لا يوجد صور من {name}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <aside className="space-y-3">
@@ -243,7 +299,7 @@ export default function EventAlbumByEyes() {
 
             {/* Index and name like main album (left top) */}
             <div className="absolute top-4 left-4 text-sm">
-              <div>{String(lightboxIndex + 1).padStart(2, "0")}/{mediaItems.length}</div>
+              <div>{String(lightboxIndex + 1).padStart(2, "0")}/{photos.length}</div>
               <div className="font-nastaliq text-xs mt-1">بعيون {name}</div>
             </div>
 
@@ -265,17 +321,17 @@ export default function EventAlbumByEyes() {
             </button>
 
             <div className="h-full w-full flex items-center justify-center p-4">
-              {mediaItems[lightboxIndex].type === "video" ? (
+              {photos[lightboxIndex]?.type === "video" ? (
                 <video
-                  src={(mediaItems[lightboxIndex] as any).src}
+                  src={photos[lightboxIndex].src}
                   className="max-h-[88vh] max-w-[92vw] rounded-lg shadow-lg"
                   controls
                   autoPlay
                 />
               ) : (
                 <img
-                  src={mediaItems[lightboxIndex].src}
-                  alt={mediaItems[lightboxIndex].alt}
+                  src={photos[lightboxIndex]?.src}
+                  alt={photos[lightboxIndex]?.alt}
                   className="max-h-[88vh] max-w-[92vw] object-contain rounded-lg shadow-lg"
                 />
               )}

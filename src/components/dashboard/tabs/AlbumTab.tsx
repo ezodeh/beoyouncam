@@ -18,6 +18,7 @@ interface Photo {
   url: string;
   created_at: string;
   participant_name: string;
+  file_path: string;
 }
 
 interface Blessing {
@@ -117,31 +118,38 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   const fetchPhotos = async () => {
     try {
-      // استخدام بيانات حقيقية من التخزين
-      const prefix = `events/${token}`;
-      const { data: files, error } = await supabase.storage
-        .from("event-media")
-        .list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "desc" } });
+      // Get media submissions with participant names
+      const { data: submissions, error } = await supabase
+        .from("media_submissions")
+        .select(`
+          *,
+          participants (name)
+        `)
+        .eq("event_token", token)
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
       
-      if (!files || files.length === 0) {
+      if (!submissions || submissions.length === 0) {
         setPhotos([]);
         return;
       }
 
-      const photoData = files
-        .filter((file: any) => {
-          const ext = file.name.split('.').pop()?.toLowerCase();
-          return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+      const photoData = submissions
+        .filter((submission: any) => {
+          return submission.media_type === "image";
         })
-        .map((file: any) => {
-          const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${file.name}`);
+        .map((submission: any) => {
+          const { data: { publicUrl } } = supabase.storage
+            .from("event-media")
+            .getPublicUrl(submission.file_path);
+          
           return {
-            id: file.name,
-            url: pub.publicUrl,
-            created_at: file.created_at || new Date().toISOString(),
-            participant_name: "مشارك" // placeholder
+            id: submission.id,
+            url: publicUrl,
+            created_at: submission.created_at,
+            participant_name: submission.participants?.name || "مشارك",
+            file_path: submission.file_path
           };
         });
 
@@ -172,22 +180,30 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
   const fetchEyeAlbums = async () => {
     try {
-      // Fetch participants who have uploaded photos
-      const { data: participants, error } = await supabase
+      // Fetch participants with their photo counts sorted by name
+      const { data: participantsData, error } = await supabase
         .from('participants')
-        .select('id, name, created_at')
-        .eq('event_token', token);
+        .select(`
+          id, 
+          name, 
+          created_at,
+          media_submissions (count)
+        `)
+        .eq('event_token', token)
+        .order('name', { ascending: true });
       
       if (error) throw error;
       
-      // For now, we'll create placeholder eye albums
-      // In a real implementation, you'd query the actual eye albums
-      const eyeData: EyeAlbum[] = (participants || []).map(p => ({
-        id: p.id,
-        participant_name: p.name || 'مشارك',
-        photos_count: Math.floor(Math.random() * 10) + 1, // placeholder
-        created_at: p.created_at
-      }));
+      // Create eye albums with actual photo counts
+      const eyeData: EyeAlbum[] = (participantsData || [])
+        .filter(p => p.media_submissions && p.media_submissions.length > 0)
+        .map(p => ({
+          id: p.id,
+          participant_name: p.name || 'مشارك',
+          photos_count: p.media_submissions[0]?.count || 0,
+          created_at: p.created_at
+        }))
+        .sort((a, b) => a.participant_name.localeCompare(b.participant_name, 'ar'));
       
       setEyeAlbums(eyeData);
     } catch (error) {
@@ -200,13 +216,24 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
     if (!confirm("هل أنت متأكد من حذف هذه الصورة؟")) return;
 
     try {
+      // Find the photo to get the file path
+      const photo = photos.find(p => p.id === photoId);
+      if (!photo) return;
+
       // Delete from storage permanently
-      const prefix = `events/${token}`;
-      const { error } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("event-media")
-        .remove([`${prefix}/${photoId}`]);
+        .remove([photo.file_path]);
       
-      if (error) throw error;
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("media_submissions")
+        .delete()
+        .eq("id", photoId);
+      
+      if (dbError) throw dbError;
       
       // Remove from local state immediately
       setPhotos(prev => prev.filter(p => p.id !== photoId));
@@ -691,10 +718,66 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
             )}
           </div>
 
-          <Button onClick={handleSaveAlbumSettings} className="w-full">
-            <Save className="h-4 w-4 ml-2" />
-            حفظ إعدادات المشاركة
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={handleSaveAlbumSettings} className="w-full">
+              <Save className="h-4 w-4 ml-2" />
+              حفظ إعدادات المشاركة
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={async () => {
+                try {
+                  toast({ title: "جاري تحضير الألبوم للتحميل..." });
+                  
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) {
+                    toast({ title: "يرجى تسجيل الدخول", variant: "destructive" });
+                    return;
+                  }
+
+                  // Call the edge function with proper URL construction
+                  const functionUrl = `https://jmoomibffevngnpcbvfi.supabase.co/functions/v1/download-album?token=${token}`;
+                  
+                  const response = await fetch(functionUrl, {
+                    method: 'GET',
+                    headers: {
+                      'Authorization': `Bearer ${session.access_token}`,
+                      'Content-Type': 'application/json',
+                    },
+                  });
+
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'فشل في تحميل الألبوم');
+                  }
+
+                  // Get the ZIP file as blob
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `album-${eventData?.title || token}.zip`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+
+                  toast({ title: "تم تحميل الألبوم بنجاح" });
+                } catch (error) {
+                  console.error('Download error:', error);
+                  toast({ 
+                    title: "فشل في تحميل الألبوم", 
+                    description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+                    variant: "destructive" 
+                  });
+                }
+              }}
+            >
+              <Download className="h-4 w-4 ml-2" />
+              تحميل الألبوم كاملاً (ZIP)
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -833,11 +916,14 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                 <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
                   {eyeAlbums.map((album) => (
                     <div key={album.id} className="flex-shrink-0 group">
-                      <div className="w-32 h-32 rounded-lg border bg-gradient-to-br from-secondary/20 to-secondary/40 flex flex-col items-center justify-center">
+                      <a 
+                        href={`/album/${token}/eyes/${encodeURIComponent(album.participant_name)}`}
+                        className="block w-32 h-32 rounded-lg border bg-gradient-to-br from-secondary/20 to-secondary/40 flex flex-col items-center justify-center hover:bg-secondary/30 transition-colors"
+                      >
                         <Eye className="h-8 w-8 text-secondary-foreground/60 mb-2" />
                         <span className="text-lg font-bold text-secondary-foreground/80">{album.photos_count}</span>
                         <span className="text-xs text-secondary-foreground/60">صورة</span>
-                      </div>
+                      </a>
 
                       <div className="mt-2 text-xs text-center text-muted-foreground w-32">
                         <div className="truncate font-medium">{album.participant_name}</div>

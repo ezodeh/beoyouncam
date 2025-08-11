@@ -763,7 +763,7 @@ export default function CreateEvent() {
                   {/* Panel اليمين: معاينة الهاتف */}
                   <div className="flex flex-col items-center gap-4">
                     
-                    <Tabs defaultValue="welcome" className="w-full max-w-xs">
+                    <Tabs value="welcome" className="w-full max-w-xs">
                       <TabsList className="grid w-full grid-cols-3 text-xs">
                         <TabsTrigger value="welcome" className="text-xs">الترحيب</TabsTrigger>
                         <TabsTrigger value="album-intro" className="text-xs">ترحيب الألبوم</TabsTrigger>
@@ -809,10 +809,10 @@ export default function CreateEvent() {
                                 <section className="max-w-full mx-auto">
                                   <div className="text-center mb-4">
                                     <h1 className="font-nastaliq text-sm leading-snug font-bold">
-                                      {welcomeTitle || "عنوان الحدث"}
+                                      {title || welcomeTitle || "عنوان الحدث"}
                                     </h1>
                                     <p className="mt-2 text-xs text-muted-foreground">
-                                      {welcomeBody || "يا هلا بكم"}
+                                      {description || welcomeBody || "يا هلا بكم"}
                                     </p>
                                   </div>
                                   
@@ -890,12 +890,12 @@ export default function CreateEvent() {
                                {/* المحتوى الرئيسي */}
                                <main className="px-3 py-2 flex-1 grid place-items-center">
                                  <section className="max-w-full mx-auto text-center">
-                                   <h1 className="font-nastaliq text-sm leading-snug font-bold mb-2">
-                                     ألبوم {welcomeTitle || "المناسبة"}
-                                   </h1>
-                                   <p className="text-xs text-muted-foreground mb-3">
-                                     {welcomeBody || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
-                                   </p>
+                                    <h1 className="font-nastaliq text-sm leading-snug font-bold mb-2">
+                                      ألبوم {title || welcomeTitle || "المناسبة"}
+                                    </h1>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                      {description || welcomeBody || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."}
+                                    </p>
                                   <div className="w-full h-6 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
                                     الدخول إلى الألبوم
                                   </div>
@@ -943,9 +943,9 @@ export default function CreateEvent() {
                                <main className="flex-1">
                                  {/* عنوان الألبوم */}
                                  <section className="px-3 py-2 text-center">
-                                   <h1 className="font-nastaliq text-sm leading-snug font-bold">
-                                     {welcomeTitle || "الألبوم"}
-                                   </h1>
+                                    <h1 className="font-nastaliq text-sm leading-snug font-bold">
+                                      {title || welcomeTitle || "الألبوم"}
+                                    </h1>
                                  </section>
                                 
                                 {/* تبويبات الألبوم */}
