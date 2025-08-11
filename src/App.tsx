@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ import EventAlbumPrivate from "./pages/EventAlbumPrivate";
 import EventFinalSubmit from "./pages/EventFinalSubmit";
 import EventSubmitSuccess from "./pages/EventSubmitSuccess";
 import ThemeProvider from "@/components/theme/ThemeProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Invites from "./pages/Invites";
 import EventWelcome from "./pages/EventWelcome";
 import EventSoon from "./pages/EventSoon";
@@ -31,47 +33,63 @@ import Settings from "./pages/Settings";
 import Scanner from "./pages/Scanner";
 import BillingHistory from "./pages/BillingHistory";
 import Auth from "./pages/Auth";
-const queryClient = new QueryClient();
 
-const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/choose-plan" element={<ChoosePlan />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/create-event" element={<CreateEvent />} />
-            <Route path="/event/:token" element={<EventCapture />} />
-            <Route path="/event/:token/welcome" element={<EventWelcome />} />
-            <Route path="/event/:token/soon" element={<EventSoon />} />
-            <Route path="/event/:token/ended" element={<EventEnded />} />
-            <Route path="/event/:token/camera" element={<EventCamera />} />
-            <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
-            <Route path="/event/:token/submit-success" element={<EventSubmitSuccess />} />
-            <Route path="/gallery/:token" element={<Gallery />} />
-            <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
-            <Route path="/album/:token" element={<EventAlbum />} />
-            <Route path="/album/:token/private" element={<EventAlbumPrivate />} />
-            <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
-            <Route path="/event/:token/invites" element={<Invites />} />
-            <Route path="/manage/:token" element={<ManageDashboard />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/scanner" element={<Scanner />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/billing" element={<BillingHistory />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
+console.log("🚀 App: Starting application...");
+
+const App = () => {
+  console.log("🚀 App: Rendering main App component");
+  
+  return (
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/choose-plan" element={<ChoosePlan />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/create-event" element={<CreateEvent />} />
+                <Route path="/event/:token" element={<EventCapture />} />
+                <Route path="/event/:token/welcome" element={<EventWelcome />} />
+                <Route path="/event/:token/soon" element={<EventSoon />} />
+                <Route path="/event/:token/ended" element={<EventEnded />} />
+                <Route path="/event/:token/camera" element={<EventCamera />} />
+                <Route path="/event/:token/submit" element={<EventFinalSubmit />} />
+                <Route path="/event/:token/submit-success" element={<EventSubmitSuccess />} />
+                <Route path="/gallery/:token" element={<Gallery />} />
+                <Route path="/album/:token/intro" element={<EventAlbumIntro />} />
+                <Route path="/album/:token" element={<EventAlbum />} />
+                <Route path="/album/:token/private" element={<EventAlbumPrivate />} />
+                <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
+                <Route path="/event/:token/invites" element={<Invites />} />
+                <Route path="/manage/:token" element={<ManageDashboard />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/scanner" element={<Scanner />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/billing" element={<BillingHistory />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
