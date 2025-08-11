@@ -455,7 +455,7 @@ const MobileCamera: React.FC<Props> = ({
 
       toast({
         title: "تم الرفع ✅",
-        duration: 500, // نصف ثانية فقط
+        duration: 300, // أسرع - ثلث ثانية فقط
       });
     } catch (e) {
       toast({
@@ -681,7 +681,7 @@ const MobileCamera: React.FC<Props> = ({
             </button>
           </div>}
         <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">
-          {hint}{!enableVideo ? " • الفيديو معطل" : ""}
+          {hint}{!enableVideo ? " • الفيديو غير متاح" : ""}
         </div>
       </div>
 
