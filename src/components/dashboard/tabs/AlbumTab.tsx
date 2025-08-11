@@ -657,9 +657,9 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                     <Button 
                       variant="outline" 
                       onClick={toggleAlbumPublish}
-                      className="flex-1"
+                      className="flex-1 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
-                      <StopCircle className="h-4 w-4 ml-2" />
+                      <StopCircle className="h-4 w-4 ml-2 text-destructive" />
                       إلغاء النشر
                     </Button>
                   )}
