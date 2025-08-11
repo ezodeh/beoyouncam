@@ -648,10 +648,12 @@ const MobileCamera: React.FC<Props> = ({
       {/* Limit reached dialog */}
       <Dialog open={left <= 0}>
         <DialogContent dir="rtl">
-          
+          <DialogHeader>
+            <DialogTitle>وصلت الحد الأقصى من اللقطات</DialogTitle>
+          </DialogHeader>
           <p className="text-sm text-muted-foreground mb-2">يمكنك حذف بعض اللقطات أو تسليم الألبوم الآن.</p>
           <label className="text-sm mb-1">اكتب مباركة (اختياري)</label>
-          <Textarea value={greeting} onChange={e => setGreeting(e.target.value)} placeholder="اكتب تهنئة قصيرة للعروسين…" />
+          <Textarea value={greeting} onChange={e => setGreeting(e.target.value)} placeholder="اكتب تهنئة جميلة للمناسبة…" />
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="secondary" onClick={() => setShowRecent(true)}>حذف بعض اللقطات</Button>
             <Button onClick={() => navigate(`/event/${token}/submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
