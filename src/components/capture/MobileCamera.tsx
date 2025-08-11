@@ -656,7 +656,13 @@ const MobileCamera: React.FC<Props> = ({
           <Textarea value={greeting} onChange={e => setGreeting(e.target.value)} placeholder="اكتب تهنئة جميلة للمناسبة…" />
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="secondary" onClick={() => setShowRecent(true)}>حذف بعض اللقطات</Button>
-            <Button onClick={() => navigate(`/event/${token}/submit${window.location.search}${greeting ? "&greeting=" + encodeURIComponent(greeting) : ""}`)}>تسليم الألبوم الآن</Button>
+            <Button onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              if (greeting) {
+                params.set('greeting', greeting);
+              }
+              navigate(`/event/${token}/submit?${params.toString()}`);
+            }}>تسليم الألبوم الآن</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
