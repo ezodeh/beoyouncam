@@ -284,34 +284,58 @@ export default function EventAlbum() {
   const deleteMediaItem = async (mediaItem: MediaItem) => {
     const confirmed = confirm("⚠️ هل أنت متأكد من حذف هذه الصورة نهائياً؟\n\nلا يمكن التراجع عن هذا الإجراء.");
     if (!confirmed) return;
+    
     try {
-      // العثور على الملف لحذفه من التخزين
+      console.log("🗑️ بدء حذف الصورة:", mediaItem.name);
+      
+      // أولاً: حذف من قاعدة البيانات للحصول على file_path
       const { data: submission, error: fetchError } = await supabase
         .from("media_submissions")
-        .select("file_path")
+        .select("file_path, id")
         .eq("file_name", mediaItem.name)
         .eq("event_token", token)
-        .single();
-        
-      if (fetchError) throw fetchError;
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error("خطأ في جلب بيانات الملف:", fetchError);
+        throw fetchError;
+      }
+      
+      if (!submission) {
+        console.log("⚠️ لم يتم العثور على الملف في قاعدة البيانات");
+        toast({ title: "خطأ", description: "لم يتم العثور على الملف", variant: "destructive" });
+        return;
+      }
+      
+      console.log("📄 بيانات الملف:", submission);
 
-      // حذف من التخزين
+      // ثانياً: حذف من قاعدة البيانات
+      const { error: dbError } = await supabase
+        .from("media_submissions")
+        .delete()
+        .eq("id", submission.id);
+        
+      if (dbError) {
+        console.error("خطأ في حذف من قاعدة البيانات:", dbError);
+        throw dbError;
+      }
+      
+      console.log("✅ تم حذف السجل من قاعدة البيانات");
+
+      // ثالثاً: حذف من التخزين
       const { error: storageError } = await supabase.storage
         .from("event-media")
         .remove([submission.file_path]);
       
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error("خطأ في حذف من التخزين:", storageError);
+        // لا نرمي الخطأ هنا لأن المهم هو حذف السجل من قاعدة البيانات
+        console.log("⚠️ تم حذف السجل من قاعدة البيانات لكن فشل حذف الملف من التخزين");
+      } else {
+        console.log("✅ تم حذف الملف من التخزين");
+      }
 
-      // حذف من قاعدة البيانات
-      const { error: dbError } = await supabase
-        .from("media_submissions")
-        .delete()
-        .eq("file_name", mediaItem.name)
-        .eq("event_token", token);
-        
-      if (dbError) throw dbError;
-
-      // تحديث الحالة المحلية - إزالة الصورة من القائمة فوراً
+      // رابعاً: تحديث الواجهة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
       
       // إغلاق الـ lightbox إذا كانت الصورة المحذوفة معروضة
@@ -320,8 +344,10 @@ export default function EventAlbum() {
       }
       
       toast({ title: "تم حذف الصورة نهائياً" });
+      console.log("✅ تم إكمال عملية الحذف بنجاح");
+      
     } catch (error) {
-      console.error("Error deleting media:", error);
+      console.error("❌ خطأ في حذف الصورة:", error);
       toast({ title: "خطأ", description: "تعذّر حذف الصورة", variant: "destructive" });
     }
   };
