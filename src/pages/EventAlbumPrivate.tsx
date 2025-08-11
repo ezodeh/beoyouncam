@@ -98,7 +98,7 @@ export default function EventAlbumPrivate() {
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle>ألبوم خاص</CardTitle>
+            <CardTitle>ألبوم {eventTitle}</CardTitle>
             <p className="text-muted-foreground text-sm">
               يتطلب هذا الألبوم كلمة مرور للوصول
             </p>
