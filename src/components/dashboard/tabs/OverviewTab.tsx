@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, Clock, QrCode, Users, Album, Share2, ExternalLink, Camera, Images } from "lucide-react";
+import { Calendar, Clock, QrCode, Users, Album, Share2, ExternalLink, Camera, Images, X } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ interface OverviewTabProps {
 export function OverviewTab({ token, eventData }: OverviewTabProps) {
   const [stats, setStats] = useState({ participants: 0, photos: 0, messages: 0 });
   const [countdown, setCountdown] = useState("");
+  const [enlargedQR, setEnlargedQR] = useState<{ url: string; title: string } | null>(null);
   const [designerOpen, setDesignerOpen] = useState(false);
   const eventStatus = useMemo(() => {
     const now = Date.now();
@@ -234,7 +235,10 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             {eventStatus === "منتهية" ? (
               // Show album link when event is ended
               <div className="space-y-3">
-                <div className="bg-white p-2 rounded-lg inline-block">
+                <div 
+                  className="bg-white p-2 rounded-lg inline-block cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setEnlargedQR({ url: `${window.location.origin}/album/${token}`, title: "باركود الألبوم" })}
+                >
                   <div id="overview-qr-wrap">
                     <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}`} size={72} level="H" />
                   </div>
@@ -285,7 +289,10 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
             ) : (
               // Show event link and camera when event is active or upcoming
               <div className="space-y-3">
-                <div className="bg-white p-2 rounded-lg inline-block">
+                <div 
+                  className="bg-white p-2 rounded-lg inline-block cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setEnlargedQR({ url: eventUrl, title: "باركود المناسبة" })}
+                >
                   <div id="overview-qr-wrap">
                     <QRCode id="overview-qr" value={eventUrl} size={72} level="H" />
                   </div>
@@ -365,6 +372,35 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Enlarged QR Dialog */}
+      <Dialog open={!!enlargedQR} onOpenChange={() => setEnlargedQR(null)}>
+        <DialogContent className="max-w-md p-8">
+          <div className="flex items-center justify-between mb-4">
+            <DialogTitle className="text-lg font-semibold">
+              {enlargedQR?.title}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setEnlargedQR(null)}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-center">
+            <div className="bg-white p-6 rounded-lg inline-block border shadow-sm">
+              {enlargedQR && (
+                <QRCode value={enlargedQR.url} size={280} level="H" />
+              )}
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              اضغط على الباركود أو استخدم كاميرا الهاتف لمسحه
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
