@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, PlusCircle, Camera, Users, Share2, Eye } from "lucide-react";
+import { X, PlusCircle, Camera, Users, Share2, Eye, PartyPopper } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface WelcomeTourProps {
@@ -62,7 +62,7 @@ export default function WelcomeTour({ onClose }: WelcomeTourProps) {
           <div className="flex justify-center mb-4">
             {steps[step].icon}
           </div>
-          <CardTitle className="text-xl">أهلاً بك في عيون cam! 🎉</CardTitle>
+          <CardTitle className="text-xl flex items-center gap-2">أهلاً بك في عيون cam! <PartyPopper className="text-primary" /></CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-6">

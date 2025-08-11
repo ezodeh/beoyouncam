@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Eye, Smartphone, Heart, Images, Users, Edit } from "lucide-react";
+import { Upload, Eye, Smartphone, Heart, Images, Users, Edit, Star } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -542,7 +542,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
               <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
-                    ⭐ إعدادات البريميوم
+                    <Star className="inline-block ml-2" size={16} /> إعدادات البريميوم
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
