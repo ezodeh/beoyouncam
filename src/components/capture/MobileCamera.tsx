@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import { Textarea } from "@/components/ui/textarea";
+import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { supabase } from "@/integrations/supabase/client";
 interface Props {
   eventName: string;
@@ -50,6 +51,10 @@ const MobileCamera: React.FC<Props> = ({
   const [showGrid, setShowGrid] = useState(false);
   const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
+  const [showVideoThumbnailSelector, setShowVideoThumbnailSelector] = useState<{
+    videoUrl: string;
+    videoFile: File;
+  } | null>(null);
   useEffect(() => {
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
     setLeft(Math.max(0, maxShots - recent.length));
@@ -323,25 +328,14 @@ const MobileCamera: React.FC<Props> = ({
         const file = new File([blob], `clip-${Date.now()}.webm`, {
           type: blob.type
         });
-        const newLeft = Math.max(0, left - 1);
-        setRecent(r => [{
-          url: URL.createObjectURL(file),
-          type: "video" as const
-        }, ...r].slice(0, 20));
-        // Don't auto-open fullscreen
-        setLeft(newLeft);
-        toast({
-          title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+        const videoUrl = URL.createObjectURL(file);
+        
+        // Show thumbnail selector for video
+        setShowVideoThumbnailSelector({
+          videoUrl,
+          videoFile: file
         });
-        try {
-          await uploadFile(file, "video");
-        } catch (e) {
-          setLeft(n => Math.min(maxShots, n + 1));
-          setShowRetry({
-            file,
-            kind: "video"
-          });
-        }
+        
         setRecording(false);
       };
       rec.start();
@@ -365,7 +359,7 @@ const MobileCamera: React.FC<Props> = ({
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [recording, countdown]);
-  async function uploadFile(file: File, kind: "image" | "video") {
+  async function uploadFile(file: File, kind: "image" | "video", thumbnailBlob?: Blob) {
     const ext = file.name.split(".").pop() || (kind === "image" ? "jpg" : "webm");
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const path = `events/${token}/${filename}`;
@@ -378,6 +372,24 @@ const MobileCamera: React.FC<Props> = ({
         contentType: file.type
       });
       if (uploadError) throw uploadError;
+
+      let thumbnailPath = null;
+      
+      // Upload thumbnail for video if provided
+      if (kind === "video" && thumbnailBlob) {
+        const thumbnailFilename = `thumb-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        const thumbnailPathFull = `events/${token}/${thumbnailFilename}`;
+        
+        const { error: thumbError } = await supabase.storage.from("event-media").upload(thumbnailPathFull, thumbnailBlob, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/jpeg"
+        });
+        
+        if (!thumbError) {
+          thumbnailPath = thumbnailPathFull;
+        }
+      }
 
       // البحث عن معرف المشارك
       const participantName = localStorage.getItem(`participantName:${token}`) || "";
@@ -396,10 +408,12 @@ const MobileCamera: React.FC<Props> = ({
           file_path: path,
           file_name: filename,
           media_type: kind,
+          thumbnail_path: thumbnailPath,
           metadata: {
             uploaded_from: "camera",
             original_name: file.name,
-            size: file.size
+            size: file.size,
+            has_custom_thumbnail: !!thumbnailPath
           }
         });
       }
@@ -631,7 +645,9 @@ const MobileCamera: React.FC<Props> = ({
           }} />
             </button>
           </div>}
-        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">{hint}</div>
+        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">
+          {!enableVideo ? "التصوير فقط - الفيديو معطل" : hint}
+        </div>
       </div>
 
       {/* Recent thumb - معطل العرض التلقائي */}
@@ -652,9 +668,20 @@ const MobileCamera: React.FC<Props> = ({
           <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border cursor-pointer shadow-lg backdrop-blur-sm hover:bg-background/95 transition-colors">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
-            <input type="file" accept="image/*,video/*" className="hidden" onChange={e => {
+            <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={e => {
             const f = e.target.files?.[0];
             if (!f) return;
+            
+            // Check if video is being uploaded when video is disabled
+            if (f.type.startsWith("video") && !enableVideo) {
+              toast({
+                title: "الفيديو غير مفعل",
+                description: "ميزة الفيديو غير مفعلة لهذه المناسبة",
+                variant: "destructive"
+              });
+              return;
+            }
+            
             if (left <= 0) {
               toast({
                 title: "انتهى عدد اللقطات"
@@ -667,6 +694,50 @@ const MobileCamera: React.FC<Props> = ({
           </label>
         </div>
       </div>
+
+      {/* Video Thumbnail Selector Dialog */}
+      <Dialog open={!!showVideoThumbnailSelector} onOpenChange={() => setShowVideoThumbnailSelector(null)}>
+        <DialogContent className="max-w-md">
+          {showVideoThumbnailSelector && (
+            <VideoThumbnailSelector
+              videoUrl={showVideoThumbnailSelector.videoUrl}
+              onThumbnailSelect={async (thumbnailBlob) => {
+                const file = showVideoThumbnailSelector.videoFile;
+                const newLeft = Math.max(0, left - 1);
+                
+                setRecent(r => [{
+                  url: showVideoThumbnailSelector.videoUrl,
+                  type: "video" as const
+                }, ...r].slice(0, 20));
+                
+                setLeft(newLeft);
+                toast({
+                  title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+                });
+                
+                try {
+                  await uploadFile(file, "video", thumbnailBlob);
+                } catch (e) {
+                  setLeft(n => Math.min(maxShots, n + 1));
+                  setShowRetry({
+                    file,
+                    kind: "video"
+                  });
+                }
+                
+                setShowVideoThumbnailSelector(null);
+              }}
+              onCancel={() => {
+                // Clean up the video URL
+                if (showVideoThumbnailSelector?.videoUrl) {
+                  URL.revokeObjectURL(showVideoThumbnailSelector.videoUrl);
+                }
+                setShowVideoThumbnailSelector(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Limit banner */}
       {left <= 0 && <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">انتهى عدد اللقطات</div>}

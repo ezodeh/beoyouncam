@@ -28,7 +28,9 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean } | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean; is_private?: boolean; password?: string | null } | null>(null);
+  const [password, setPassword] = useState("");
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
   useEffect(() => {
     const title = eventDetails?.title || eventName;
     document.title = `الترحيب — ${title} — من عيونكم`;
@@ -42,7 +44,7 @@ export default function EventWelcome() {
       if (!token) return;
       const { data: row, error } = await supabase
         .from("events")
-        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header")
+        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header, is_private, password")
         .eq("token", token as string)
         .maybeSingle();
       const data: any = row;
@@ -67,12 +69,45 @@ export default function EventWelcome() {
           sign_in_method: (row.sign_in_method as "phone" | "email" | null),
         });
         if (row.sign_in_method) setTab(row.sign_in_method as any);
+        
+        // Check if event is private and needs password
+        if (row.is_private && row.password) {
+          const hasAccess = sessionStorage.getItem(`event_access_${token}`);
+          if (!hasAccess) {
+            setShowPasswordInput(true);
+          }
+        }
       }
     })();
   }, [token]);
   const goToCamera = () => {
     const qs = location.search || "";
     navigate(`/event/${token}/camera${qs}`);
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!password.trim()) {
+      toast({
+        title: "كلمة المرور مطلوبة",
+        description: "يرجى إدخال كلمة المرور للوصول إلى المناسبة",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (eventDetails?.password === password.trim()) {
+      sessionStorage.setItem(`event_access_${token}`, "granted");
+      setShowPasswordInput(false);
+      toast({
+        title: "تم التحقق بنجاح"
+      });
+    } else {
+      toast({
+        title: "كلمة مرور خاطئة",
+        description: "يرجى التحقق من كلمة المرور والمحاولة مرة أخرى",
+        variant: "destructive"
+      });
+    }
   };
   async function submit() {
     if (!name.trim()) {
@@ -269,6 +304,44 @@ export default function EventWelcome() {
             <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventDetails?.title || eventName}</h1>
             <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
+
+          {/* Password Input for Private Events */}
+          {showPasswordInput ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold mb-2">مناسبة خاصة</h2>
+                <p className="text-muted-foreground text-sm mb-4">
+                  يتطلب الوصول إلى هذه المناسبة كلمة مرور
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="event-password">كلمة المرور</Label>
+                <Input
+                  id="event-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="أدخل كلمة المرور"
+                  className="text-right"
+                  onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
+                />
+              </div>
+              <Button 
+                className="w-full rounded-full" 
+                onClick={handlePasswordSubmit}
+                disabled={!password.trim()}
+              >
+                التحقق من كلمة المرور
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Regular Event Registration Form */}
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
             {(eventDetails?.sign_in_method ?? tab) === "phone" && (
               <TabsContent value="phone" className="space-y-3" forceMount>
@@ -320,6 +393,8 @@ export default function EventWelcome() {
               <a href="/auth">تسجيل/إنشاء حساب بالبريد</a>
             </Button>
           </div>
+            </>
+          )}
         </section>
       </main>
       

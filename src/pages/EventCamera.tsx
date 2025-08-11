@@ -12,6 +12,7 @@ export default function EventCamera() {
   const [eventTitle, setEventTitle] = useState<string>(initialName);
   const queryShots = Number(new URLSearchParams(location.search).get("shots") || "");
   const [maxShots, setMaxShots] = useState<number>(Math.max(1, isNaN(queryShots) ? 120 : queryShots));
+  const [enableVideo, setEnableVideo] = useState<boolean>(true);
   useEffect(() => {
     document.title = `الكاميرا — ${eventTitle} — عيون cam`;
   }, [eventTitle]);
@@ -26,12 +27,11 @@ export default function EventCamera() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data: row } = await supabase
+      const { data } = await supabase
         .from("events")
-        .select("max_shots, start_at, end_at, title")
+        .select("max_shots, start_at, end_at, title, enable_video")
         .eq("token", token as string)
         .maybeSingle();
-      const data: any = row;
       if (data) {
         const row = data as any;
         setEventTitle(row.title || initialName);
@@ -56,6 +56,13 @@ export default function EventCamera() {
           console.log("🔢 EventCamera: Using database max_shots:", row.max_shots);
           setMaxShots(Math.max(1, row.max_shots));
         }
+        
+        // Set video enable/disable from database
+        if (typeof row.enable_video === "boolean") {
+          setEnableVideo(row.enable_video);
+          console.log("🎥 EventCamera: Video setting from DB:", row.enable_video);
+        }
+        
         console.log("🔢 EventCamera: Final maxShots will be:", typeof row.max_shots === "number" ? row.max_shots : queryShots);
       }
     })();
@@ -64,7 +71,7 @@ export default function EventCamera() {
   return (
     <div className="h-[100dvh] overflow-hidden overscroll-none bg-black text-white relative" dir="rtl">
       {/* واجهة الكاميرا الكاملة */}
-      <MobileCamera token={token || ""} eventName={eventTitle} maxShots={maxShots} />
+      <MobileCamera token={token || ""} eventName={eventTitle} maxShots={maxShots} enableVideo={enableVideo} />
     </div>
   );
 }
