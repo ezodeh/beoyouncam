@@ -21,15 +21,38 @@ export default function EventAlbumIntro() {
   useEffect(() => {
     (async () => {
       if (!token) return;
+      
+      const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published")
         .eq("token", token)
         .maybeSingle();
+        
       if (!data) return;
+      
       setTitle(data.title || eventName);
       setCoverUrl(data.cover_url || null);
       setShowHeader(data.show_header !== false);
+      
+      // Determine if current user is the event owner
+      const currentIsEventOwner = session?.user?.id === data.owner_id;
+      
+      console.log("🔍 Album Intro access check:", {
+        isAlbumPublished: data.is_album_published,
+        isEventOwner: currentIsEventOwner,
+        userId: session?.user?.id,
+        ownerId: data.owner_id
+      });
+      
+      // Check if album is published OR user is the owner
+      if (!data.is_album_published && !currentIsEventOwner) {
+        console.log("🚫 Album not published and user is not owner, redirecting to soon page");
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
+        return;
+      }
+      
+      // Check for private events (existing logic)
       if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
         navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
       }

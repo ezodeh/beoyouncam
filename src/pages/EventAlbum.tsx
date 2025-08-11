@@ -55,10 +55,21 @@ export default function EventAlbum() {
         setTitle(data.title || eventName);
         setCoverUrl(data.cover_url || null);
         setShowHeader(data.show_header !== false);
-        setIsEventOwner(session?.user?.id === data.owner_id);
         
-        // Check if album is published
-        if (!data.is_album_published && !isEventOwner) {
+        // Determine if current user is the event owner
+        const currentIsEventOwner = session?.user?.id === data.owner_id;
+        setIsEventOwner(currentIsEventOwner);
+        
+        console.log("🔍 Album access check:", {
+          isAlbumPublished: data.is_album_published,
+          isEventOwner: currentIsEventOwner,
+          userId: session?.user?.id,
+          ownerId: data.owner_id
+        });
+        
+        // Check if album is published OR user is the owner
+        if (!data.is_album_published && !currentIsEventOwner) {
+          console.log("🚫 Album not published and user is not owner, redirecting to soon page");
           navigate(`/event/${token}/soon?title=${encodeURIComponent(title)}`);
           return;
         }
