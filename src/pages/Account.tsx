@@ -12,6 +12,7 @@ export default function Account() {
   const [joinedEvents, setJoinedEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
+    console.log("🚀 Account: Component mounted");
     document.title = "حسابي — عيون cam";
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
