@@ -312,7 +312,6 @@ export default function EventAlbumByEyes() {
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">مشاركة</span>
             </Button>
-            <span className="rounded-full bg-background/80 text-foreground text-xs px-2 py-1 border border-border">{shareCount}</span>
             <Link to={`/album/${token}`}>
               <Button size="sm" variant="secondary" className="rounded-full" aria-label="رجوع للألبوم">
                 <ArrowRight className="h-4 w-4" />
