@@ -92,7 +92,7 @@ export default function EventFinalSubmit() {
         try {
           const { data: participant } = await supabase
             .from("participants")
-            .select("name, phone, email")
+            .select("name, phone, email, country_code")
             .eq("event_token", token)
             .eq("user_id", session?.user?.id || "")
             .maybeSingle();
@@ -103,8 +103,12 @@ export default function EventFinalSubmit() {
               setValue("name", participant.name);
             }
             if (participant.phone) {
-              setValue("phone", participant.phone);
-              console.log("📱 Using participant phone:", participant.phone);
+              // Format phone number with country code if available
+              const fullPhone = participant.country_code ? 
+                `${participant.country_code}${participant.phone}` : 
+                participant.phone;
+              setValue("phone", fullPhone);
+              console.log("📱 Using participant phone:", fullPhone);
             }
             if (participant.email && !session?.user?.email) {
               setValue("email", participant.email);
@@ -135,19 +139,48 @@ export default function EventFinalSubmit() {
   }, [setValue, token, isUserDataLoaded, location.search]);
 
   async function onSubmit(values: FormData) {
-    // هنا يمكن إرسال القيم إلى الـ API لتخزين تفاصيل التسليم
-    await new Promise((r) => setTimeout(r, 400));
-    // Save blessing to database
     try {
+      setIsUserDataLoaded(false);
+      
+      // Save phone to profile if user is logged in and phone wasn't previously saved
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && values.phone) {
+        try {
+          await supabase
+            .from("profiles")
+            .upsert({
+              id: session.user.id,
+              phone: values.phone,
+              display_name: values.name,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+        } catch (error) {
+          console.log("Error saving profile:", error);
+        }
+      }
+      
+      await new Promise((r) => setTimeout(r, 400));
+      
+      // Save blessing to database
       await supabase.from("blessings").insert({
         event_token: token,
         name: values.name,
         content: values.blessing
       });
+      
+      navigate(`/event/${token}/submit-success${window.location.search}`);
     } catch (error) {
-      console.error("Error saving blessing:", error);
+      console.error("Error submitting:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "حاول مرة أخرى",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUserDataLoaded(true);
     }
-    navigate(`/event/${token}/submit-success${window.location.search}`);
   }
 
   return (

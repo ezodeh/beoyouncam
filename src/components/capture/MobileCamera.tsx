@@ -691,7 +691,7 @@ const MobileCamera: React.FC<Props> = ({
         </button>}
 
       {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
-      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-30">
+      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 bg-transparent">
         <div className="mx-3 flex items-center justify-between">
           <Link 
             to={`/event/${token}/invites`} 

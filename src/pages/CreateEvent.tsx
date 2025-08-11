@@ -516,7 +516,7 @@ export default function CreateEvent() {
         token,
         title: title.trim(),
         description: description.trim() || null,
-        sign_in_method: "phone",
+        sign_in_method: "email",
         start_at: startAt ? startAt.toISOString() : null,
         end_at: endAt ? endAt.toISOString() : null,
         cover_url: coverUrl,
