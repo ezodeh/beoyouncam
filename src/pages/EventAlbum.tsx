@@ -78,7 +78,7 @@ export default function EventAlbum() {
         if (data.is_private && data.password && !isEventOwner) {
           const hasAccess = sessionStorage.getItem(`album_access_${token}`);
           if (!hasAccess) {
-            navigate(`/album/${token}/private${location.search}`);
+            navigate(`/album/${token}/intro${location.search}`);
             return;
           }
         }
