@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download, AlertCircle } from "lucide-react";
+import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download, AlertCircle, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -428,8 +428,15 @@ export default function EventCard({
       {/* Invite Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+          <DialogHeader className="relative">
+            <button
+              onClick={() => setInviteDialogOpen(false)}
+              className="absolute left-0 top-0 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">إغلاق</span>
+            </button>
+            <DialogTitle className="flex items-center justify-center gap-2">
               <QrCode className="h-5 w-5" />
               دعوة المناسبة
             </DialogTitle>
