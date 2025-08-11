@@ -112,7 +112,7 @@ export default function EventAlbumPrivate() {
               </div>
             )}
             <CardTitle className="font-nastaliq text-2xl">ألبوم {eventTitle}</CardTitle>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm mt-3">
               يتطلب هذا الألبوم كلمة مرور للوصول
             </p>
           </CardHeader>
