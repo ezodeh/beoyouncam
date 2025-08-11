@@ -18,6 +18,7 @@ export default function EventAlbumPrivate() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [eventTitle, setEventTitle] = useState("الألبوم");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = `دخول الألبوم الخاص — ${eventTitle} — من عيونكم`;
@@ -29,12 +30,13 @@ export default function EventAlbumPrivate() {
       try {
         const { data } = await supabase
           .from("events")
-          .select("title, is_private, password")
+          .select("title, is_private, password, cover_url")
           .eq("token", token)
           .maybeSingle();
         
         if (data) {
           setEventTitle(data.title || "الألبوم");
+          setCoverUrl(data.cover_url || null);
           
           // If not private, redirect to regular album
           if (!data.is_private) {
@@ -95,10 +97,21 @@ export default function EventAlbumPrivate() {
       <main className="flex-1 container mx-auto px-4 py-8 grid place-items-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Lock className="h-6 w-6 text-primary" />
-            </div>
-            <CardTitle>ألبوم {eventTitle}</CardTitle>
+            {coverUrl && (
+              <div className="mx-auto w-20 h-20 mb-4 overflow-hidden rounded-full">
+                <img 
+                  src={coverUrl} 
+                  alt={`غلاف ${eventTitle}`} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            {!coverUrl && (
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+            )}
+            <CardTitle className="font-nastaliq text-2xl">ألبوم {eventTitle}</CardTitle>
             <p className="text-muted-foreground text-sm">
               يتطلب هذا الألبوم كلمة مرور للوصول
             </p>
