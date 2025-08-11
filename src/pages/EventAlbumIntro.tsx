@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ export default function EventAlbumIntro() {
   }, [title]);
 
   const navigate = useNavigate();
+  
   useEffect(() => {
     (async () => {
       if (!token) return;
