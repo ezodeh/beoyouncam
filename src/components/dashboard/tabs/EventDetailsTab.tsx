@@ -23,6 +23,10 @@ export function EventDetailsTab({
   const {
     toast
   } = useToast();
+  
+  // Check if event is past/expired
+  const isEventExpired = eventData?.end_at ? new Date(eventData.end_at) < new Date() : false;
+  
   const [title, setTitle] = useState(eventData?.title || "");
   const [description, setDescription] = useState(eventData?.description || "");
   const [startAt, setStartAt] = useState(eventData?.start_at ? eventData.start_at.slice(0, 16) : "");
@@ -70,19 +74,24 @@ export function EventDetailsTab({
   };
   const handleSave = async () => {
     try {
-      const settings = {
+      const settings: any = {
         title: title.trim() || "مناسبة جديدة",
         description: description.trim() || null,
-        start_at: startAt ? new Date(startAt).toISOString() : null,
-        end_at: endAt ? new Date(endAt).toISOString() : null,
-        max_shots: Math.max(1, Number(maxShots) || 1),
-        expected_guests: Math.max(0, Number(expectedGuests) || 0),
         cover_url: coverUrl || null,
-        enable_video: enableVideo,
         is_private: isPrivate,
         password: isPrivate ? password.trim() || null : null,
         country_code: countryCode
       };
+      
+      // Only allow these fields to be updated if event is not expired
+      if (!isEventExpired) {
+        settings.start_at = startAt ? new Date(startAt).toISOString() : null;
+        settings.end_at = endAt ? new Date(endAt).toISOString() : null;
+        settings.max_shots = Math.max(1, Number(maxShots) || 1);
+        settings.expected_guests = Math.max(0, Number(expectedGuests) || 0);
+        settings.enable_video = enableVideo;
+      }
+      
       const success = await updateEventSettings(token, settings);
       if (!success) throw new Error("فشل في حفظ الإعدادات");
       toast({
@@ -105,7 +114,14 @@ export function EventDetailsTab({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-right">تفاصيل المناسبة</CardTitle>
+          <CardTitle className="text-right flex items-center justify-between">
+            <span>تفاصيل المناسبة</span>
+            {isEventExpired && (
+              <span className="text-sm font-normal text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                المناسبة منتهية - تعديل محدود
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
@@ -120,19 +136,46 @@ export function EventDetailsTab({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="start" className="text-right">وقت البداية</Label>
-              <Input id="start" type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)} className="text-right" />
+              <Label htmlFor="start" className="text-right">
+                وقت البداية
+                {isEventExpired && <span className="text-xs text-muted-foreground"> (غير قابل للتعديل)</span>}
+              </Label>
+              <Input 
+                id="start" 
+                type="datetime-local" 
+                value={startAt} 
+                onChange={e => setStartAt(e.target.value)} 
+                className="text-right" 
+                disabled={isEventExpired}
+              />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="end" className="text-right">وقت الانتهاء</Label>
-              <Input id="end" type="datetime-local" value={endAt} onChange={e => setEndAt(e.target.value)} className="text-right" />
+              <Label htmlFor="end" className="text-right">
+                وقت الانتهاء
+                {isEventExpired && <span className="text-xs text-muted-foreground"> (غير قابل للتعديل)</span>}
+              </Label>
+              <Input 
+                id="end" 
+                type="datetime-local" 
+                value={endAt} 
+                onChange={e => setEndAt(e.target.value)} 
+                className="text-right" 
+                disabled={isEventExpired}
+              />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="maxShots" className="text-right">عدد الصور المسموحة لكل مشارك</Label>
-            <Select value={maxShots.toString()} onValueChange={(value) => setMaxShots(Number(value))}>
+            <Label htmlFor="maxShots" className="text-right">
+              عدد الصور المسموحة لكل مشارك
+              {isEventExpired && <span className="text-xs text-muted-foreground"> (غير قابل للتعديل)</span>}
+            </Label>
+            <Select 
+              value={maxShots.toString()} 
+              onValueChange={(value) => setMaxShots(Number(value))}
+              disabled={isEventExpired}
+            >
               <SelectTrigger className="text-right">
                 <SelectValue placeholder="اختر عدد الصور" />
               </SelectTrigger>
@@ -149,7 +192,10 @@ export function EventDetailsTab({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="expectedGuests" className="text-right">عدد الضيوف المتوقع</Label>
+            <Label htmlFor="expectedGuests" className="text-right">
+              عدد الضيوف المتوقع
+              {isEventExpired && <span className="text-xs text-muted-foreground"> (غير قابل للتعديل)</span>}
+            </Label>
             <Select 
               value={showCustomGuestInput ? "custom" : (expectedGuests === 0 ? "undefined" : expectedGuests.toString())} 
               onValueChange={(value) => {
@@ -163,6 +209,7 @@ export function EventDetailsTab({
                   setShowCustomGuestInput(false);
                 }
               }}
+              disabled={isEventExpired}
             >
               <SelectTrigger className="text-right">
                 <SelectValue placeholder="اختر عدد الضيوف" />
@@ -190,6 +237,7 @@ export function EventDetailsTab({
                   onChange={(e) => setExpectedGuests(Number(e.target.value))}
                   placeholder="أدخل العدد المطلوب"
                   className="text-right" 
+                  disabled={isEventExpired}
                 />
               </div>
             )}
@@ -197,11 +245,18 @@ export function EventDetailsTab({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
-              <Switch checked={enableVideo} onCheckedChange={setEnableVideo} />
+              <Switch 
+                checked={enableVideo} 
+                onCheckedChange={setEnableVideo} 
+                disabled={isEventExpired}
+              />
               <div className="flex items-center gap-2 flex-row-reverse">
                 <Video className="h-4 w-4" />
                 <div className="text-right">
-                  <Label>تفعيل الفيديو</Label>
+                  <Label>
+                    تفعيل الفيديو
+                    {isEventExpired && <span className="text-xs text-muted-foreground block"> (غير قابل للتعديل)</span>}
+                  </Label>
                   <p className="text-sm text-muted-foreground">السماح بتسجيل الفيديو</p>
                 </div>
               </div>
