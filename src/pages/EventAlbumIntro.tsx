@@ -49,6 +49,12 @@ export default function EventAlbumIntro() {
       // Check if private album needs password verification
       if (data.is_private && data.password && !currentIsEventOwner) {
         const hasAccess = sessionStorage.getItem(`album_access_${token}`);
+        console.log("🔒 Private album access check:", {
+          isPrivate: data.is_private,
+          hasPassword: !!data.password,
+          hasAccess: !!hasAccess,
+          isOwner: currentIsEventOwner
+        });
         if (!hasAccess) {
           setShowPasswordInput(true);
           return;
