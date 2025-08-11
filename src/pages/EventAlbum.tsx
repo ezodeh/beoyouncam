@@ -121,12 +121,70 @@ export default function EventAlbum() {
 
     fetchBlessings();
 
-    // Dummy personal albums by eyes
-    setPersonalAlbums([
-      { id: 1, person_name: "أحمد محمد", photo_count: 15, latest_photo: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png" },
-      { id: 2, person_name: "فاطمة علي", photo_count: 8, latest_photo: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png" },
-      { id: 3, person_name: "محمد خالد", photo_count: 12, latest_photo: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png" },
-    ]);
+    // جلب ألبومات المشاركين الحقيقية
+    const fetchPersonalAlbums = async () => {
+      if (!token) return;
+      try {
+        const { data: participantsData, error } = await supabase
+          .from('participants')
+          .select(`
+            id, 
+            name, 
+            created_at,
+            media_submissions!inner (
+              id,
+              file_path,
+              media_type,
+              created_at
+            )
+          `)
+          .eq('event_token', token)
+          .eq('media_submissions.media_type', 'image')
+          .order('name', { ascending: true });
+        
+        if (error) throw error;
+        
+        // تجميع المشاركين مع عدد صورهم وآخر صورة
+        const albumsMap = new Map();
+        participantsData?.forEach(participant => {
+          const participantName = participant.name || 'مشارك';
+          if (!albumsMap.has(participantName)) {
+            albumsMap.set(participantName, {
+              id: participant.id,
+              person_name: participantName,
+              photo_count: 0,
+              latest_photo: null,
+              latest_created_at: null
+            });
+          }
+          
+          const album = albumsMap.get(participantName);
+          participant.media_submissions.forEach((submission: any) => {
+            album.photo_count++;
+            
+            // تحديث آخر صورة
+            if (!album.latest_created_at || new Date(submission.created_at) > new Date(album.latest_created_at)) {
+              album.latest_created_at = submission.created_at;
+              const { data: { publicUrl } } = supabase.storage
+                .from("event-media")
+                .getPublicUrl(submission.file_path);
+              album.latest_photo = publicUrl;
+            }
+          });
+        });
+        
+        const personalAlbumsData = Array.from(albumsMap.values())
+          .filter(album => album.photo_count > 0)
+          .sort((a, b) => a.person_name.localeCompare(b.person_name, 'ar'));
+        
+        setPersonalAlbums(personalAlbumsData);
+      } catch (error) {
+        console.error("Error fetching personal albums:", error);
+        setPersonalAlbums([]);
+      }
+    };
+
+    fetchPersonalAlbums();
   }, [token]);
 
   const addCongratulation = async () => {
@@ -153,7 +211,8 @@ export default function EventAlbum() {
   };
 
   const deleteBlessings = async () => {
-    if (!confirm("هل أنت متأكد من حذف جميع المباركات؟")) return;
+    const confirmed = confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع المباركات نهائياً؟\n\nلا يمكن التراجع عن هذا الإجراء.");
+    if (!confirmed) return;
     try {
       const { error } = await supabase
         .from("blessings")
@@ -168,7 +227,8 @@ export default function EventAlbum() {
   };
 
   const deleteBlessing = async (blessingId: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذه المباركة؟")) return;
+    const confirmed = confirm("⚠️ هل أنت متأكد من حذف هذه المباركة نهائياً؟\n\nلا يمكن التراجع عن هذا الإجراء.");
+    if (!confirmed) return;
     try {
       const { error } = await supabase
         .from("blessings")
@@ -183,49 +243,77 @@ export default function EventAlbum() {
   };
 
   const deleteAllMedia = async () => {
-    if (!confirm("هل أنت متأكد من حذف جميع الصور والفيديوهات؟ هذا الإجراء لا يمكن التراجع عنه.")) return;
+    // إضافة رسالة تأكيد مفصلة
+    const confirmed = confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع الصور والفيديوهات نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع الوسائط من التخزين ومن قاعدة البيانات.");
+    if (!confirmed) return;
     try {
-      // حذف الملفات من التخزين
-      const prefix = `events/${token}`;
-      const { data: files } = await supabase.storage
-        .from("event-media")
-        .list(prefix);
+      // حذف سجلات media_submissions أولاً للحصول على file_paths
+      const { data: submissions, error: fetchError } = await supabase
+        .from("media_submissions")
+        .select("file_path")
+        .eq("event_token", token);
       
-      if (files && files.length > 0) {
-        const filePaths = files.map(f => `${prefix}/${f.name}`);
-        await supabase.storage
+      if (fetchError) throw fetchError;
+
+      // حذف الملفات من التخزين
+      if (submissions && submissions.length > 0) {
+        const filePaths = submissions.map(s => s.file_path);
+        const { error: storageError } = await supabase.storage
           .from("event-media")
           .remove(filePaths);
+        
+        if (storageError) throw storageError;
       }
 
       // حذف سجلات media_submissions
-      await supabase
+      const { error: dbError } = await supabase
         .from("media_submissions")
         .delete()
         .eq("event_token", token);
+        
+      if (dbError) throw dbError;
 
+      // تحديث الحالة المحلية
       setMedia([]);
-      toast({ title: "تم حذف جميع الوسائط" });
+      toast({ title: "تم حذف جميع الوسائط نهائياً" });
     } catch (error) {
       toast({ title: "خطأ", description: "تعذّر حذف الوسائط", variant: "destructive" });
     }
   };
 
   const deleteMediaItem = async (mediaItem: MediaItem) => {
-    if (!confirm("هل أنت متأكد من حذف هذه الصورة؟")) return;
+    const confirmed = confirm("⚠️ هل أنت متأكد من حذف هذه الصورة نهائياً؟\n\nلا يمكن التراجع عن هذا الإجراء.");
+    if (!confirmed) return;
     try {
-      const filePath = `events/${token}/${mediaItem.name}`;
-      await supabase.storage
-        .from("event-media")
-        .remove([filePath]);
+      // العثور على الملف لحذفه من التخزين
+      const { data: submission, error: fetchError } = await supabase
+        .from("media_submissions")
+        .select("file_path")
+        .eq("file_name", mediaItem.name)
+        .eq("event_token", token)
+        .single();
+        
+      if (fetchError) throw fetchError;
 
-      await supabase
+      // حذف من التخزين
+      const { error: storageError } = await supabase.storage
+        .from("event-media")
+        .remove([submission.file_path]);
+      
+      if (storageError) throw storageError;
+
+      // حذف من قاعدة البيانات
+      const { error: dbError } = await supabase
         .from("media_submissions")
         .delete()
-        .eq("file_name", mediaItem.name);
+        .eq("file_name", mediaItem.name)
+        .eq("event_token", token);
+        
+      if (dbError) throw dbError;
 
+      // تحديث الحالة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
-      toast({ title: "تم حذف الصورة" });
+      toast({ title: "تم حذف الصورة نهائياً" });
     } catch (error) {
       toast({ title: "خطأ", description: "تعذّر حذف الصورة", variant: "destructive" });
     }
@@ -634,6 +722,21 @@ export default function EventAlbum() {
           </button>
 
           <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{imageItems.length}</div>
+          
+          {/* إضافة زر حذف للمنشئ في وضع ملء الشاشة */}
+          {isEventOwner && (
+            <button
+              className="absolute top-4 right-28 z-20 p-2 rounded-full bg-destructive/90 hover:bg-destructive text-destructive-foreground"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteMediaItem(imageItems[lightboxIndex]);
+                closeLightbox();
+              }}
+              aria-label="حذف الصورة"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          )}
 
           <div className="h-full w-full flex items-center justify-center p-4">
             <img src={imageItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
