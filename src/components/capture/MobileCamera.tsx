@@ -633,23 +633,38 @@ const MobileCamera: React.FC<Props> = ({
       {/* Left icons column - adjust top position when header is shown */}
       <div className={`absolute left-3 flex flex-col items-center gap-4 z-30 ${showHeader ? 'top-20' : 'top-8'}`}>
         <Button size="icon" variant="secondary" className="rounded-full" onClick={async () => {
+        console.log("🔄 Switching camera from", facingMode);
         setCamAnim(true);
-        setTimeout(() => setCamAnim(false), 400);
         
-        // Stop current stream first
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
-        }
-        
-        // Switch camera mode
-        const newMode = facingMode === "user" ? "environment" : "user";
-        setFacingMode(newMode);
-        
-        // Wait a moment then restart camera
-        setTimeout(async () => {
+        try {
+          // Stop current stream first
+          if (streamRef.current) {
+            console.log("🛑 Stopping current stream");
+            streamRef.current.getTracks().forEach(track => {
+              track.stop();
+              console.log("🛑 Stopped track:", track.kind, track.label);
+            });
+            streamRef.current = null;
+          }
+          
+          // Switch camera mode immediately
+          const newMode = facingMode === "user" ? "environment" : "user";
+          console.log("📷 Switching to:", newMode);
+          setFacingMode(newMode);
+          
+          // Wait a bit longer for cleanup, then restart
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          console.log("🚀 Restarting camera with new mode");
           await openStream();
-        }, 200);
+          
+        } catch (error) {
+          console.error("❌ Camera switch error:", error);
+          // If switching fails, try to go back to original mode
+          await openStream();
+        } finally {
+          setCamAnim(false);
+        }
       }} aria-label="تبديل الكاميرا">
           <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
