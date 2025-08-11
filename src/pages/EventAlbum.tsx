@@ -244,41 +244,29 @@ export default function EventAlbum() {
 
   const deleteAllMedia = async () => {
     // إضافة رسالة تأكيد مفصلة
-    const confirmed = confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع الصور والفيديوهات نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع الوسائط من التخزين ومن قاعدة البيانات.");
+    const confirmed = confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع الصور والفيديوهات نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع الوسائط من التخزين.");
     if (!confirmed) return;
     
     try {
       console.log("🗑️ بدء حذف جميع الوسائط...");
       
-      // حذف سجلات media_submissions أولاً للحصول على file_paths
-      const { data: submissions, error: fetchError } = await supabase
-        .from("media_submissions")
-        .select("file_path, id")
-        .eq("event_token", token);
+      // حذف جميع الملفات مباشرة من التخزين
+      const prefix = `events/${token}`;
       
-      if (fetchError) {
-        console.error("خطأ في جلب بيانات الملفات:", fetchError);
-        throw fetchError;
+      // جلب قائمة الملفات أولاً
+      const { data: files, error: listError } = await supabase.storage
+        .from("event-media")
+        .list(prefix, { limit: 1000 });
+      
+      if (listError) {
+        console.error("خطأ في جلب قائمة الملفات:", listError);
+        throw listError;
       }
 
-      console.log(`📊 تم العثور على ${submissions?.length || 0} ملف للحذف`);
+      console.log(`📊 تم العثور على ${files?.length || 0} ملف للحذف`);
 
-      // حذف سجلات media_submissions من قاعدة البيانات أولاً
-      const { error: dbError } = await supabase
-        .from("media_submissions")
-        .delete()
-        .eq("event_token", token);
-        
-      if (dbError) {
-        console.error("خطأ في حذف من قاعدة البيانات:", dbError);
-        throw dbError;
-      }
-      
-      console.log("✅ تم حذف جميع السجلات من قاعدة البيانات");
-
-      // حذف الملفات من التخزين
-      if (submissions && submissions.length > 0) {
-        const filePaths = submissions.map(s => s.file_path);
+      if (files && files.length > 0) {
+        const filePaths = files.map(file => `${prefix}/${file.name}`);
         console.log("📁 ملفات للحذف من التخزين:", filePaths);
         
         const { error: storageError } = await supabase.storage
@@ -287,7 +275,7 @@ export default function EventAlbum() {
         
         if (storageError) {
           console.error("خطأ في حذف من التخزين:", storageError);
-          console.log("⚠️ تم حذف السجلات من قاعدة البيانات لكن فشل حذف بعض الملفات من التخزين");
+          throw storageError;
         } else {
           console.log("✅ تم حذف جميع الملفات من التخزين");
         }
@@ -312,96 +300,20 @@ export default function EventAlbum() {
     try {
       console.log("🗑️ بدء حذف الصورة:", mediaItem);
       
-      // محاولة البحث بطرق مختلفة لتحديد موقع الملف
-      console.log("🔍 البحث عن الملف في قاعدة البيانات...");
+      // حذف مباشر من التخزين لأن الملفات موجودة في التخزين فقط
+      const filePath = `events/${token}/${mediaItem.name}`;
+      console.log("📁 مسار الملف للحذف:", filePath);
       
-      // أولاً: البحث باستخدام file_name
-      let { data: submission, error: fetchError } = await supabase
-        .from("media_submissions")
-        .select("file_path, id, file_name")
-        .eq("file_name", mediaItem.name)
-        .eq("event_token", token)
-        .maybeSingle();
-      
-      console.log("🔍 البحث الأول (file_name):", { submission, fetchError });
-      
-      // إذا لم نجد الملف، جرب البحث باستخدام file_path
-      if (!submission && !fetchError) {
-        console.log("🔍 محاولة البحث الثانية باستخدام file_path...");
-        const filePath = `events/${token}/${mediaItem.name}`;
-        const result = await supabase
-          .from("media_submissions")
-          .select("file_path, id, file_name")
-          .eq("file_path", filePath)
-          .eq("event_token", token)
-          .maybeSingle();
-        
-        submission = result.data;
-        fetchError = result.error;
-        console.log("🔍 البحث الثاني (file_path):", { submission, fetchError });
-      }
-      
-      // إذا لم نجد الملف، جرب البحث في الملفات المحتوية على اسم الملف
-      if (!submission && !fetchError) {
-        console.log("🔍 محاولة البحث الثالثة باستخدام LIKE...");
-        const result = await supabase
-          .from("media_submissions")
-          .select("file_path, id, file_name")
-          .eq("event_token", token)
-          .like("file_path", `%${mediaItem.name}`)
-          .maybeSingle();
-        
-        submission = result.data;
-        fetchError = result.error;
-        console.log("🔍 البحث الثالث (LIKE):", { submission, fetchError });
-      }
-      
-      if (fetchError) {
-        console.error("خطأ في جلب بيانات الملف:", fetchError);
-        throw fetchError;
-      }
-      
-      if (!submission) {
-        console.log("⚠️ لم يتم العثور على الملف في قاعدة البيانات");
-        console.log("📊 البيانات المتاحة:", { mediaItem, token });
-        
-        // عرض جميع الملفات في قاعدة البيانات للمقارنة
-        const { data: allFiles } = await supabase
-          .from("media_submissions")
-          .select("file_path, file_name")
-          .eq("event_token", token);
-        console.log("📁 جميع الملفات في قاعدة البيانات:", allFiles);
-        
-        toast({ title: "خطأ", description: "لم يتم العثور على الملف في قاعدة البيانات", variant: "destructive" });
-        return;
-      }
-      
-      console.log("📄 تم العثور على الملف:", submission);
-
-      // حذف من قاعدة البيانات أولاً
-      const { error: dbError } = await supabase
-        .from("media_submissions")
-        .delete()
-        .eq("id", submission.id);
-        
-      if (dbError) {
-        console.error("خطأ في حذف من قاعدة البيانات:", dbError);
-        throw dbError;
-      }
-      
-      console.log("✅ تم حذف السجل من قاعدة البيانات");
-
-      // حذف من التخزين
       const { error: storageError } = await supabase.storage
         .from("event-media")
-        .remove([submission.file_path]);
+        .remove([filePath]);
       
       if (storageError) {
         console.error("خطأ في حذف من التخزين:", storageError);
-        console.log("⚠️ تم حذف السجل من قاعدة البيانات لكن فشل حذف الملف من التخزين");
-      } else {
-        console.log("✅ تم حذف الملف من التخزين");
+        throw storageError;
       }
+      
+      console.log("✅ تم حذف الملف من التخزين");
 
       // تحديث الواجهة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
@@ -591,18 +503,19 @@ export default function EventAlbum() {
                         >
                           <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
                         </button>
-                        {isEventOwner && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteMediaItem(it);
-                            }}
-                            className="absolute top-1 left-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            aria-label="حذف الصورة"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        )}
+                          {isEventOwner && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log("🗑️ تم النقر على زر الحذف في الشبكة", it);
+                                deleteMediaItem(it);
+                              }}
+                              className="absolute top-1 left-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="حذف الصورة"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          )}
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                            <button 
                              className="text-white text-xs text-right font-medium hover:underline"
