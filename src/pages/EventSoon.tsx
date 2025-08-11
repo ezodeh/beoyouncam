@@ -4,11 +4,13 @@ import { useParams, useLocation, Link } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EventSoon() {
   const { token } = useParams();
   const location = useLocation();
   const [startAt, setStartAt] = useState<string | null>(null);
+  const [eventImage, setEventImage] = useState<string>(heroImage);
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
   const isAlbumPage = location.search.includes("title="); // Detect if this is for album
 
@@ -45,12 +47,38 @@ export default function EventSoon() {
     if (s) setStartAt(s);
   }, [location.search]);
 
+  // Fetch event image from database
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      
+      try {
+        const { data } = await supabase
+          .from("events")
+          .select("cover_url, album_cover_url")
+          .eq("token", token)
+          .maybeSingle();
+        
+        if (data) {
+          // Use album cover for album page, event cover for event page
+          const imageUrl = isAlbumPage ? data.album_cover_url : data.cover_url;
+          if (imageUrl) {
+            setEventImage(imageUrl);
+            console.log("🖼️ Updated event image:", imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading event image:", error);
+      }
+    })();
+  }, [token, isAlbumPage]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar compact fullBleed />
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
         <div className="relative h-[38vh] md:h-[48vh]">
-          <img src={heroImage} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
+          <img src={eventImage} alt={`صورة ${eventName}`} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
         </div>
       </figure>
