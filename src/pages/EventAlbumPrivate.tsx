@@ -119,7 +119,7 @@ export default function EventAlbumPrivate() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password" className="text-right block mb-1">كلمة المرور</Label>
                 <Input
                   id="password"
                   type="password"
