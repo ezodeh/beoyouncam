@@ -762,8 +762,8 @@ export default function EventAlbum() {
               className="absolute top-4 right-28 z-20 p-2 rounded-full bg-destructive/90 hover:bg-destructive text-destructive-foreground"
               onClick={(e) => {
                 e.stopPropagation();
+                console.log("🗑️ تم النقر على زر الحذف", { lightboxIndex, imageItem: imageItems[lightboxIndex] });
                 deleteMediaItem(imageItems[lightboxIndex]);
-                closeLightbox();
               }}
               aria-label="حذف الصورة"
             >
