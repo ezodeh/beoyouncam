@@ -207,6 +207,7 @@ const MobileCamera: React.FC<Props> = ({
   }, [facingMode]);
   function formatCounter() {
     const captured = Math.max(0, maxShots - left);
+    console.log("📊 MobileCamera: Counter - captured:", captured, "maxShots:", maxShots, "left:", left);
     return `${String(captured).padStart(2, "0")}/${String(maxShots).padStart(2, "0")}`;
   }
   function pad2(n: number) {
