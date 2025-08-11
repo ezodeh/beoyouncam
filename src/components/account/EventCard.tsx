@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download, AlertCircle, X } from "lucide-react";
+import { Image, Camera, Share2, Settings, MoreVertical, QrCode, Download, AlertCircle, X, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -471,7 +471,7 @@ export default function EventCard({
                 }}
                 className="w-full"
               >
-                <Share2 className="h-4 w-4 mr-2" />
+                <Copy className="h-4 w-4 mr-2" />
                 نسخ الرابط
               </Button>
               <Button
