@@ -693,28 +693,64 @@ export default function CreateEvent() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div>
-                          <Label>صورة الغلاف</Label>
-                          <div className="mt-2">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleImageUpload(file, 'welcome_page_hero_image');
-                              }}
-                              className="hidden"
-                              id="event-hero-upload"
-                            />
-                            <label
-                              htmlFor="event-hero-upload"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
-                            >
-                              <Upload className="w-4 h-4" />
-                              رفع صورة
-                            </label>
-                          </div>
-                        </div>
+                         <div>
+                           <Label>صورة الغلاف</Label>
+                           <div className="mt-2 space-y-3">
+                             {welcomePageHeroImage ? (
+                               <div className="space-y-2">
+                                 <div className="relative">
+                                   <img 
+                                     src={welcomePageHeroImage} 
+                                     alt="صورة الغلاف" 
+                                     className="w-full h-32 object-cover rounded-md border"
+                                   />
+                                 </div>
+                                 <div className="flex gap-2">
+                                   <ImageEditor 
+                                     src={welcomePageHeroImage}
+                                     onImageChange={(imageData) => {
+                                       // Convert blob to file and upload
+                                       const file = new File([imageData], 'edited-cover.jpg', { type: 'image/jpeg' });
+                                       handleImageUpload(file, 'welcome_page_hero_image');
+                                     }}
+                                   >
+                                     <Button variant="outline" size="sm">
+                                       <Eye className="w-4 h-4 mr-2" />
+                                       تعديل الأبعاد
+                                     </Button>
+                                   </ImageEditor>
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm"
+                                     onClick={() => setWelcomePageHeroImage("")}
+                                   >
+                                     حذف الصورة
+                                   </Button>
+                                 </div>
+                               </div>
+                             ) : (
+                               <>
+                                 <input
+                                   type="file"
+                                   accept="image/*"
+                                   onChange={(e) => {
+                                     const file = e.target.files?.[0];
+                                     if (file) handleImageUpload(file, 'welcome_page_hero_image');
+                                   }}
+                                   className="hidden"
+                                   id="event-hero-upload"
+                                 />
+                                 <label
+                                   htmlFor="event-hero-upload"
+                                   className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md border cursor-pointer hover:bg-secondary/80"
+                                 >
+                                   <Upload className="w-4 h-4" />
+                                   رفع صورة
+                                 </label>
+                               </>
+                             )}
+                           </div>
+                         </div>
                         <div>
                           <Label>عنوان المناسبة</Label>
                           <Input
