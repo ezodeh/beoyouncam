@@ -850,7 +850,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
                       <div className="mt-2 text-xs text-center text-muted-foreground w-32">
                         <div className="truncate">{photo.participant_name}</div>
-                        <div>{new Date(photo.created_at).toLocaleDateString('ar-SA')}</div>
+                        <div>{new Date(photo.created_at).toLocaleDateString('ar-EG', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}</div>
                       </div>
                     </div>
                   ))}
@@ -886,7 +890,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
                       <div className="mt-2 text-xs text-center text-muted-foreground">
                         <div className="truncate font-medium">{blessing.name || 'مجهول'}</div>
-                        <div>{new Date(blessing.created_at).toLocaleDateString('ar-SA')}</div>
+                        <div>{new Date(blessing.created_at).toLocaleDateString('ar-EG', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}</div>
                       </div>
                     </div>
                   ))}
@@ -927,7 +935,11 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
 
                       <div className="mt-2 text-xs text-center text-muted-foreground w-32">
                         <div className="truncate font-medium">{album.participant_name}</div>
-                        <div>{new Date(album.created_at).toLocaleDateString('ar-SA')}</div>
+                        <div>{new Date(album.created_at).toLocaleDateString('ar-EG', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}</div>
                       </div>
                     </div>
                   ))}
