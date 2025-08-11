@@ -68,9 +68,20 @@ export default function EventFinalSubmit() {
         
         if (session?.user) {
           const userData = session.user;
+          console.log("📱 User data:", userData);
+          console.log("📱 User metadata:", userData.user_metadata);
+          
           const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
           const userEmail = userData.email || "";
-          const userPhone = userData.user_metadata?.phone || userData.phone || "";
+          
+          // Try multiple ways to get phone number
+          const userPhone = userData.user_metadata?.phone || 
+                           userData.phone || 
+                           userData.user_metadata?.phone_number ||
+                           userData.user_metadata?.phoneNumber ||
+                           "";
+          
+          console.log("📱 Extracted phone:", userPhone);
           
           if (fullName) setValue("name", fullName);
           if (userEmail) setValue("email", userEmail);
@@ -78,6 +89,32 @@ export default function EventFinalSubmit() {
         }
         
         // Check if participant exists for this event to get stored data
+        try {
+          const { data: participant } = await supabase
+            .from("participants")
+            .select("name, phone, email")
+            .eq("event_token", token)
+            .eq("user_id", session?.user?.id || "")
+            .maybeSingle();
+          
+          if (participant) {
+            console.log("📱 Participant data:", participant);
+            if (participant.name && !session?.user?.user_metadata?.full_name) {
+              setValue("name", participant.name);
+            }
+            if (participant.phone) {
+              setValue("phone", participant.phone);
+              console.log("📱 Using participant phone:", participant.phone);
+            }
+            if (participant.email && !session?.user?.email) {
+              setValue("email", participant.email);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading participant data:", error);
+        }
+        
+        // Fallback to localStorage data
         const storedName = localStorage.getItem(`participantName:${token}`);
         if (storedName && !session?.user?.user_metadata?.full_name) {
           setValue("name", storedName);
