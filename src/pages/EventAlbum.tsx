@@ -311,10 +311,17 @@ export default function EventAlbum() {
         
       if (dbError) throw dbError;
 
-      // تحديث الحالة المحلية
+      // تحديث الحالة المحلية - إزالة الصورة من القائمة فوراً
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
+      
+      // إغلاق الـ lightbox إذا كانت الصورة المحذوفة معروضة
+      if (lightboxIndex !== null && imageItems[lightboxIndex]?.name === mediaItem.name) {
+        setLightboxIndex(null);
+      }
+      
       toast({ title: "تم حذف الصورة نهائياً" });
     } catch (error) {
+      console.error("Error deleting media:", error);
       toast({ title: "خطأ", description: "تعذّر حذف الصورة", variant: "destructive" });
     }
   };
