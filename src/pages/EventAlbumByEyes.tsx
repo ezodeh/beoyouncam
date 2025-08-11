@@ -8,13 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Dummy data - will be replaced with real data from Supabase
-
-const dummyMessages = [
-  { id: 1, name: "أحمد", text: "مبارك عليكم العرس وعقبال مليون سنة سعيدة" },
-  { id: 2, name: "فاطمة", text: "الله يتمم عليكم بخير وعافية" },
-  { id: 3, name: "محمد", text: "عقبال الفرحة القادمة إن شاء الله" }
-];
+interface Blessing {
+  id: string;
+  content: string;
+  name: string;
+  created_at: string;
+}
 
 const mediaItems = [
   { id: 1, src: "/lovable-uploads/0200d767-58b7-4ed9-8589-ae65fa2df295.png", alt: "صورة من المناسبة 1", type: "image" },
@@ -36,6 +35,8 @@ export default function EventAlbumByEyes() {
   const { token, name } = useParams();
   const { toast } = useToast();
   const [photos, setPhotos] = useState<any[]>([]);
+  const [blessings, setBlessings] = useState<Blessing[]>([]);
+  const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,7 +64,43 @@ export default function EventAlbumByEyes() {
       
       setIsEventOwner(session.user.id === data?.owner_id);
     };
+    
+    const fetchEventData = async () => {
+      if (!token) return;
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select("title, cover_url, album_cover_url")
+          .eq("token", token)
+          .single();
+        
+        if (error) throw error;
+        setEventData(data);
+      } catch (error) {
+        console.error("Error fetching event data:", error);
+      }
+    };
+
+    const fetchBlessings = async () => {
+      if (!token) return;
+      try {
+        const { data, error } = await supabase
+          .from("blessings")
+          .select("*")
+          .eq("event_token", token)
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setBlessings(data || []);
+      } catch (error) {
+        console.error("Error fetching blessings:", error);
+        setBlessings([]);
+      }
+    };
+
     checkOwnership();
+    fetchEventData();
+    fetchBlessings();
     fetchPhotos();
   }, [token]);
 
@@ -176,7 +213,7 @@ export default function EventAlbumByEyes() {
         <header className="relative">
           <figure className="h-44 sm:h-56 md:h-64 w-full overflow-hidden">
             <img
-              src={coverImg}
+              src={eventData?.album_cover_url || eventData?.cover_url || coverImg}
               alt={`غلاف ألبوم بعيون ${name}`}
               className="h-full w-full object-cover"
               loading="lazy"
@@ -252,19 +289,20 @@ export default function EventAlbumByEyes() {
             )}
           </div>
           <aside className="space-y-3">
-            <h2 className="text-lg font-nastaliq font-bold">مباركات {name}</h2>
-            {dummyMessages.filter((m) => m.name === personName).length > 0 ? (
-              dummyMessages
-                .filter((m) => m.name === personName)
-                .map((m) => (
-                  <div key={m.id} className="rounded-lg border border-border bg-card p-3">
-                    <div className="text-sm font-nastaliq font-semibold mb-1">{m.name}</div>
-                    <p className="text-sm text-muted-foreground leading-6 text-right">{m.text}</p>
-                  </div>
-                ))
+            <h2 className="text-lg font-nastaliq font-bold">المباركات</h2>
+            {blessings.length > 0 ? (
+              blessings.map((blessing) => (
+                <div key={blessing.id} className="rounded-lg border border-border bg-card p-3">
+                  <div className="text-sm font-nastaliq font-semibold mb-1">{blessing.name}</div>
+                  <p className="text-sm text-muted-foreground leading-6 text-right">{blessing.content}</p>
+                  <span className="text-xs text-muted-foreground mt-2 block">
+                    {new Date(blessing.created_at).toLocaleDateString('ar-SA')}
+                  </span>
+                </div>
+              ))
             ) : (
               <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-                ما في مباركة من {personName} بعد
+                لا توجد مباركات بعد
               </div>
             )}
           </aside>
