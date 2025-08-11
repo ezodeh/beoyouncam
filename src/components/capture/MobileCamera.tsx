@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
+import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, ArrowLeft, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +46,7 @@ const MobileCamera: React.FC<Props> = ({
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
   useEffect(() => {
     if (recent.length === 0) setLeft(maxShots);
@@ -496,6 +497,40 @@ const MobileCamera: React.FC<Props> = ({
       </div>;
   }
   return <div className="relative w-full h-screen overflow-hidden overscroll-none" dir="rtl">
+      {/* Header */}
+      {showHeader && (
+        <div className="absolute top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-sm hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>رجوع</span>
+            </button>
+            <h1 className="text-lg font-semibold text-center flex-1">{eventName}</h1>
+            <button
+              onClick={() => setShowHeader(false)}
+              className="p-2 hover:bg-background/60 rounded-full transition-colors"
+              aria-label="إخفاء الهيدر"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header toggle button when hidden */}
+      {!showHeader && (
+        <button
+          onClick={() => setShowHeader(true)}
+          className="absolute top-4 right-4 z-40 p-2 bg-background/80 hover:bg-background/90 rounded-full border border-border shadow-lg backdrop-blur-sm transition-colors"
+          aria-label="إظهار الهيدر"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
+      )}
+
       {/* Preview */}
     <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" style={{
       transform: `scale(${zoom})`,
@@ -514,13 +549,6 @@ const MobileCamera: React.FC<Props> = ({
       {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center">
           <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
         </div>}
-
-      {/* Top info: hint + event name + counters */}
-      <div className="absolute top-6 inset-x-0 text-center">
-        <h1 className="text-2xl font-bold font-nastaliq tracking-tight">{eventName}</h1>
-      </div>
-
-      {/* Left icons column */}
       <div className="absolute left-3 top-8 flex flex-col items-center gap-4">
         <Button size="icon" variant="secondary" className="rounded-full" onClick={() => {
         setCamAnim(true);
