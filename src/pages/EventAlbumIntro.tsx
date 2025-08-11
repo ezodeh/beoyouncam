@@ -117,21 +117,20 @@ export default function EventAlbumIntro() {
         </figure>
       </header>
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
-        <section className="max-w-md mx-auto text-center">
+        <section className="max-w-md mx-auto">
+          <div className="text-center mb-6">
+            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
+            <p className="mt-6 md:mt-7 text-muted-foreground">
+              {showPasswordInput 
+                ? "يتطلب الوصول إلى هذا الألبوم كلمة مرور" 
+                : "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."
+              }
+            </p>
+          </div>
+
           {/* Password Input for Private Albums */}
           {showPasswordInput ? (
             <div className="space-y-4">
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
-                <p className="mt-6 md:mt-7 text-muted-foreground">
-                  يتطلب الوصول إلى هذا الألبوم كلمة مرور
-                </p>
-              </div>
               <div>
                 <Label htmlFor="album-password">كلمة المرور</Label>
                 <Input
@@ -153,22 +152,17 @@ export default function EventAlbumIntro() {
               </Button>
             </div>
           ) : (
-            <>
-              {/* Regular Album Intro */}
-              <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
-              <p className="mt-6 md:mt-7 text-muted-foreground">يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.</p>
-              <div className="mt-6">
-                <Button
-                  className="rounded-full px-8"
-                  onClick={() => {
-                    if (token) sessionStorage.setItem(`intro_${token}`, "done");
-                    navigate(`/album/${token}`);
-                  }}
-                >
-                  الدخول إلى الألبوم
-                </Button>
-              </div>
-            </>
+            <div className="mt-6">
+              <Button
+                className="w-full rounded-full px-8"
+                onClick={() => {
+                  if (token) sessionStorage.setItem(`intro_${token}`, "done");
+                  navigate(`/album/${token}`);
+                }}
+              >
+                الدخول إلى الألبوم
+              </Button>
+            </div>
           )}
         </section>
       </main>
