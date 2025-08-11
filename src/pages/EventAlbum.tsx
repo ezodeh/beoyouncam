@@ -246,37 +246,61 @@ export default function EventAlbum() {
     // إضافة رسالة تأكيد مفصلة
     const confirmed = confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع الصور والفيديوهات نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع الوسائط من التخزين ومن قاعدة البيانات.");
     if (!confirmed) return;
+    
     try {
+      console.log("🗑️ بدء حذف جميع الوسائط...");
+      
       // حذف سجلات media_submissions أولاً للحصول على file_paths
       const { data: submissions, error: fetchError } = await supabase
         .from("media_submissions")
-        .select("file_path")
+        .select("file_path, id")
         .eq("event_token", token);
       
-      if (fetchError) throw fetchError;
-
-      // حذف الملفات من التخزين
-      if (submissions && submissions.length > 0) {
-        const filePaths = submissions.map(s => s.file_path);
-        const { error: storageError } = await supabase.storage
-          .from("event-media")
-          .remove(filePaths);
-        
-        if (storageError) throw storageError;
+      if (fetchError) {
+        console.error("خطأ في جلب بيانات الملفات:", fetchError);
+        throw fetchError;
       }
 
-      // حذف سجلات media_submissions
+      console.log(`📊 تم العثور على ${submissions?.length || 0} ملف للحذف`);
+
+      // حذف سجلات media_submissions من قاعدة البيانات أولاً
       const { error: dbError } = await supabase
         .from("media_submissions")
         .delete()
         .eq("event_token", token);
         
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("خطأ في حذف من قاعدة البيانات:", dbError);
+        throw dbError;
+      }
+      
+      console.log("✅ تم حذف جميع السجلات من قاعدة البيانات");
+
+      // حذف الملفات من التخزين
+      if (submissions && submissions.length > 0) {
+        const filePaths = submissions.map(s => s.file_path);
+        console.log("📁 ملفات للحذف من التخزين:", filePaths);
+        
+        const { error: storageError } = await supabase.storage
+          .from("event-media")
+          .remove(filePaths);
+        
+        if (storageError) {
+          console.error("خطأ في حذف من التخزين:", storageError);
+          console.log("⚠️ تم حذف السجلات من قاعدة البيانات لكن فشل حذف بعض الملفات من التخزين");
+        } else {
+          console.log("✅ تم حذف جميع الملفات من التخزين");
+        }
+      }
 
       // تحديث الحالة المحلية
       setMedia([]);
+      setPersonalAlbums([]);
       toast({ title: "تم حذف جميع الوسائط نهائياً" });
+      console.log("✅ تم إكمال حذف جميع الوسائط بنجاح");
+      
     } catch (error) {
+      console.error("❌ خطأ في حذف الوسائط:", error);
       toast({ title: "خطأ", description: "تعذّر حذف الوسائط", variant: "destructive" });
     }
   };
@@ -286,15 +310,51 @@ export default function EventAlbum() {
     if (!confirmed) return;
     
     try {
-      console.log("🗑️ بدء حذف الصورة:", mediaItem.name);
+      console.log("🗑️ بدء حذف الصورة:", mediaItem);
       
-      // أولاً: حذف من قاعدة البيانات للحصول على file_path
-      const { data: submission, error: fetchError } = await supabase
+      // محاولة البحث بطرق مختلفة لتحديد موقع الملف
+      console.log("🔍 البحث عن الملف في قاعدة البيانات...");
+      
+      // أولاً: البحث باستخدام file_name
+      let { data: submission, error: fetchError } = await supabase
         .from("media_submissions")
-        .select("file_path, id")
+        .select("file_path, id, file_name")
         .eq("file_name", mediaItem.name)
         .eq("event_token", token)
         .maybeSingle();
+      
+      console.log("🔍 البحث الأول (file_name):", { submission, fetchError });
+      
+      // إذا لم نجد الملف، جرب البحث باستخدام file_path
+      if (!submission && !fetchError) {
+        console.log("🔍 محاولة البحث الثانية باستخدام file_path...");
+        const filePath = `events/${token}/${mediaItem.name}`;
+        const result = await supabase
+          .from("media_submissions")
+          .select("file_path, id, file_name")
+          .eq("file_path", filePath)
+          .eq("event_token", token)
+          .maybeSingle();
+        
+        submission = result.data;
+        fetchError = result.error;
+        console.log("🔍 البحث الثاني (file_path):", { submission, fetchError });
+      }
+      
+      // إذا لم نجد الملف، جرب البحث في الملفات المحتوية على اسم الملف
+      if (!submission && !fetchError) {
+        console.log("🔍 محاولة البحث الثالثة باستخدام LIKE...");
+        const result = await supabase
+          .from("media_submissions")
+          .select("file_path, id, file_name")
+          .eq("event_token", token)
+          .like("file_path", `%${mediaItem.name}`)
+          .maybeSingle();
+        
+        submission = result.data;
+        fetchError = result.error;
+        console.log("🔍 البحث الثالث (LIKE):", { submission, fetchError });
+      }
       
       if (fetchError) {
         console.error("خطأ في جلب بيانات الملف:", fetchError);
@@ -303,13 +363,22 @@ export default function EventAlbum() {
       
       if (!submission) {
         console.log("⚠️ لم يتم العثور على الملف في قاعدة البيانات");
-        toast({ title: "خطأ", description: "لم يتم العثور على الملف", variant: "destructive" });
+        console.log("📊 البيانات المتاحة:", { mediaItem, token });
+        
+        // عرض جميع الملفات في قاعدة البيانات للمقارنة
+        const { data: allFiles } = await supabase
+          .from("media_submissions")
+          .select("file_path, file_name")
+          .eq("event_token", token);
+        console.log("📁 جميع الملفات في قاعدة البيانات:", allFiles);
+        
+        toast({ title: "خطأ", description: "لم يتم العثور على الملف في قاعدة البيانات", variant: "destructive" });
         return;
       }
       
-      console.log("📄 بيانات الملف:", submission);
+      console.log("📄 تم العثور على الملف:", submission);
 
-      // ثانياً: حذف من قاعدة البيانات
+      // حذف من قاعدة البيانات أولاً
       const { error: dbError } = await supabase
         .from("media_submissions")
         .delete()
@@ -322,20 +391,19 @@ export default function EventAlbum() {
       
       console.log("✅ تم حذف السجل من قاعدة البيانات");
 
-      // ثالثاً: حذف من التخزين
+      // حذف من التخزين
       const { error: storageError } = await supabase.storage
         .from("event-media")
         .remove([submission.file_path]);
       
       if (storageError) {
         console.error("خطأ في حذف من التخزين:", storageError);
-        // لا نرمي الخطأ هنا لأن المهم هو حذف السجل من قاعدة البيانات
         console.log("⚠️ تم حذف السجل من قاعدة البيانات لكن فشل حذف الملف من التخزين");
       } else {
         console.log("✅ تم حذف الملف من التخزين");
       }
 
-      // رابعاً: تحديث الواجهة المحلية
+      // تحديث الواجهة المحلية
       setMedia(prev => prev.filter(m => m.name !== mediaItem.name));
       
       // إغلاق الـ lightbox إذا كانت الصورة المحذوفة معروضة
