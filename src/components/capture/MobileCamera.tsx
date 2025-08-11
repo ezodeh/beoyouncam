@@ -632,15 +632,24 @@ const MobileCamera: React.FC<Props> = ({
         
       {/* Left icons column - adjust top position when header is shown */}
       <div className={`absolute left-3 flex flex-col items-center gap-4 z-30 ${showHeader ? 'top-20' : 'top-8'}`}>
-        <Button size="icon" variant="secondary" className="rounded-full" onClick={() => {
+        <Button size="icon" variant="secondary" className="rounded-full" onClick={async () => {
         setCamAnim(true);
         setTimeout(() => setCamAnim(false), 400);
+        
+        // Stop current stream first
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+        
+        // Switch camera mode
         const newMode = facingMode === "user" ? "environment" : "user";
         setFacingMode(newMode);
-        // إعادة فتح الكاميرا بالوضع الجديد
-        streamRef.current?.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-        setTimeout(() => openStream(), 100);
+        
+        // Wait a moment then restart camera
+        setTimeout(async () => {
+          await openStream();
+        }, 200);
       }} aria-label="تبديل الكاميرا">
           <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
         </Button>
@@ -665,12 +674,12 @@ const MobileCamera: React.FC<Props> = ({
       </div>
 
       {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(11rem+env(safe-area-inset-bottom))] z-20">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(13rem+env(safe-area-inset-bottom))] z-20">
         <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
       </div>
 
       {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-3">
+      <div className="absolute inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-3">
         {recording ? <div className="w-24 h-24 rounded-full">
             <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-brand-gradient text-brand-foreground animate-pulse" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط" />
           </div> : <div className="w-24 h-24 rounded-full p-0 bg-brand-gradient">
@@ -680,13 +689,17 @@ const MobileCamera: React.FC<Props> = ({
           }} />
             </button>
           </div>}
-        <div className="rounded-full bg-background/70 border border-border px-3 py-1 text-xs">
+      </div>
+      
+      {/* Hint text - moved higher to be visible */}
+      <div className="absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] flex justify-center z-40">
+        <div className="rounded-full bg-background/90 border border-border px-4 py-2 text-sm shadow-lg backdrop-blur-sm">
           {hint}
         </div>
       </div>
 
       {/* Recent thumb - معطل العرض التلقائي */}
-      {recent.length > 0 && <button className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" onClick={() => setShowRecent(true)} aria-label="المعرض">
+      {recent.length > 0 && <button className="absolute bottom-[calc(10rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" onClick={() => setShowRecent(true)} aria-label="المعرض">
           <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
         </button>}
 
