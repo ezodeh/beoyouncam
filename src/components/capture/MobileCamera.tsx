@@ -28,6 +28,7 @@ const MobileCamera: React.FC<Props> = ({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [left, setLeft] = useState<number>(maxShots);
+  console.log("🔢 MobileCamera: Initial state - maxShots:", maxShots, "left:", left);
   const initialName = typeof window !== "undefined" ? localStorage.getItem(`participantName:${token}`) : null;
   const [hint, setHint] = useState<string>(`بعيون ${initialName || "مناسبتكم"}`);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
@@ -53,6 +54,12 @@ const MobileCamera: React.FC<Props> = ({
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
     setLeft(Math.max(0, maxShots - recent.length));
   }, [maxShots, recent.length]);
+
+  // Monitor changes to maxShots prop during runtime
+  useEffect(() => {
+    console.log("🔄 MobileCamera: maxShots prop changed to:", maxShots);
+    setLeft(Math.max(0, maxShots - recent.length));
+  }, [maxShots]);
 
   // استنتاج الاسم من جلسة المستخدم إن لم يكن في التخزين المحلي
   useEffect(() => {
