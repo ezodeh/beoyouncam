@@ -195,7 +195,7 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
                   
                   {/* زر Google */}
                   <button className="w-full h-6 bg-secondary text-secondary-foreground rounded-full text-xs">
-                    المتابعة بحساب Google
+                    <span dir="ltr">Google</span> المتابعة بحساب
                   </button>
                   
                   {/* زر إنشاء حساب */}

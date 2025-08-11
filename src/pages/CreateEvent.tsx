@@ -845,7 +845,7 @@ export default function CreateEvent() {
                                   </div>
                                   
                                   {/* زر Google */}
-                                  <div className="w-full h-5 bg-muted rounded text-xs flex items-center justify-center">التسجيل بـ Google</div>
+                                  <div className="w-full h-5 bg-muted rounded text-xs flex items-center justify-center"><span dir="ltr">Google</span> التسجيل بـ</div>
                                 </section>
                               </main>
                             </div>
@@ -1032,7 +1032,7 @@ export default function CreateEvent() {
                         onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/create-event" } })}
                         className="rounded-full"
                       >
-                        تسجيل الدخول بحساب Google
+                        <span dir="ltr">Google</span> تسجيل الدخول بحساب
                       </Button>
                     </div>
                   )}
