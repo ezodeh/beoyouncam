@@ -4,7 +4,10 @@ import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EventAlbumIntro() {
   const { token } = useParams();
@@ -13,6 +16,10 @@ export default function EventAlbumIntro() {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [title, setTitle] = useState<string>(eventName);
   const [showHeader, setShowHeader] = useState<boolean>(true);
+  const [password, setPassword] = useState("");
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [eventDetails, setEventDetails] = useState<any>(null);
+  const { toast } = useToast();
   useEffect(() => {
     document.title = `مقدمة الألبوم — ${title} — من عيونكم`;
   }, [title]);
@@ -25,18 +32,28 @@ export default function EventAlbumIntro() {
       const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password")
         .eq("token", token)
         .maybeSingle();
         
       if (!data) return;
       
+      setEventDetails(data);
       setTitle(data.title || eventName);
       setCoverUrl(data.cover_url || null);
       setShowHeader(data.show_header !== false);
       
       // Determine if current user is the event owner
       const currentIsEventOwner = session?.user?.id === data.owner_id;
+      
+      // Check if private album needs password verification
+      if (data.is_private && data.password && !currentIsEventOwner) {
+        const hasAccess = sessionStorage.getItem(`album_access_${token}`);
+        if (!hasAccess) {
+          setShowPasswordInput(true);
+          return;
+        }
+      }
       
       console.log("🔍 Album Intro access check:", {
         isAlbumPublished: data.is_album_published,
@@ -59,6 +76,31 @@ export default function EventAlbumIntro() {
     })();
   }, [token]);
 
+  const handlePasswordSubmit = async () => {
+    if (!password.trim()) {
+      toast({
+        title: "كلمة المرور مطلوبة",
+        description: "يرجى إدخال كلمة المرور للوصول إلى الألبوم",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (eventDetails?.password === password.trim()) {
+      sessionStorage.setItem(`album_access_${token}`, "granted");
+      setShowPasswordInput(false);
+      toast({
+        title: "تم التحقق بنجاح"
+      });
+    } else {
+      toast({
+        title: "كلمة مرور خاطئة",
+        description: "يرجى التحقق من كلمة المرور والمحاولة مرة أخرى",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       {showHeader && (
@@ -76,19 +118,58 @@ export default function EventAlbumIntro() {
       </header>
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto text-center">
-          <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
-          <p className="mt-6 md:mt-7 text-muted-foreground">يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.</p>
-          <div className="mt-6">
-            <Button
-              className="rounded-full px-8"
-              onClick={() => {
-                if (token) sessionStorage.setItem(`intro_${token}`, "done");
-                navigate(`/album/${token}`);
-              }}
-            >
-              الدخول إلى الألبوم
-            </Button>
-          </div>
+          {/* Password Input for Private Albums */}
+          {showPasswordInput ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
+                <p className="mt-6 md:mt-7 text-muted-foreground">
+                  يتطلب الوصول إلى هذا الألبوم كلمة مرور
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="album-password">كلمة المرور</Label>
+                <Input
+                  id="album-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="أدخل كلمة المرور"
+                  className="text-right"
+                  onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
+                />
+              </div>
+              <Button 
+                className="w-full rounded-full" 
+                onClick={handlePasswordSubmit}
+                disabled={!password.trim()}
+              >
+                التحقق من كلمة المرور
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Regular Album Intro */}
+              <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">ألبوم {title}</h1>
+              <p className="mt-6 md:mt-7 text-muted-foreground">يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.</p>
+              <div className="mt-6">
+                <Button
+                  className="rounded-full px-8"
+                  onClick={() => {
+                    if (token) sessionStorage.setItem(`intro_${token}`, "done");
+                    navigate(`/album/${token}`);
+                  }}
+                >
+                  الدخول إلى الألبوم
+                </Button>
+              </div>
+            </>
+          )}
         </section>
       </main>
       {showHeader && (

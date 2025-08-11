@@ -51,10 +51,6 @@ const MobileCamera: React.FC<Props> = ({
   const [showGrid, setShowGrid] = useState(false);
   const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
-  const [showVideoThumbnailSelector, setShowVideoThumbnailSelector] = useState<{
-    videoUrl: string;
-    videoFile: File;
-  } | null>(null);
   useEffect(() => {
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
     setLeft(Math.max(0, maxShots - recent.length));
@@ -328,13 +324,52 @@ const MobileCamera: React.FC<Props> = ({
         const file = new File([blob], `clip-${Date.now()}.webm`, {
           type: blob.type
         });
-        const videoUrl = URL.createObjectURL(file);
         
-        // Show thumbnail selector for video
-        setShowVideoThumbnailSelector({
-          videoUrl,
-          videoFile: file
+        // Automatically generate thumbnail from first frame
+        const videoUrl = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.src = videoUrl;
+        
+        await new Promise((resolve) => {
+          video.onloadedmetadata = resolve;
         });
+        
+        video.currentTime = 0.1; // Take thumbnail from 0.1 seconds
+        
+        await new Promise((resolve) => {
+          video.onseeked = resolve;
+        });
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob(async (thumbnailBlob) => {
+            const newLeft = Math.max(0, left - 1);
+            setRecent(r => [{
+              url: videoUrl,
+              type: "video" as const
+            }, ...r].slice(0, 20));
+            
+            setLeft(newLeft);
+            toast({
+              title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
+            });
+            
+            try {
+              await uploadFile(file, "video", thumbnailBlob || undefined);
+            } catch (e) {
+              setLeft(n => Math.min(maxShots, n + 1));
+              setShowRetry({
+                file,
+                kind: "video"
+              });
+            }
+          }, 'image/jpeg', 0.9);
+        }
         
         setRecording(false);
       };
@@ -694,50 +729,6 @@ const MobileCamera: React.FC<Props> = ({
           </label>
         </div>
       </div>
-
-      {/* Video Thumbnail Selector Dialog */}
-      <Dialog open={!!showVideoThumbnailSelector} onOpenChange={() => setShowVideoThumbnailSelector(null)}>
-        <DialogContent className="max-w-md">
-          {showVideoThumbnailSelector && (
-            <VideoThumbnailSelector
-              videoUrl={showVideoThumbnailSelector.videoUrl}
-              onThumbnailSelect={async (thumbnailBlob) => {
-                const file = showVideoThumbnailSelector.videoFile;
-                const newLeft = Math.max(0, left - 1);
-                
-                setRecent(r => [{
-                  url: showVideoThumbnailSelector.videoUrl,
-                  type: "video" as const
-                }, ...r].slice(0, 20));
-                
-                setLeft(newLeft);
-                toast({
-                  title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
-                });
-                
-                try {
-                  await uploadFile(file, "video", thumbnailBlob);
-                } catch (e) {
-                  setLeft(n => Math.min(maxShots, n + 1));
-                  setShowRetry({
-                    file,
-                    kind: "video"
-                  });
-                }
-                
-                setShowVideoThumbnailSelector(null);
-              }}
-              onCancel={() => {
-                // Clean up the video URL
-                if (showVideoThumbnailSelector?.videoUrl) {
-                  URL.revokeObjectURL(showVideoThumbnailSelector.videoUrl);
-                }
-                setShowVideoThumbnailSelector(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Limit banner */}
       {left <= 0 && <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-destructive/90 text-destructive-foreground px-4 py-1 text-sm">انتهى عدد اللقطات</div>}
