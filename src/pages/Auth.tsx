@@ -232,9 +232,9 @@ const signUpGoogle = async () => {
               <Label className="text-right">تاريخ الميلاد *</Label>
               <Input type="date" required value={birthdate} onChange={(e)=>setBirthdate(e.target.value)} className="text-right" />
 
-              <label className="flex items-center gap-2 text-sm mt-1 justify-start">
-                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
+              <label className="flex items-center gap-2 text-sm mt-1 justify-end">
                 <span dir="rtl">أوافق على <a href="/terms" className="underline story-link">شروط الاستخدام</a></span>
+                <Checkbox checked={agree} onCheckedChange={(v:any)=> setAgree(Boolean(v))} />
               </label>
 
               <Button className="w-full rounded-full" disabled={loading || !agree || !name.trim() || !email.trim() || !password || !phone.trim() || !country || !birthdate} onClick={signUp}>إنشاء حساب</Button>
