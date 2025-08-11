@@ -436,7 +436,7 @@ export default function EventCard({
               <X className="h-4 w-4" />
               <span className="sr-only">إغلاق</span>
             </button>
-            <DialogTitle className="flex items-center justify-center gap-2">
+            <DialogTitle className="flex items-center justify-end gap-2">
               <QrCode className="h-5 w-5" />
               دعوة المناسبة
             </DialogTitle>
