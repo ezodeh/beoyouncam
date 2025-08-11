@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode, Download, Copy, Image } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { QrCode, Download, Copy, Image, X } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface QRCodesTabProps {
   token: string;
@@ -11,6 +13,7 @@ interface QRCodesTabProps {
 
 export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
   const { toast } = useToast();
+  const [enlargedQR, setEnlargedQR] = useState<{ url: string; title: string } | null>(null);
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
   const albumUrl = `${window.location.origin}/album/${token}`;
 
@@ -99,7 +102,10 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="bg-white p-4 rounded-lg inline-block border">
+              <div 
+                className="bg-white p-4 rounded-lg inline-block border cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setEnlargedQR({ url: eventUrl, title: "باركود المناسبة" })}
+              >
                 <QRCode id="event-qr" value={eventUrl} size={150} level="H" />
               </div>
               <p className="mt-3 text-sm text-muted-foreground text-right">
@@ -149,7 +155,10 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="bg-white p-4 rounded-lg inline-block border">
+              <div 
+                className="bg-white p-4 rounded-lg inline-block border cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setEnlargedQR({ url: albumUrl, title: "باركود الألبوم" })}
+              >
                 <QRCode id="album-qr" value={albumUrl} size={150} level="H" />
               </div>
               <p className="mt-3 text-sm text-muted-foreground text-right">
@@ -235,6 +244,35 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Enlarged QR Dialog */}
+      <Dialog open={!!enlargedQR} onOpenChange={() => setEnlargedQR(null)}>
+        <DialogContent className="max-w-md p-8">
+          <div className="flex items-center justify-between mb-4">
+            <DialogTitle className="text-lg font-semibold">
+              {enlargedQR?.title}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setEnlargedQR(null)}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-center">
+            <div className="bg-white p-6 rounded-lg inline-block border shadow-sm">
+              {enlargedQR && (
+                <QRCode value={enlargedQR.url} size={280} level="H" />
+              )}
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              اضغط على الباركود أو استخدم كاميرا الهاتف لمسحه
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
