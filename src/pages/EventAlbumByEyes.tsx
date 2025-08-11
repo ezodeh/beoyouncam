@@ -108,43 +108,67 @@ export default function EventAlbumByEyes() {
     if (!token || !name) return;
     setLoading(true);
     try {
-      // Get participant ID by name
-      const { data: participant } = await supabase
+      console.log("🔍 Fetching photos for:", { token, name });
+      
+      // Get participant ID by name (with flexible matching)
+      const { data: participants } = await supabase
         .from("participants")
-        .select("id")
+        .select("id, name")
         .eq("event_token", token)
-        .eq("name", name)
-        .single();
+        .ilike("name", `%${name}%`); // استخدام ilike للمطابقة المرنة
 
-      if (!participant) {
+      console.log("👥 Found participants:", participants);
+
+      if (!participants || participants.length === 0) {
+        console.log("❌ No participant found with name:", name);
         setPhotos([]);
         return;
       }
 
+      // إذا وُجد أكثر من مشارك، نأخذ الأول
+      const participant = participants[0];
+      console.log("✅ Using participant:", participant);
+
       // Get media submissions for this participant
-      const { data: submissions } = await supabase
+      const { data: submissions, error: submissionsError } = await supabase
         .from("media_submissions")
         .select("*")
         .eq("participant_id", participant.id)
         .order("created_at", { ascending: false });
 
-      if (submissions) {
+      console.log("📸 Media submissions:", { submissions, error: submissionsError });
+
+      if (submissionsError) {
+        console.error("❌ Error fetching submissions:", submissionsError);
+        setPhotos([]);
+        return;
+      }
+
+      if (submissions && submissions.length > 0) {
         const photosWithUrls = submissions.map(submission => {
           const { data: { publicUrl } } = supabase.storage
             .from("event-media")
             .getPublicUrl(submission.file_path);
           
+          console.log("🖼️ Generated URL for:", submission.file_path, "->", publicUrl);
+          
           return {
             id: submission.id,
             src: publicUrl,
             alt: `صورة من ${name}`,
-            type: submission.media_type === "video" ? "video" : "image"
+            type: submission.media_type === "video" ? "video" : "image",
+            name: submission.file_name
           };
         });
+        
+        console.log("✅ Photos with URLs:", photosWithUrls);
         setPhotos(photosWithUrls);
+      } else {
+        console.log("ℹ️ No submissions found for participant");
+        setPhotos([]);
       }
     } catch (error) {
-      console.error("Error fetching photos:", error);
+      console.error("❌ Error fetching photos:", error);
       setPhotos([]);
     } finally {
       setLoading(false);
@@ -170,15 +194,22 @@ export default function EventAlbumByEyes() {
   const deleteParticipantMedia = async () => {
     if (!confirm(`هل أنت متأكد من حذف جميع صور ${name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
     try {
-      // الحصول على معرف المشارك
-      const { data: participant } = await supabase
+      console.log("🗑️ Starting deletion for participant:", name);
+      
+      // الحصول على معرف المشارك بنفس المنطق المحسن
+      const { data: participants } = await supabase
         .from("participants")
-        .select("id")
+        .select("id, name")
         .eq("event_token", token)
-        .eq("name", name)
-        .single();
+        .ilike("name", `%${name}%`);
 
-      if (!participant) return;
+      if (!participants || participants.length === 0) {
+        console.log("❌ No participant found for deletion");
+        return;
+      }
+
+      const participant = participants[0];
+      console.log("✅ Found participant for deletion:", participant);
 
       // حذف الملفات من media_submissions
       const { data: submissions } = await supabase
@@ -187,21 +218,37 @@ export default function EventAlbumByEyes() {
         .eq("participant_id", participant.id);
 
       if (submissions && submissions.length > 0) {
+        console.log("📁 Files to delete:", submissions.length);
+        
         // حذف الملفات من التخزين
         const filePaths = submissions.map(s => s.file_path);
-        await supabase.storage
+        const { error: storageError } = await supabase.storage
           .from("event-media")
           .remove(filePaths);
 
+        if (storageError) {
+          console.error("❌ Storage deletion error:", storageError);
+        }
+
         // حذف السجلات من قاعدة البيانات
-        await supabase
+        const { error: dbError } = await supabase
           .from("media_submissions")
           .delete()
           .eq("participant_id", participant.id);
+
+        if (dbError) {
+          console.error("❌ Database deletion error:", dbError);
+        }
+
+        // تحديث الواجهة
+        setPhotos([]);
       }
 
       toast({ title: `تم حذف جميع صور ${name}` });
+      console.log("✅ Deletion completed successfully");
+      
     } catch (error) {
+      console.error("❌ Error during deletion:", error);
       toast({ title: "خطأ", description: "تعذّر حذف الصور", variant: "destructive" });
     }
   };
