@@ -31,13 +31,24 @@ export default function EventAlbumIntro() {
       if (!token) return;
       
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("🔍 Session check:", { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        userEmail: session?.user?.email 
+      });
+      
       const { data } = await supabase
         .from("events")
         .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password")
         .eq("token", token)
         .maybeSingle();
         
-      if (!data) return;
+      if (!data) {
+        console.log("❌ No event data found for token:", token);
+        return;
+      }
+      
+      console.log("📄 Event data:", data);
       
       setEventDetails(data);
       setTitle(data.title || eventName);
@@ -46,6 +57,12 @@ export default function EventAlbumIntro() {
       
       // Determine if current user is the event owner
       const currentIsEventOwner = session?.user?.id === data.owner_id;
+      console.log("👤 Ownership check:", {
+        sessionUserId: session?.user?.id,
+        eventOwnerId: data.owner_id,
+        isOwner: currentIsEventOwner,
+        comparison: `"${session?.user?.id}" === "${data.owner_id}"`
+      });
       
       // Check if private album needs password verification
       if (data.is_private && data.password && !currentIsEventOwner) {
