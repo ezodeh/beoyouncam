@@ -27,9 +27,8 @@ export default function Scanner() {
               <QRScanner
                 constraints={{ 
                   facingMode: "environment",
-                  width: { ideal: 1920, min: 1280 },
-                  height: { ideal: 1920, min: 1280 },
-                  aspectRatio: 1.0
+                  width: { ideal: 1280, min: 640 },
+                  height: { ideal: 1280, min: 640 }
                 }}
                 onScan={(detected: any[]) => {
                   const value = detected?.[0]?.rawValue as string | undefined;

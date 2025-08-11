@@ -132,7 +132,9 @@ const MobileCamera: React.FC<Props> = ({
       const constraints: MediaStreamConstraints = {
         audio: false,
         video: {
-          facingMode: { exact: facingMode }
+          facingMode: facingMode,
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 1280, min: 640 }
         }
       };
       console.log("🎥 MobileCamera: Requesting camera with constraints:", constraints);
