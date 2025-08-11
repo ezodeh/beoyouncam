@@ -61,7 +61,7 @@ export function StatisticsTab({ token }: StatisticsTabProps) {
         const dayMessages = blessings.filter(m => m.created_at.startsWith(date)).length;
 
         return {
-          date: new Date(date).toLocaleDateString('ar-SA', { weekday: 'short' }),
+          date: new Date(date).toLocaleDateString('en-GB'),
           participants: dayParticipants,
           photos: dayPhotos,
           messages: dayMessages

@@ -188,7 +188,7 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
                     </TableCell>
                     <TableCell>{participant.method}</TableCell>
                     <TableCell>
-                      {new Date(participant.created_at).toLocaleDateString('ar-SA')}
+                      {new Date(participant.created_at).toLocaleDateString('en-GB')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

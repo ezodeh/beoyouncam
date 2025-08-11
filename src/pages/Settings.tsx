@@ -551,7 +551,7 @@ export default function Settings() {
                         <p><strong>عدد الضيوف:</strong> {event.expected_guests}</p>
                         <p><strong>عدد الصور:</strong> {event.max_shots}</p>
                         {event.description && <p><strong>الوصف:</strong> {event.description}</p>}
-                        <p><strong>تاريخ الإنشاء:</strong> {new Date(event.created_at).toLocaleDateString('ar-EG')}</p>
+                        <p><strong>تاريخ الإنشاء:</strong> {new Date(event.created_at).toLocaleDateString('en-GB')}</p>
                       </div>
                     )}
                   </div>

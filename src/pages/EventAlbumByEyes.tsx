@@ -296,7 +296,7 @@ export default function EventAlbumByEyes() {
                   <div className="text-sm font-nastaliq font-semibold mb-1">{blessing.name}</div>
                   <p className="text-sm text-muted-foreground leading-6 text-right">{blessing.content}</p>
                   <span className="text-xs text-muted-foreground mt-2 block">
-                    {new Date(blessing.created_at).toLocaleDateString('ar-SA')}
+                    {new Date(blessing.created_at).toLocaleDateString('en-GB')}
                   </span>
                 </div>
               ))
