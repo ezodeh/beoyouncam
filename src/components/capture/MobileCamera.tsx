@@ -691,16 +691,16 @@ const MobileCamera: React.FC<Props> = ({
         </button>}
 
       {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
-      <div className="absolute inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 bg-transparent">
-        <div className="mx-3 flex items-center justify-between">
+      <div className="fixed inset-x-0 bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))] z-50 pointer-events-none">
+        <div className="mx-3 flex items-center justify-between pointer-events-auto">
           <Link 
             to={`/event/${token}/invites`} 
-            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border shadow-lg backdrop-blur-sm hover:bg-background/95 transition-colors"
+            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border shadow-2xl backdrop-blur-md hover:bg-background transition-colors"
           >
             <Users className="h-4 w-4" />
             <span>QR دعوة</span>
           </Link>
-          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/90 border border-border cursor-pointer shadow-lg backdrop-blur-sm hover:bg-background/95 transition-colors">
+          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border cursor-pointer shadow-2xl backdrop-blur-md hover:bg-background transition-colors">
             <ImageIcon className="h-4 w-4" />
             <span>المعرض</span>
             <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={e => {
