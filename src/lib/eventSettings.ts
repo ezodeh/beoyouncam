@@ -199,6 +199,22 @@ export function hasEventEnded(settings: EventSettings): boolean {
   return end ? now > end : false;
 }
 
+// Securely get participants for an event (only for authenticated event owners)
+export async function getEventParticipants(token: string): Promise<any[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from("participants")
+      .select("*")
+      .eq("event_token", token)
+      .order("created_at", { ascending: false });
+    
+    if (error) return null;
+    return data || [];
+  } catch {
+    return null;
+  }
+}
+
 // Get supported countries
 export function getSupportedCountries() {
   return [
