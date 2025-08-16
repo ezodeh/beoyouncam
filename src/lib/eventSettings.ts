@@ -43,7 +43,34 @@ export interface UserProfile {
   gender?: string;
 }
 
-// Get event settings with proper fallbacks
+// Get public event information (safe fields only, no sensitive data)
+export async function getPublicEventInfo(token: string): Promise<Partial<EventSettings> | null> {
+  const { data, error } = await supabase
+    .rpc("get_public_event_info", { event_token: token });
+
+  if (error || !data || data.length === 0) return null;
+  
+  const eventData = data[0];
+  return {
+    token: eventData.token,
+    title: eventData.title || "مناسبة جديدة",
+    description: eventData.description,
+    start_at: eventData.start_at,
+    end_at: eventData.end_at,
+    is_private: eventData.is_private ?? false,
+    cover_url: eventData.cover_url,
+    welcome_title: eventData.welcome_title,
+    welcome_text: eventData.welcome_text,
+    invite_button_text: eventData.invite_button_text,
+    show_header: eventData.show_header !== false,
+    is_album_published: eventData.is_album_published ?? false,
+    album_title: eventData.album_title,
+    album_description: eventData.album_description,
+    album_cover_url: eventData.album_cover_url,
+  };
+}
+
+// Get full event settings (requires authentication and ownership)
 export async function getEventSettings(token: string): Promise<EventSettings | null> {
   const { data, error } = await supabase
     .from("events")
@@ -86,6 +113,24 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
     is_album_published: (data as any).is_album_published ?? false,
     show_header: (data as any).show_header !== false,
   };
+}
+
+// Validate event password (public access for password verification)
+export async function validateEventPassword(token: string, password: string): Promise<boolean> {
+  try {
+    // Get the event using the secure function, then fetch password separately for validation
+    const { data, error } = await supabase
+      .from("events")
+      .select("password")
+      .eq("token", token)
+      .eq("is_hidden", false)
+      .maybeSingle();
+    
+    if (error || !data) return false;
+    return data.password === password;
+  } catch {
+    return false;
+  }
 }
 
 // Update event settings
