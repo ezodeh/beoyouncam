@@ -270,6 +270,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_event_info: {
+        Args: { event_token: string }
+        Returns: {
+          album_cover_url: string
+          album_description: string
+          album_title: string
+          cover_url: string
+          description: string
+          end_at: string
+          invite_button_text: string
+          is_album_published: boolean
+          is_private: boolean
+          show_header: boolean
+          start_at: string
+          title: string
+          token: string
+          welcome_text: string
+          welcome_title: string
+        }[]
+      }
       is_event_owner: {
         Args: { event_token: string; user_id: string }
         Returns: boolean
