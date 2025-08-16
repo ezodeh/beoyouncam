@@ -118,16 +118,14 @@ export async function getEventSettings(token: string): Promise<EventSettings | n
 // Validate event password (public access for password verification)
 export async function validateEventPassword(token: string, password: string): Promise<boolean> {
   try {
-    // Get the event using the secure function, then fetch password separately for validation
     const { data, error } = await supabase
-      .from("events")
-      .select("password")
-      .eq("token", token)
-      .eq("is_hidden", false)
-      .maybeSingle();
+      .rpc("validate_event_password", { 
+        event_token: token, 
+        provided_password: password 
+      });
     
-    if (error || !data) return false;
-    return data.password === password;
+    if (error) return false;
+    return data === true;
   } catch {
     return false;
   }

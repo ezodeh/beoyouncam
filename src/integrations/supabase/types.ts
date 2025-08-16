@@ -294,6 +294,10 @@ export type Database = {
         Args: { event_token: string; user_id: string }
         Returns: boolean
       }
+      validate_event_password: {
+        Args: { event_token: string; provided_password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       calendar_type: "gregorian" | "hijri"
