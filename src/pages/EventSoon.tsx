@@ -11,7 +11,7 @@ export default function EventSoon() {
   const location = useLocation();
   const [startAt, setStartAt] = useState<string | null>(null);
   const [eventImage, setEventImage] = useState<string>(heroImage);
-  const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
+  const [eventName, setEventName] = useState<string>("مناسبتكم");
   const isAlbumPage = location.search.includes("title="); // Detect if this is for album
 
   useEffect(() => {
@@ -47,28 +47,37 @@ export default function EventSoon() {
     if (s) setStartAt(s);
   }, [location.search]);
 
-  // Fetch event image from database
+  // Fetch event data from database
   useEffect(() => {
     (async () => {
       if (!token) return;
       
       try {
-        const { data } = await supabase
-          .from("events")
-          .select("cover_url, album_cover_url")
-          .eq("token", token)
-          .maybeSingle();
+        // Use the secure function to get public event info
+        const { data, error } = await supabase
+          .rpc("get_public_event_info", { event_token: token });
         
-        if (data) {
-          // Use album cover for album page, event cover for event page
-          const imageUrl = isAlbumPage ? data.album_cover_url : data.cover_url;
+        if (error) {
+          console.error("Error loading event data:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const eventData = data[0];
+          // Set event name
+          if (eventData.title) {
+            setEventName(eventData.title);
+          }
+          
+          // Set event image
+          const imageUrl = isAlbumPage ? eventData.album_cover_url : eventData.cover_url;
           if (imageUrl) {
             setEventImage(imageUrl);
             console.log("🖼️ Updated event image:", imageUrl);
           }
         }
       } catch (error) {
-        console.error("Error loading event image:", error);
+        console.error("Error loading event data:", error);
       }
     })();
   }, [token, isAlbumPage]);
