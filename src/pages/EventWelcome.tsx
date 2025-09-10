@@ -104,7 +104,10 @@ export default function EventWelcome() {
         payload.email = email.trim();
       }
       const { error } = await supabase.from("participants").insert(payload);
-      if (error) throw error;
+      if (error) {
+        console.error("Participant insertion error:", error);
+        throw error;
+      }
       localStorage.setItem(`participant:${token}`, "1");
       localStorage.setItem(`participantName:${token}`, name.trim());
       toast({
@@ -112,8 +115,10 @@ export default function EventWelcome() {
       });
       goToCamera();
     } catch (e: any) {
+      console.error("Registration error:", e);
       toast({
-        title: "تعذّر التسجيل"
+        title: "تعذّر التسجيل",
+        description: e.message || "حدث خطأ غير متوقع"
       });
     } finally {
       setLoading(false);
