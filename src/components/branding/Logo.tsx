@@ -11,13 +11,13 @@ interface LogoProps {
   title?: string; // accessible label
 }
 
-// Using public paths for uploaded PNGs
+// Using عيونكام logo paths
 const srcMap: Record<LogoVariant, string> = {
-  icon: "/lovable-uploads/6ff975c7-0141-4e6b-9d33-48024a875e58.png",
-  wordmark: "/lovable-uploads/e635fc05-a945-415e-9dae-80f972c792cf.png",
-  stacked: "/lovable-uploads/3abf2523-09b8-4264-b731-d9f044049749.png",
-  horizontal: "/lovable-uploads/feffbd15-6f18-425a-baed-b8539b349521.png",
-  brand: "/lovable-uploads/20d80c41-6fd7-4376-bc5d-1b8d9fac079f.png",
+  icon: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png",
+  wordmark: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png",
+  stacked: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png",
+  horizontal: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png",
+  brand: "/lovable-uploads/168fd1c7-87c9-4acf-aa27-fb49da03f0c9.png",
 };
 
 // Approximate aspect ratios based on source images
@@ -38,7 +38,7 @@ const Logo: React.FC<LogoProps> = ({
   title,
 }) => {
   const src = srcMap[variant];
-  const aria = title || "شعار عيون cam";
+  const aria = title || "شعار عيونكام";
 
   // Brand composition: icon (right) + text (left) for RTL
   if (variant === "brand") {
@@ -47,7 +47,7 @@ const Logo: React.FC<LogoProps> = ({
     return (
       <span role="img" aria-label={aria} className={(className ? className + " " : "") + "inline-flex items-center gap-2 leading-none"}>
         <img src={iconSrc} alt="" aria-hidden="true" loading="lazy" style={{ height, width: "auto" }} />
-        <span className="font-extrabold font-nastaliq text-xl md:text-2xl">عيون cam</span>
+        <span className="font-extrabold font-nastaliq text-xl md:text-2xl">عيونكام</span>
       </span>
     );
   }
