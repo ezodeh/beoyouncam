@@ -414,11 +414,12 @@ export default function CreateEvent() {
     }
   };
 
-  // Handle file selection without immediate upload
-  const handleFileSelect = (file: File, field: string) => {
+  // Handle file selection with immediate upload
+  const handleFileSelect = async (file: File, field: string) => {
     switch (field) {
       case 'welcome_page_hero_image':
         setWelcomePageHeroFile(file);
+        await handleImageUpload(file, field);
         break;
     }
   };
