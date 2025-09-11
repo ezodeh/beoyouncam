@@ -243,14 +243,14 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
               <div className="space-y-3">
                 <div 
                   className="bg-white p-2 rounded-lg inline-block cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => setEnlargedQR({ url: `${window.location.origin}/album/${token}`, title: "باركود الألبوم" })}
+                  onClick={() => setEnlargedQR({ url: `${window.location.origin}/album/${token}/intro`, title: "باركود الألبوم" })}
                 >
                   <div id="overview-qr-wrap">
-                    <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}`} size={72} level="H" />
+                    <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}/intro`} size={72} level="H" />
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/album/${token}`)}>نسخ الرابط</Button>
+                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/album/${token}/intro`)}>نسخ الرابط</Button>
                   <Button variant="outline" size="sm" onClick={() => {
                     const svg = document.querySelector<SVGSVGElement>("#overview-qr");
                     if (!svg) return;
@@ -283,7 +283,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                     img.src = url;
                   }}>تنزيل PNG</Button>
                   <Button variant="outline" size="sm" onClick={async () => {
-                    const url = `${window.location.origin}/album/${token}`;
+                    const url = `${window.location.origin}/album/${token}/intro`;
                     if (navigator.share) {
                       await navigator.share({ title: 'ألبوم المناسبة', url });
                     } else {

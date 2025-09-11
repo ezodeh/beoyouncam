@@ -16,7 +16,7 @@ export function QRCodesTab({ token, eventData }: QRCodesTabProps) {
   const [enlargedQR, setEnlargedQR] = useState<{ url: string; title: string } | null>(null);
   const [fullscreenQR, setFullscreenQR] = useState(false);
   const eventUrl = `${window.location.origin}/event/${token}/welcome`;
-  const albumUrl = `${window.location.origin}/album/${token}`;
+  const albumUrl = `${window.location.origin}/album/${token}/intro`;
 
   const copyToClipboard = async (text: string, type: string) => {
     try {

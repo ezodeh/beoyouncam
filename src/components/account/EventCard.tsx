@@ -37,8 +37,8 @@ export default function EventCard({
   const [downloading, setDownloading] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const svgId = `qr-svg-${event.token}`;
-  const shareUrl = `${window.location.origin}/event/${event.token}`;
-  const albumUrl = `${window.location.origin}/album/${event.token}`;
+  const shareUrl = `${window.location.origin}/event/${event.token}/welcome`;
+  const albumUrl = `${window.location.origin}/album/${event.token}/intro`;
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
