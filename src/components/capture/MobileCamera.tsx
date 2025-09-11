@@ -436,28 +436,46 @@ const MobileCamera: React.FC<Props> = ({
       // البحث عن معرف المشارك
       let participant = null;
       
-      // أولاً نحاول البحث بمعرف المستخدم إن كان مسجلاً (الأولوية الأولى)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        console.log("🔍 Searching for participant by user_id:", session.user.id);
-        const { data: participantByUser } = await supabase
+      // أولاً نحاول استخدام معرف المشارك المحفوظ في localStorage
+      const savedParticipantId = localStorage.getItem(`participantId:${token}`);
+      if (savedParticipantId) {
+        console.log("🔍 Using saved participant ID:", savedParticipantId);
+        const { data: participantById } = await supabase
           .from("participants")
           .select("id, name")
-          .eq("event_token", token)
-          .eq("user_id", session.user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
+          .eq("id", savedParticipantId)
           .maybeSingle();
-        participant = participantByUser;
-        console.log("👤 Found participant by user_id:", participant);
-        
-        // إذا وجدنا المشارك بالمعرف، نحديث الاسم في localStorage
-        if (participant?.name) {
-          localStorage.setItem(`participantName:${token}`, participant.name);
+        participant = participantById;
+        console.log("👤 Found participant by saved ID:", participant);
+      }
+      
+      // إذا لم نجد بالمعرف المحفوظ، نحاول البحث بمعرف المستخدم
+      if (!participant) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          console.log("🔍 Searching for participant by user_id:", session.user.id);
+          const { data: participantByUser } = await supabase
+            .from("participants")
+            .select("id, name")
+            .eq("event_token", token)
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          participant = participantByUser;
+          console.log("👤 Found participant by user_id:", participant);
+          
+          // إذا وجدنا المشارك، نحفظ معرفه ونحديث الاسم في localStorage
+          if (participant) {
+            localStorage.setItem(`participantId:${token}`, participant.id);
+            if (participant.name) {
+              localStorage.setItem(`participantName:${token}`, participant.name);
+            }
+          }
         }
       }
       
-      // إذا لم نجد بالمعرف، نحاول البحث بالاسم
+      // إذا لم نجد بالطرق السابقة، نحاول البحث بالاسم (آخر حل)
       if (!participant) {
         const participantName = localStorage.getItem(`participantName:${token}`) || "";
         console.log("🔍 Searching for participant with name:", participantName);
@@ -485,6 +503,11 @@ const MobileCamera: React.FC<Props> = ({
               .limit(1)
               .maybeSingle();
             participant = participantFlex;
+          }
+          
+          // إذا وجدنا المشارك بالاسم، نحفظ معرفه
+          if (participant) {
+            localStorage.setItem(`participantId:${token}`, participant.id);
           }
         }
       }

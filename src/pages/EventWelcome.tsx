@@ -103,13 +103,14 @@ export default function EventWelcome() {
       } else {
         payload.email = email.trim();
       }
-      const { error } = await supabase.from("participants").insert(payload);
+      const { data: newParticipant, error } = await supabase.from("participants").insert(payload).select().single();
       if (error) {
         console.error("Participant insertion error:", error);
         throw error;
       }
       localStorage.setItem(`participant:${token}`, "1");
       localStorage.setItem(`participantName:${token}`, name.trim());
+      localStorage.setItem(`participantId:${token}`, newParticipant.id);
       toast({
         title: "أهلًا وسهلًا!"
       });
@@ -208,12 +209,15 @@ export default function EventWelcome() {
           .select("*")
           .eq("event_token", token)
           .eq("user_id", session.user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         
         if (existingParticipant) {
           // User already registered, fill their data but don't auto-proceed
           localStorage.setItem(`participant:${token}`, "1");
           localStorage.setItem(`participantName:${token}`, existingParticipant.name || fullName || "مستخدم");
+          localStorage.setItem(`participantId:${token}`, existingParticipant.id);
           // Fill the form but stay on welcome screen
           if (existingParticipant.name) setName(existingParticipant.name);
           if (existingParticipant.email) setEmail(existingParticipant.email);
@@ -222,17 +226,18 @@ export default function EventWelcome() {
         
         // If user is not already registered, try to add them as participant
         try {
-          const { error: insertError } = await supabase.from("participants").insert({
+          const { data: newParticipant, error: insertError } = await supabase.from("participants").insert({
             event_token: token,
             method: "google",
             user_id: session.user.id,
             name: fullName || userData.user_metadata?.email?.split('@')[0] || "مستخدم",
             email: userEmail
-          });
+          }).select().single();
           
-          if (!insertError) {
+          if (!insertError && newParticipant) {
             localStorage.setItem(`participant:${token}`, "1");
-            localStorage.setItem(`participantName:${token}`, fullName || "مستخدم");
+            localStorage.setItem(`participantName:${token}`, newParticipant.name || fullName || "مستخدم");
+            localStorage.setItem(`participantId:${token}`, newParticipant.id);
             
             // Fill form but don't auto-proceed - let user see the welcome screen
             // User can manually click "ابدأ" when ready
