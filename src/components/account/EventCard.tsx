@@ -12,6 +12,8 @@ interface EventItem {
   token: string;
   title: string;
   cover_url: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
 }
 interface EventCardProps {
   event: EventItem;
@@ -37,14 +39,23 @@ export default function EventCard({
   const [downloading, setDownloading] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const svgId = `qr-svg-${event.token}`;
-  const shareUrl = `${window.location.origin}/event/${event.token}/welcome`;
+  
+  // تحديد الرابط المناسب بناءً على حالة الإيفنت
+  const now = new Date();
+  const eventEnd = event.end_at ? new Date(event.end_at) : null;
+  const isEventEnded = eventEnd && eventEnd < now;
+  
+  const shareUrl = isEventEnded 
+    ? `${window.location.origin}/album/${event.token}/intro`  // إذا انتهى الحدث، أرسل للألبوم
+    : `${window.location.origin}/event/${event.token}/welcome`; // إذا لم ينته، أرسل للمناسبة
+  
   const albumUrl = `${window.location.origin}/album/${event.token}/intro`;
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({
-        title: "تم نسخ الرابط",
-        description: "يمكنك الآن مشاركته"
+        title: isEventEnded ? "تم نسخ رابط الألبوم" : "تم نسخ رابط المناسبة",
+        description: isEventEnded ? "يمكن للضيوف مشاهدة الألبوم الآن" : "يمكنك الآن مشاركته"
       });
     } catch {
       toast({
@@ -360,7 +371,7 @@ export default function EventCard({
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">النشر</div>
                 <DropdownMenuItem onClick={() => setQrOpen(true)} className="cursor-pointer">
                   <QrCode className="h-4 w-4" />
-                  عرض الباركود
+                  {isEventEnded ? "عرض باركود الألبوم" : "عرض باركود المناسبة"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={downloadQrSvg} className="cursor-pointer">
                   <Download className="h-4 w-4" />
@@ -368,7 +379,7 @@ export default function EventCard({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
                   <Share2 className="h-4 w-4" />
-                  نسخ رابط المشاركة
+                  {isEventEnded ? "نسخ رابط الألبوم" : "نسخ رابط المناسبة"}
                 </DropdownMenuItem>
                 {isOwner && <>
                     <div className="px-2 py-1.5 text-xs text-muted-foreground">إدارة الألبوم</div>
@@ -407,7 +418,7 @@ export default function EventCard({
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="sm:max-w-[380px] z-50">
           <DialogHeader>
-            <DialogTitle>باركود المناسبة</DialogTitle>
+            <DialogTitle>{isEventEnded ? "باركود الألبوم" : "باركود المناسبة"}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4">
             <QRCode value={shareUrl} size={240} level="H" />
@@ -418,7 +429,7 @@ export default function EventCard({
               </button>
               <button onClick={copyLink} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm hover:bg-accent">
                 <Share2 className="h-4 w-4" />
-                نسخ رابط
+                {isEventEnded ? "نسخ رابط الألبوم" : "نسخ رابط المناسبة"}
               </button>
             </div>
           </div>
