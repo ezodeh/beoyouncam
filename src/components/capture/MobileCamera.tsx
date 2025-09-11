@@ -517,7 +517,16 @@ const MobileCamera: React.FC<Props> = ({
       // ربط الملف بالمشارك في قاعدة البيانات
       if (participant?.id) {
         console.log("💾 Inserting media submission for participant:", participant.id, participant.name);
-        const { error: insertError } = await supabase.from("media_submissions").insert({
+        console.log("📂 File details:", {
+          event_token: token,
+          participant_id: participant.id,
+          file_path: path,
+          file_name: filename,
+          media_type: kind,
+          thumbnail_path: thumbnailPath
+        });
+        
+        const mediaSubmissionData = {
           event_token: token,
           participant_id: participant.id,
           file_path: path,
@@ -531,15 +540,29 @@ const MobileCamera: React.FC<Props> = ({
             has_custom_thumbnail: !!thumbnailPath,
             participant_name: participant.name // حفظ اسم المشارك في metadata للاحتياط
           }
-        });
+        };
+        
+        console.log("🔄 About to insert media submission with data:", mediaSubmissionData);
+        
+        const { data: insertedData, error: insertError } = await supabase
+          .from("media_submissions")
+          .insert(mediaSubmissionData)
+          .select();
         
         if (insertError) {
           console.error("❌ Error inserting media submission:", insertError);
+          console.error("❌ Insert error details:", JSON.stringify(insertError, null, 2));
         } else {
-          console.log("✅ Media submission inserted successfully");
+          console.log("✅ Media submission inserted successfully:", insertedData);
         }
       } else {
         console.error("❌ No participant found for media submission");
+        console.error("❌ Search results - participant:", participant);
+        console.error("❌ localStorage data:", {
+          participantId: localStorage.getItem(`participantId:${token}`),
+          participantName: localStorage.getItem(`participantName:${token}`),
+          participant: localStorage.getItem(`participant:${token}`)
+        });
       }
 
       toast({
