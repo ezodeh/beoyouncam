@@ -28,24 +28,11 @@ export default function EventAlbum() {
   const [showHeader, setShowHeader] = useState<boolean>(true);
   const [isEventOwner, setIsEventOwner] = useState<boolean>(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [myPhotos, setMyPhotos] = useState<MediaItem[]>([]);
-  const [loadingMyPhotos, setLoadingMyPhotos] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = `الألبوم — ${title} — من عيونكم`;
   }, [title]);
 
-  // إعادة تحميل الصور عند العودة للصفحة (لرؤية الصور الجديدة)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && currentUserId) {
-        fetchMyPhotos();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [currentUserId]);
 
   // تأكيد المرور بشاشة المقدمة أولاً
   useEffect(() => {
@@ -147,6 +134,7 @@ export default function EventAlbum() {
           .select(`
             id, 
             name, 
+            user_id,
             created_at,
             media_submissions!inner (
               id,
@@ -164,6 +152,11 @@ export default function EventAlbum() {
         // تجميع المشاركين مع عدد صورهم وآخر صورة
         const albumsMap = new Map();
         participantsData?.forEach(participant => {
+          // استثناء المستخدم الحالي من "بعيون الأحباب"
+          if (participant.user_id === currentUserId) {
+            return;
+          }
+          
           const participantName = participant.name || 'مشارك';
           if (!albumsMap.has(participantName)) {
             albumsMap.set(participantName, {
@@ -190,6 +183,37 @@ export default function EventAlbum() {
           });
         });
         
+        // إضافة ألبوم المستخدم الحالي في المقدمة مع عنوان خاص
+        if (currentUserId) {
+          const currentUserParticipant = participantsData?.find(p => p.user_id === currentUserId);
+          if (currentUserParticipant && currentUserParticipant.media_submissions.length > 0) {
+            const myAlbum = {
+              id: currentUserParticipant.id,
+              person_name: `البومي- البوم بعيون ${currentUserParticipant.name || 'مشارك'}`,
+              photo_count: currentUserParticipant.media_submissions.length,
+              latest_photo: null,
+              latest_created_at: null
+            };
+            
+            // العثور على آخر صورة
+            currentUserParticipant.media_submissions.forEach((submission: any) => {
+              if (!myAlbum.latest_created_at || new Date(submission.created_at) > new Date(myAlbum.latest_created_at)) {
+                myAlbum.latest_created_at = submission.created_at;
+                const { data: { publicUrl } } = supabase.storage
+                  .from("event-media")
+                  .getPublicUrl(submission.file_path);
+                myAlbum.latest_photo = publicUrl;
+              }
+            });
+            
+            const personalAlbumsData = [myAlbum, ...Array.from(albumsMap.values())]
+              .filter(album => album.photo_count > 0);
+            
+            setPersonalAlbums(personalAlbumsData);
+            return;
+          }
+        }
+        
         const personalAlbumsData = Array.from(albumsMap.values())
           .filter(album => album.photo_count > 0)
           .sort((a, b) => a.person_name.localeCompare(b.person_name, 'ar'));
@@ -202,67 +226,8 @@ export default function EventAlbum() {
     };
 
     fetchPersonalAlbums();
-    
-    // جلب صور المستخدم الحالي
-    fetchMyPhotos();
   }, [token, currentUserId]);
 
-  const fetchMyPhotos = async () => {
-    if (!token || !currentUserId) return;
-    setLoadingMyPhotos(true);
-    try {
-      console.log("🔍 Fetching my photos for user:", currentUserId);
-      
-      // الحصول على معرف المشارك للمستخدم الحالي
-      const { data: participant } = await supabase
-        .from("participants")
-        .select("id")
-        .eq("event_token", token)
-        .eq("user_id", currentUserId)
-        .maybeSingle();
-
-      if (!participant) {
-        console.log("❌ No participant record found for current user");
-        setMyPhotos([]);
-        return;
-      }
-
-      // جلب صور المستخدم الحالي
-      const { data: submissions, error } = await supabase
-        .from("media_submissions")
-        .select("*")
-        .eq("participant_id", participant.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("❌ Error fetching my photos:", error);
-        setMyPhotos([]);
-        return;
-      }
-
-      const photosWithUrls = (submissions || []).map(submission => {
-        const { data: { publicUrl } } = supabase.storage
-          .from("event-media")
-          .getPublicUrl(submission.file_path);
-        
-        return {
-          url: publicUrl,
-          type: submission.media_type === "video" ? "video" : "image",
-          createdAt: submission.created_at,
-          name: submission.file_name,
-          participantName: "أنا"
-        } as MediaItem;
-      });
-
-      setMyPhotos(photosWithUrls);
-      console.log("✅ My photos loaded:", photosWithUrls.length);
-    } catch (error) {
-      console.error("❌ Error fetching my photos:", error);
-      setMyPhotos([]);
-    } finally {
-      setLoadingMyPhotos(false);
-    }
-  };
 
   const addCongratulation = async () => {
     if (!newCongratulation.trim() || !senderName.trim()) {
@@ -567,7 +532,7 @@ export default function EventAlbum() {
 
         <section className="container mx-auto px-4 py-6">
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className={`grid w-full max-w-xl rounded-full mx-auto ${currentUserId ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsList className="grid w-full max-w-xl rounded-full mx-auto grid-cols-3">
               <TabsTrigger value="congratulations" aria-label="المباركات" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Heart className="h-5 w-5" />
                 <span className="hidden sm:inline">المباركات</span>
@@ -576,12 +541,6 @@ export default function EventAlbum() {
                 <Images className="h-5 w-5" />
                 <span className="hidden sm:inline">الصور</span>
               </TabsTrigger>
-              {currentUserId && (
-                <TabsTrigger value="my-photos" aria-label="صوري" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
-                  <SquareStack className="h-5 w-5" />
-                  <span className="hidden sm:inline">صوري</span>
-                </TabsTrigger>
-              )}
               <TabsTrigger value="albums" aria-label="بعيون الأحباب" className="flex items-center justify-center sm:justify-start gap-0 sm:gap-2">
                 <Users className="h-5 w-5" />
                 <span className="hidden sm:inline">بعيون الأحباب</span>
@@ -649,54 +608,6 @@ export default function EventAlbum() {
               </div>
             </TabsContent>
 
-            {currentUserId && (
-              <TabsContent value="my-photos" className="mt-6">
-                <div className="max-w-5xl mx-auto">
-                  <div className="mb-4 text-center">
-                    <h3 className="text-lg font-semibold">صوري الشخصية</h3>
-                    <p className="text-sm text-muted-foreground">هنا تظهر الصور التي التقطتها أنت</p>
-                  </div>
-                  {loadingMyPhotos ? (
-                    <div className="text-center text-sm text-muted-foreground py-10">جارٍ تحميل صورك...</div>
-                  ) : myPhotos.length === 0 ? (
-                    <div className="text-center text-sm text-muted-foreground py-10">
-                      <p>لم تلتقط أي صور بعد</p>
-                      <Button 
-                        onClick={() => navigate(`/event/${token}/welcome`)}
-                        className="mt-4"
-                      >
-                        اذهب للتصوير
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-                      {myPhotos.filter(photo => photo.type === "image").map((photo, idx) => (
-                        <div key={photo.name + idx} className="relative group">
-                          <button
-                            className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring w-full"
-                            onClick={() => {
-                              // العثور على الفهرس في قائمة الصور العامة للعرض في lightbox
-                              const globalIndex = imageItems.findIndex(item => item.name === photo.name);
-                              if (globalIndex !== -1) {
-                                setLightboxIndex(globalIndex);
-                              }
-                            }}
-                            aria-label={`عرض صورتي رقم ${idx + 1}`}
-                          >
-                            <img src={photo.url} alt={`صورتي ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
-                          </button>
-                          <div className="absolute bottom-1 left-1 right-1">
-                            <div className="text-xs bg-black/50 text-white px-1 py-0.5 rounded text-center truncate">
-                              {photo.createdAt ? formatShortDate(photo.createdAt) : ""}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            )}
 
             <TabsContent value="congratulations" className="mt-6">
               <div className="space-y-6 max-w-3xl mx-auto">
