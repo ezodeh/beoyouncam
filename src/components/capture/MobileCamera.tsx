@@ -435,12 +435,47 @@ const MobileCamera: React.FC<Props> = ({
 
       // البحث عن معرف المشارك
       const participantName = localStorage.getItem(`participantName:${token}`) || "";
-      const { data: participant } = await supabase
+      console.log("🔍 Searching for participant with name:", participantName);
+      
+      // أولاً نحاول البحث بالاسم الدقيق
+      let { data: participant } = await supabase
         .from("participants")
-        .select("id")
+        .select("id, name")
         .eq("event_token", token)
-        .ilike("name", participantName)
+        .eq("name", participantName)
         .maybeSingle();
+      
+      // إذا لم نجد، نحاول البحث المرن
+      if (!participant && participantName) {
+        const { data: participantFlex } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token)
+          .ilike("name", `%${participantName}%`)
+          .maybeSingle();
+        participant = participantFlex;
+      }
+      
+      // إذا لم نجد، نحاول البحث بمعرف المستخدم إن كان مسجلاً
+      if (!participant) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: participantByUser } = await supabase
+            .from("participants")
+            .select("id, name")
+            .eq("event_token", token)
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+          participant = participantByUser;
+          
+          // إذا وجدنا المشارك بالمعرف، نحديث الاسم في localStorage
+          if (participant?.name) {
+            localStorage.setItem(`participantName:${token}`, participant.name);
+          }
+        }
+      }
+      
+      console.log("👤 Found participant:", participant);
 
       // ربط الملف بالمشارك في قاعدة البيانات
       if (participant?.id) {

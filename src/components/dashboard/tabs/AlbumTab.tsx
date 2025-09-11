@@ -148,7 +148,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
             id: submission.id,
             url: publicUrl,
             created_at: submission.created_at,
-            participant_name: submission.participants?.name || "مشارك",
+            participant_name: submission.participants?.name || submission.participant_name || "مشارك غير معروف",
             file_path: submission.file_path
           };
         });
@@ -199,7 +199,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
         .filter(p => p.media_submissions && p.media_submissions.length > 0)
         .map(p => ({
           id: p.id,
-          participant_name: p.name || 'مشارك',
+          participant_name: p.name || 'مشارك غير معروف',
           photos_count: p.media_submissions[0]?.count || 0,
           created_at: p.created_at
         }))
