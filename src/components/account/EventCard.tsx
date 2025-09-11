@@ -45,11 +45,14 @@ export default function EventCard({
   const eventEnd = event.end_at ? new Date(event.end_at) : null;
   const isEventEnded = eventEnd && eventEnd < now;
   
-  const shareUrl = isEventEnded 
-    ? `${window.location.origin}/album/${event.token}/intro`  // إذا انتهى الحدث، أرسل للألبوم
-    : `${window.location.origin}/event/${event.token}/welcome`; // إذا لم ينته، أرسل للمناسبة
+  // استخدام الدومين المخصص
+  const baseUrl = "https://beoyouncam.77byez.com";
   
-  const albumUrl = `${window.location.origin}/album/${event.token}/intro`;
+  const shareUrl = isEventEnded 
+    ? `${baseUrl}/album/${event.token}/intro`  // إذا انتهى الحدث، أرسل للألبوم
+    : `${baseUrl}/event/${event.token}/welcome`; // إذا لم ينته، أرسل للمناسبة
+  
+  const albumUrl = `${baseUrl}/album/${event.token}/intro`;
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
