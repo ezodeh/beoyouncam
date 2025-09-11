@@ -148,19 +148,57 @@ export default function EventAlbumByEyes() {
     if (!token || !name) return;
     setLoading(true);
     try {
-      console.log("🔍 Fetching photos for:", { token, name });
+      // فك تشفير اسم المشارك من URL
+      const decodedName = decodeURIComponent(name);
+      console.log("🔍 Fetching photos for:", { token, name, decodedName });
       
-      // Get participant ID by name (with flexible matching)
-      const { data: participants } = await supabase
+      // البحث بالاسم المفكوك أولاً، ثم بالاسم الأصلي
+      let { data: participants } = await supabase
         .from("participants")
         .select("id, name")
         .eq("event_token", token)
-        .ilike("name", `%${name}%`); // استخدام ilike للمطابقة المرنة
+        .ilike("name", `%${decodedName}%`);
+
+      // إذا لم نجد شيئاً، جرب البحث بالاسم الأصلي
+      if (!participants || participants.length === 0) {
+        console.log("🔄 Trying original name:", name);
+        const { data: participants2 } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token)
+          .ilike("name", `%${name}%`);
+        participants = participants2;
+      }
+
+      // إذا لم نجد شيئاً، جرب البحث الدقيق
+      if (!participants || participants.length === 0) {
+        console.log("🔄 Trying exact match:", decodedName);
+        const { data: participants3 } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token)
+          .eq("name", decodedName);
+        participants = participants3;
+      }
+
+      // إذا لم نجد شيئاً، جرب البحث في جميع المشاركين
+      if (!participants || participants.length === 0) {
+        console.log("🔄 Getting all participants to debug:");
+        const { data: allParticipants } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token);
+        console.log("👥 All participants:", allParticipants);
+        participants = allParticipants?.filter(p => 
+          p.name?.toLowerCase().includes(decodedName.toLowerCase()) ||
+          p.name?.toLowerCase().includes(name.toLowerCase())
+        );
+      }
 
       console.log("👥 Found participants:", participants);
 
       if (!participants || participants.length === 0) {
-        console.log("❌ No participant found with name:", name);
+        console.log("❌ No participant found with name:", { name, decodedName });
         setPhotos([]);
         return;
       }
@@ -195,7 +233,7 @@ export default function EventAlbumByEyes() {
           return {
             id: submission.id,
             src: publicUrl,
-            alt: `صورة من ${name}`,
+            alt: `صورة من ${decodedName}`,
             type: submission.media_type === "video" ? "video" : "image",
             name: submission.file_name
           };
