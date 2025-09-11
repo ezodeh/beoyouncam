@@ -205,7 +205,7 @@ export default function CreateEvent() {
   
 
   // Step 2
-  const [timing, setTiming] = useState<AlbumTiming>();
+  const [timing, setTiming] = useState<AlbumTiming>("during");
   const [customPublishAt, setCustomPublishAt] = useState<Date | null>(null);
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
   const [password, setPassword] = useState("");
@@ -456,6 +456,7 @@ export default function CreateEvent() {
       if (startAt && endAt && startAt >= endAt) e.endAt = "يجب أن يكون بعد وقت البداية";
     }
     if (currentStep === 2) {
+      if (!timing) e.timing = "يرجى اختيار موعد نشر الألبوم";
       if (timing === "custom" && !customPublishAt) e.customPublishAt = "حدد وقت النشر";
       if (privacy === "private" && !password.trim()) e.password = "كلمة المرور مطلوبة للألبوم الخاص";
     }
@@ -463,7 +464,7 @@ export default function CreateEvent() {
     return Object.keys(e).length === 0;
   }
 
-  const canNext = useMemo(() => validate(step), [step, title, startAt, endAt, timing, customPublishAt]);
+  const canNext = useMemo(() => validate(step), [step, title, startAt, endAt, timing, customPublishAt, privacy, password]);
 
   function next() {
     if (!validate(step)) return;
@@ -647,6 +648,7 @@ export default function CreateEvent() {
                 <div className="grid gap-5 animate-in fade-in-0 duration-200">
                   <div className="grid gap-2">
                     <Label>موعد عرض الألبوم</Label>
+                    {errors.timing && <span className="text-xs text-destructive">{errors.timing}</span>}
                     <div className="flex flex-wrap gap-2">
                       <Pill selected={timing === "during"} onClick={() => setTiming("during")}>
                         خلال الحدث
