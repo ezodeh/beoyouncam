@@ -108,8 +108,69 @@ export function EventDetailsTab({
   };
   return <div className="grid gap-6" dir="rtl">
       <Card>
-        
-        
+        <CardHeader>
+          <CardTitle className="text-right">صورة الغطاء</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="cover-upload" className="text-right">صورة الغطاء الرئيسية</Label>
+            {coverUrl ? (
+              <div className="space-y-2">
+                <div className="relative">
+                  <img 
+                    src={coverUrl} 
+                    alt="صورة الغطاف" 
+                    className="w-full h-40 object-cover rounded-md border"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      document.getElementById('cover-file-input')?.click();
+                    }}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    استبدال الصورة
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCoverUrl("")}
+                  >
+                    حذف الصورة
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">اختر صورة الغطاء للمناسبة</p>
+                <label
+                  htmlFor="cover-file-input"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"
+                >
+                  <Upload className="w-4 h-4" />
+                  رفع صورة
+                </label>
+              </div>
+            )}
+            
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="cover-file-input"
+              ref={fileInputRef}
+            />
+            
+            <p className="text-xs text-muted-foreground">
+              ستُستخدم هذه الصورة في جميع شاشات المناسبة (الترحيب، الألبوم، لوحة التحكم) ما لم يتم تخصيص صور منفصلة في إعدادات التخصيص.
+            </p>
+          </div>
+        </CardContent>
       </Card>
 
       <Card>

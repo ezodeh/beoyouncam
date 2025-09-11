@@ -520,7 +520,7 @@ export default function CreateEvent() {
         sign_in_method: "email",
         start_at: startAt ? startAt.toISOString() : null,
         end_at: endAt ? endAt.toISOString() : null,
-        cover_url: coverUrl,
+        cover_url: coverUrl || welcomePageHeroImage,
         max_shots: shotsPerGuest,
         expected_guests: guests,
         owner_id: userId,
@@ -531,6 +531,16 @@ export default function CreateEvent() {
         
         enable_video: enableVideo,
         show_header: showHeader,
+        
+        // تخصيص صفحات المناسبة
+        welcome_title: welcomeTitle,
+        welcome_text: welcomeBody,
+        invite_button_text: ctaLabel,
+        
+        // استخدام نفس صورة الغطاء لجميع الصفحات إذا لم يتم تخصيص صور منفصلة
+        album_cover_url: albumWelcomeHeroImage || albumPageHeroImage || coverUrl || welcomePageHeroImage,
+        album_title: albumWelcomeTitle,
+        album_description: albumWelcomeDescription,
       });
       if (insErr) throw insErr;
 
@@ -817,7 +827,8 @@ export default function CreateEvent() {
                                 /* Upload button when no image */
                                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                                  <p className="text-sm text-muted-foreground mb-2">اختر صورة الغلاف للمناسبة</p>
+                                   <p className="text-sm text-muted-foreground mb-2">اختر صورة الغلاف للمناسبة</p>
+                                   <p className="text-xs text-muted-foreground/75 mb-3">ستُستخدم في جميع شاشات المناسبة (الترحيب، الألبوم، لوحة التحكم)</p>
                                   <label
                                     htmlFor="event-hero-upload"
                                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"

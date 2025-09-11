@@ -47,13 +47,13 @@ export default function EventAlbum() {
       const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, is_album_published")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, is_album_published, album_cover_url, album_title")
         .eq("token", token)
         .maybeSingle();
       
       if (data) {
-        setTitle(data.title || eventName);
-        setCoverUrl(data.cover_url || null);
+        setTitle(data.album_title || data.title || eventName);
+        setCoverUrl(data.album_cover_url || data.cover_url || null);
         setShowHeader(data.show_header !== false);
         
         // Determine if current user is the event owner

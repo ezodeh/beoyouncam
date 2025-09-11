@@ -47,10 +47,34 @@ const ManageDashboard = () => {
       <Navbar compact />
       <main className="flex-1 container mx-auto py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-extrabold mb-2">لوحة التحكم بالمناسبة</h1>
-          <p className="text-muted-foreground">
-            {eventData?.title || "مناسبة جديدة"} • رمز الإدارة: {token}
-          </p>
+          {/* صورة الغطاف في الداشبورد */}
+          {eventData?.cover_url && (
+            <div className="relative w-full h-48 md:h-64 mb-4 overflow-hidden rounded-lg bg-secondary">
+              <img 
+                src={eventData.cover_url} 
+                alt={`غلاف ${eventData?.title || "المناسبة"}`} 
+                className="absolute inset-0 h-full w-full object-cover" 
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/80" />
+              <div className="absolute bottom-4 right-4">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-1">لوحة التحكم بالمناسبة</h1>
+                <p className="text-white/90">
+                  {eventData?.title || "مناسبة جديدة"} • رمز الإدارة: {token}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* إذا لم تكن هناك صورة غطاء، اعرض التصميم الافتراضي */}
+          {!eventData?.cover_url && (
+            <>
+              <h1 className="text-3xl font-extrabold mb-2">لوحة التحكم بالمناسبة</h1>
+              <p className="text-muted-foreground">
+                {eventData?.title || "مناسبة جديدة"} • رمز الإدارة: {token}
+              </p>
+            </>
+          )}
         </div>
 
         <DashboardTabs 

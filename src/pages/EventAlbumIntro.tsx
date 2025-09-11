@@ -32,15 +32,15 @@ export default function EventAlbumIntro() {
       const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password, album_cover_url, album_title, album_description")
         .eq("token", token)
         .maybeSingle();
         
       if (!data) return;
       
       setEventDetails(data);
-      setTitle(data.title || eventName);
-      setCoverUrl(data.cover_url || null);
+      setTitle(data.album_title || data.title || eventName);
+      setCoverUrl(data.album_cover_url || data.cover_url || null);
       setShowHeader(data.show_header !== false);
       
       // Determine if current user is the event owner
@@ -123,7 +123,7 @@ export default function EventAlbumIntro() {
             <p className="mt-6 md:mt-7 text-muted-foreground">
               {showPasswordInput 
                 ? "يتطلب الوصول إلى هذا الألبوم كلمة مرور" 
-                : "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم."
+                : (eventDetails?.album_description || "يسعدنا وجودكم — تفضّلوا للدخول إلى الألبوم.")
               }
             </p>
           </div>

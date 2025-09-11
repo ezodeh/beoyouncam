@@ -42,10 +42,10 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
         welcome_page_title: eventData.title || "",
         welcome_page_description: eventData.description || "",
         welcome_page_button_text: "ابدأ",
-        album_welcome_hero_image: eventData.album_cover_url || "",
+        album_welcome_hero_image: eventData.album_cover_url || eventData.cover_url || "",
         album_welcome_title: eventData.album_title || "الألبوم",
         album_welcome_description: eventData.album_description || "",
-        album_page_hero_image: eventData.album_cover_url || "",
+        album_page_hero_image: eventData.album_cover_url || eventData.cover_url || "",
         album_page_title: eventData.album_title || "الألبوم",
         show_header: eventData.show_header !== false,
       });
@@ -93,6 +93,11 @@ export function CustomizationTab({ token, eventData, onEventUpdate }: Customizat
       if (customization.album_page_hero_image && !updateData.album_cover_url) updateData.album_cover_url = customization.album_page_hero_image;
       if (customization.album_page_title && !updateData.album_title) updateData.album_title = customization.album_page_title;
       if (typeof customization.show_header === 'boolean') updateData.show_header = customization.show_header;
+      
+      // إذا لم يتم تحديد صورة ألبوم منفصلة، استخدم صورة الغطاء الرئيسية
+      if (!updateData.album_cover_url && updateData.cover_url) {
+        updateData.album_cover_url = updateData.cover_url;
+      }
 
       const { error } = await supabase
         .from('events')

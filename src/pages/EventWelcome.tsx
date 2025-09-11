@@ -25,7 +25,7 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean } | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean; welcome_title?: string | null; welcome_text?: string | null } | null>(null);
 
   useEffect(() => {
     const title = eventDetails?.title || eventName;
@@ -42,7 +42,7 @@ export default function EventWelcome() {
       if (!token) return;
       const { data: row, error } = await supabase
         .from("events")
-        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header")
+        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
         .eq("token", token as string)
         .maybeSingle();
       const data: any = row;
@@ -272,8 +272,8 @@ export default function EventWelcome() {
       <main className="container mx-auto px-4 py-4 flex-1 grid place-items-center">
         <section className="max-w-md mx-auto">
           <div className="text-center mb-6">
-            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventDetails?.title || eventName}</h1>
-            <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.description?.trim() || "يا هلا بكم"}</p>
+            <h1 className="font-nastaliq text-4xl md:text-5xl leading-snug">{eventDetails?.welcome_title || eventDetails?.title || eventName}</h1>
+            <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.welcome_text || eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
             {(eventDetails?.sign_in_method ?? tab) === "phone" && (
