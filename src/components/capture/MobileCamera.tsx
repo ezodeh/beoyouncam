@@ -434,52 +434,67 @@ const MobileCamera: React.FC<Props> = ({
       }
 
       // البحث عن معرف المشارك
-      const participantName = localStorage.getItem(`participantName:${token}`) || "";
-      console.log("🔍 Searching for participant with name:", participantName);
+      let participant = null;
       
-      // أولاً نحاول البحث بالاسم الدقيق
-      let { data: participant } = await supabase
-        .from("participants")
-        .select("id, name")
-        .eq("event_token", token)
-        .eq("name", participantName)
-        .maybeSingle();
-      
-      // إذا لم نجد، نحاول البحث المرن
-      if (!participant && participantName) {
-        const { data: participantFlex } = await supabase
+      // أولاً نحاول البحث بمعرف المستخدم إن كان مسجلاً (الأولوية الأولى)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        console.log("🔍 Searching for participant by user_id:", session.user.id);
+        const { data: participantByUser } = await supabase
           .from("participants")
           .select("id, name")
           .eq("event_token", token)
-          .ilike("name", `%${participantName}%`)
+          .eq("user_id", session.user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
-        participant = participantFlex;
+        participant = participantByUser;
+        console.log("👤 Found participant by user_id:", participant);
+        
+        // إذا وجدنا المشارك بالمعرف، نحديث الاسم في localStorage
+        if (participant?.name) {
+          localStorage.setItem(`participantName:${token}`, participant.name);
+        }
       }
       
-      // إذا لم نجد، نحاول البحث بمعرف المستخدم إن كان مسجلاً
+      // إذا لم نجد بالمعرف، نحاول البحث بالاسم
       if (!participant) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user?.id) {
-          const { data: participantByUser } = await supabase
+        const participantName = localStorage.getItem(`participantName:${token}`) || "";
+        console.log("🔍 Searching for participant with name:", participantName);
+        
+        if (participantName) {
+          // أولاً نحاول البحث بالاسم الدقيق
+          const { data: participantByName } = await supabase
             .from("participants")
             .select("id, name")
             .eq("event_token", token)
-            .eq("user_id", session.user.id)
+            .eq("name", participantName)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
-          participant = participantByUser;
+          participant = participantByName;
           
-          // إذا وجدنا المشارك بالمعرف، نحديث الاسم في localStorage
-          if (participant?.name) {
-            localStorage.setItem(`participantName:${token}`, participant.name);
+          // إذا لم نجد، نحاول البحث المرن
+          if (!participant) {
+            const { data: participantFlex } = await supabase
+              .from("participants")
+              .select("id, name")
+              .eq("event_token", token)
+              .ilike("name", `%${participantName}%`)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            participant = participantFlex;
           }
         }
       }
       
-      console.log("👤 Found participant:", participant);
+      console.log("👤 Final participant found:", participant);
 
       // ربط الملف بالمشارك في قاعدة البيانات
       if (participant?.id) {
-        await supabase.from("media_submissions").insert({
+        console.log("💾 Inserting media submission for participant:", participant.id, participant.name);
+        const { error: insertError } = await supabase.from("media_submissions").insert({
           event_token: token,
           participant_id: participant.id,
           file_path: path,
@@ -490,9 +505,18 @@ const MobileCamera: React.FC<Props> = ({
             uploaded_from: "camera",
             original_name: file.name,
             size: file.size,
-            has_custom_thumbnail: !!thumbnailPath
+            has_custom_thumbnail: !!thumbnailPath,
+            participant_name: participant.name // حفظ اسم المشارك في metadata للاحتياط
           }
         });
+        
+        if (insertError) {
+          console.error("❌ Error inserting media submission:", insertError);
+        } else {
+          console.log("✅ Media submission inserted successfully");
+        }
+      } else {
+        console.error("❌ No participant found for media submission");
       }
 
       toast({
