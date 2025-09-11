@@ -152,32 +152,44 @@ export default function EventAlbumByEyes() {
       const decodedName = decodeURIComponent(name);
       console.log("🔍 Fetching photos for:", { token, name, decodedName });
       
-      // البحث بالاسم المفكوك أولاً، ثم بالاسم الأصلي
+      // استخراج الاسم الحقيقي من النص المركب
+      // إذا كان النص يحتوي على "البوم بعيون" نستخرج الاسم الحقيقي
+      let actualName = decodedName;
+      if (decodedName.includes("البوم بعيون")) {
+        // استخراج الاسم بعد "البوم بعيون "
+        const parts = decodedName.split("البوم بعيون ");
+        if (parts.length > 1) {
+          actualName = parts[1].trim();
+          console.log("📝 Extracted actual name:", actualName);
+        }
+      }
+      
+      // البحث بالاسم الحقيقي أولاً
       let { data: participants } = await supabase
         .from("participants")
         .select("id, name")
         .eq("event_token", token)
-        .ilike("name", `%${decodedName}%`);
+        .eq("name", actualName);
 
-      // إذا لم نجد شيئاً، جرب البحث بالاسم الأصلي
+      // إذا لم نجد شيئاً، جرب البحث بالتشابه
       if (!participants || participants.length === 0) {
-        console.log("🔄 Trying original name:", name);
+        console.log("🔄 Trying similar match with actual name:", actualName);
         const { data: participants2 } = await supabase
           .from("participants")
           .select("id, name")
           .eq("event_token", token)
-          .ilike("name", `%${name}%`);
+          .ilike("name", `%${actualName}%`);
         participants = participants2;
       }
 
-      // إذا لم نجد شيئاً، جرب البحث الدقيق
+      // إذا لم نجد شيئاً، جرب البحث بالاسم المفكوك الأصلي
       if (!participants || participants.length === 0) {
-        console.log("🔄 Trying exact match:", decodedName);
+        console.log("🔄 Trying with decoded name:", decodedName);
         const { data: participants3 } = await supabase
           .from("participants")
           .select("id, name")
           .eq("event_token", token)
-          .eq("name", decodedName);
+          .ilike("name", `%${decodedName}%`);
         participants = participants3;
       }
 
@@ -190,8 +202,8 @@ export default function EventAlbumByEyes() {
           .eq("event_token", token);
         console.log("👥 All participants:", allParticipants);
         participants = allParticipants?.filter(p => 
-          p.name?.toLowerCase().includes(decodedName.toLowerCase()) ||
-          p.name?.toLowerCase().includes(name.toLowerCase())
+          p.name?.toLowerCase().includes(actualName.toLowerCase()) ||
+          p.name?.toLowerCase().includes(decodedName.toLowerCase())
         );
       }
 
