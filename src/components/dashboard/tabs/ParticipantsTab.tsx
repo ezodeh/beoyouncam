@@ -132,7 +132,7 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <div className="text-lg font-bold">
-                  {String(participants.length).padStart(3, '0')}/{String(Number(eventData?.expected_guests ?? 100)).padStart(3, '0')}
+                  {participants.length}/{eventData?.expected_guests ?? 100}
                 </div>
                 <div className="text-sm text-muted-foreground">الحضور</div>
               </div>
