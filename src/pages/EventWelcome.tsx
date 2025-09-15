@@ -19,7 +19,7 @@ export default function EventWelcome() {
   const location = useLocation();
   const { toast } = useToast();
   const eventName = new URLSearchParams(location.search).get("title") || "مناسبتكم";
-  const [tab, setTab] = useState<"phone" | "email">("phone"); // Default to phone first
+  const [tab, setTab] = useState<"phone" | "email">("email");
   const [country, setCountry] = useState("+962");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
