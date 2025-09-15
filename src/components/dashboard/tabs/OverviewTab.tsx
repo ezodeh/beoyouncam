@@ -36,7 +36,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
     // Fetch real stats
     const fetchStats = async () => {
       const [participantsRes, blessingsRes, photosRes] = await Promise.all([
-        supabase.from("participants").select("*", { count: 'exact' }).eq("event_token", token),
+        supabase.from("participants").select("id", { count: 'exact' }).eq("event_token", token),
         supabase.from("blessings").select("*", { count: 'exact' }).eq("event_token", token),
         supabase.storage.from("event-media").list(`events/${token}`, { limit: 1000 })
       ]);

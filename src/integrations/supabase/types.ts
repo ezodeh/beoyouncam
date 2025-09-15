@@ -270,6 +270,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_owner_participant_data: {
+        Args: { event_token_param: string; owner_user_id: string }
+        Returns: {
+          consent: boolean
+          country_code: string
+          created_at: string
+          email: string
+          id: string
+          method: string
+          name: string
+          phone: string
+          user_id: string
+        }[]
+      }
+      get_participant_by_name: {
+        Args: { event_token_param: string; participant_name: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_public_event_info: {
         Args: { event_token: string }
         Returns: {
@@ -292,6 +313,14 @@ export type Database = {
           token: string
           welcome_text: string
           welcome_title: string
+        }[]
+      }
+      get_public_participant_data: {
+        Args: { event_token_param: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
         }[]
       }
       is_event_owner: {

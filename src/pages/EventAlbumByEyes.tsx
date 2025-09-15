@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getParticipantByName } from "@/lib/participantSecurity";
 
 interface Blessing {
   id: string;
@@ -164,47 +165,20 @@ export default function EventAlbumByEyes() {
         }
       }
       
-      // البحث عن جميع المشاركين بنفس الاسم
-      let { data: participants } = await supabase
-        .from("participants")
-        .select("id, name")
-        .eq("event_token", token)
-        .eq("name", actualName);
+      // Use secure function to get participant data by name
+      let participants = await getParticipantByName(token, actualName);
 
-      // إذا لم نجد شيئاً، جرب البحث بالتشابه
-      if (!participants || participants.length === 0) {
-        console.log("🔄 Trying similar match with actual name:", actualName);
-        const { data: participants2 } = await supabase
-          .from("participants")
-          .select("id, name")
-          .eq("event_token", token)
-          .ilike("name", `%${actualName}%`);
-        participants = participants2;
-      }
-
-      // إذا لم نجد شيئاً، جرب البحث بالاسم المفكوك الأصلي
+      // If no exact match, try with the decoded name
       if (!participants || participants.length === 0) {
         console.log("🔄 Trying with decoded name:", decodedName);
-        const { data: participants3 } = await supabase
-          .from("participants")
-          .select("id, name")
-          .eq("event_token", token)
-          .ilike("name", `%${decodedName}%`);
-        participants = participants3;
+        participants = await getParticipantByName(token, decodedName);
       }
 
-      // إذا لم نجد شيئاً، جرب البحث في جميع المشاركين
+      // Final fallback: try partial matches for common name variations
       if (!participants || participants.length === 0) {
-        console.log("🔄 Getting all participants to debug:");
-        const { data: allParticipants } = await supabase
-          .from("participants")
-          .select("id, name")
-          .eq("event_token", token);
-        console.log("👥 All participants:", allParticipants);
-        participants = allParticipants?.filter(p => 
-          p.name?.toLowerCase().includes(actualName.toLowerCase()) ||
-          p.name?.toLowerCase().includes(decodedName.toLowerCase())
-        );
+        // For debugging, we'll just log but not try to get all participants
+        // as this would violate our security model
+        console.log("❌ No participant found with any name variation");
       }
 
       console.log("👥 Found participants:", participants);
@@ -301,22 +275,13 @@ export default function EventAlbumByEyes() {
       
       console.log("📝 Searching for participant with name:", actualName);
       
-      // البحث عن جميع المشاركين بنفس الاسم
-      let { data: participants } = await supabase
-        .from("participants")
-        .select("id, name")
-        .eq("event_token", token)
-        .eq("name", actualName);
+      // Use secure function to get participant data by name
+      let participants = await getParticipantByName(token, actualName);
 
-      // إذا لم نجد شيئاً، جرب البحث بالتشابه
+      // If no exact match, try with similar name
       if (!participants || participants.length === 0) {
         console.log("🔄 Trying similar match with actual name:", actualName);
-        const { data: participants2 } = await supabase
-          .from("participants")
-          .select("id, name")
-          .eq("event_token", token)
-          .ilike("name", `%${actualName}%`);
-        participants = participants2;
+        participants = await getParticipantByName(token, decodedName);
       }
 
       console.log("👥 Found participants for deletion:", participants);

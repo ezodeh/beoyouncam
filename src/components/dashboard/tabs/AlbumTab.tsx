@@ -166,7 +166,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
     try {
       const { data, error } = await supabase
         .from('blessings')
-        .select('*')
+        .select('id, content, name, created_at')
         .eq('event_token', token)
         .order('created_at', { ascending: false });
       

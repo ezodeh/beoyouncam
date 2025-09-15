@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Users, Mail, MessageCircle, Trash2 } from "lucide-react";
+import { getOwnerParticipantData } from "@/lib/participantSecurity";
 
 interface Participant {
   id: string;
@@ -33,14 +34,15 @@ export function ParticipantsTab({ token, eventData, onEventUpdate }: Participant
 
   const fetchParticipants = async () => {
     try {
-      const { data, error } = await supabase
-        .from("participants")
-        .select("*")
-        .eq("event_token", token)
-        .order("created_at", { ascending: false });
+      // Get current user ID to use the secure function
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
 
-      if (error) throw error;
-      setParticipants(data || []);
+      // Use the secure helper function that only returns data to event owners
+      const participants = await getOwnerParticipantData(token, session.user.id);
+      setParticipants(participants);
     } catch (error) {
       toast({
         title: "خطأ في تحميل المشاركين",
