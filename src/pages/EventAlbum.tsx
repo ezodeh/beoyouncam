@@ -554,7 +554,7 @@ export default function EventAlbum() {
   const shareCurrent = async () => {
     if (lightboxIndex === null) return;
     const shareUrl = window.location.href;
-    const t = `الألبوم — ${title}`;
+    const t = `${title}`;
     if ((navigator as any).share) {
       try { await (navigator as any).share({ title: t, url: shareUrl }); } catch (_) {}
     } else {
@@ -564,7 +564,7 @@ export default function EventAlbum() {
 
   const shareAlbum = async () => {
     const shareUrl = window.location.href;
-    const t = `الألبوم — ${title}`;
+    const t = `${title}`;
     if ((navigator as any).share) {
       try { await (navigator as any).share({ title: t, url: shareUrl }); } catch (_) {}
     } else {
@@ -596,7 +596,7 @@ export default function EventAlbum() {
           </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">الألبوم — {title}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">{title}</h1>
               
             </div>
           </div>
