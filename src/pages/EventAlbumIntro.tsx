@@ -45,6 +45,13 @@ export default function EventAlbumIntro() {
       setCoverUrl(eventData.album_cover_url || eventData.cover_url || null);
       setShowHeader(eventData.show_header !== false);
       
+      console.log("Event details loaded:", {
+        title: eventData.title,
+        welcome_title: eventData.welcome_title,
+        welcome_text: eventData.welcome_text,
+        description: eventData.description
+      });
+      
       // For private events or detailed checks, we need additional data
       let isEventOwner = false;
       let eventPassword = null;

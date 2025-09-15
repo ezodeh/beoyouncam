@@ -63,8 +63,8 @@ export default function EventWelcome() {
         setEventDetails({
           title: eventData.title,
           description: eventData.description,
-          sign_in_method: "phone", // default fallback
-          share_method: "whatsapp", // default fallback  
+          sign_in_method: (eventData.sign_in_method as "phone" | "email") || "phone",
+          share_method: (eventData.share_method as "whatsapp" | "email") || "whatsapp",
           cover_url: eventData.cover_url,
           start_at: eventData.start_at,
           end_at: eventData.end_at,
@@ -72,8 +72,8 @@ export default function EventWelcome() {
           welcome_title: eventData.welcome_title,
           welcome_text: eventData.welcome_text
         });
-        // Use share_method to determine the form type - defaulting to phone
-        setTab("phone");
+        // Use sign_in_method to determine the form type
+        setTab((eventData.sign_in_method as "phone" | "email") || "phone");
       }
     })();
   }, [token]);

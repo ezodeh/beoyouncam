@@ -282,7 +282,9 @@ export type Database = {
           invite_button_text: string
           is_album_published: boolean
           is_private: boolean
+          share_method: string
           show_header: boolean
+          sign_in_method: string
           start_at: string
           title: string
           token: string
