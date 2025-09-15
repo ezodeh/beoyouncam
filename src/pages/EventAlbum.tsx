@@ -129,6 +129,8 @@ export default function EventAlbum() {
     const fetchPersonalAlbums = async () => {
       if (!token) return;
       try {
+        console.log("🔍 Fetching personal albums for token:", token, "currentUserId:", currentUserId);
+        
         const { data: participantsData, error } = await supabase
           .from('participants')
           .select(`
@@ -146,6 +148,8 @@ export default function EventAlbum() {
           .eq('event_token', token)
           .eq('media_submissions.media_type', 'image')
           .order('name', { ascending: true });
+        
+        console.log("📊 Participants data:", { participantsData, error });
         
         if (error) throw error;
         
@@ -185,18 +189,32 @@ export default function EventAlbum() {
         
         // إضافة ألبوم المستخدم الحالي في المقدمة مع عنوان خاص
         if (currentUserId) {
-          const currentUserParticipant = participantsData?.find(p => p.user_id === currentUserId);
-          if (currentUserParticipant && currentUserParticipant.media_submissions.length > 0) {
+          // البحث عن جميع مشاركات المستخدم الحالي
+          const currentUserParticipants = participantsData?.filter(p => p.user_id === currentUserId) || [];
+          console.log("🔍 Current user participants:", currentUserParticipants);
+          
+          // تجميع جميع الصور للمستخدم الحالي
+          let allUserSubmissions: any[] = [];
+          let userName = '';
+          
+          currentUserParticipants.forEach(participant => {
+            if (!userName) userName = participant.name;
+            allUserSubmissions = [...allUserSubmissions, ...participant.media_submissions];
+          });
+          
+          console.log("📸 All user submissions:", allUserSubmissions);
+          
+          if (allUserSubmissions.length > 0) {
             const myAlbum = {
-              id: currentUserParticipant.id,
-              person_name: `البومي- البوم بعيون ${currentUserParticipant.name || 'مشارك'}`,
-              photo_count: currentUserParticipant.media_submissions.length,
+              id: currentUserParticipants[0]?.id || 'current-user',
+              person_name: `البومي- البوم بعيون ${userName || 'مشارك'}`,
+              photo_count: allUserSubmissions.length,
               latest_photo: null,
               latest_created_at: null
             };
             
             // العثور على آخر صورة
-            currentUserParticipant.media_submissions.forEach((submission: any) => {
+            allUserSubmissions.forEach((submission: any) => {
               if (!myAlbum.latest_created_at || new Date(submission.created_at) > new Date(myAlbum.latest_created_at)) {
                 myAlbum.latest_created_at = submission.created_at;
                 const { data: { publicUrl } } = supabase.storage
@@ -209,6 +227,7 @@ export default function EventAlbum() {
             const personalAlbumsData = [myAlbum, ...Array.from(albumsMap.values())]
               .filter(album => album.photo_count > 0);
             
+            console.log("📂 Personal albums data:", personalAlbumsData);
             setPersonalAlbums(personalAlbumsData);
             return;
           }
@@ -441,7 +460,7 @@ export default function EventAlbum() {
         if (error) throw error;
 
         // جلب معلومات المشاركين مع الملفات
-        const { data: mediaSubmissions } = await supabase
+        const { data: mediaSubmissions, error: submissionsError } = await supabase
           .from("media_submissions")
           .select(`
             file_name,
@@ -451,11 +470,15 @@ export default function EventAlbum() {
           `)
           .eq("event_token", token);
 
+        console.log("📊 Media submissions data:", { mediaSubmissions, submissionsError });
+
         // إنشاء خريطة لربط أسماء الملفات بأسماء المشاركين
         const participantMap = new Map();
         mediaSubmissions?.forEach(submission => {
           participantMap.set(submission.file_name, submission.participants.name);
         });
+
+        console.log("🗺️ Participant map:", Array.from(participantMap.entries()));
 
         const items: MediaItem[] = (files || [])
           .filter((f: any) => !String(f.name || "").startsWith("."))
