@@ -49,7 +49,8 @@ export default function EventAlbumByEyes() {
   }, [token, name]);
 
   useEffect(() => {
-    document.title = `بعيون ${name} — من عيونكم`;
+    const personName = getPersonName();
+    document.title = `بعيون ${personName} — من عيونكم`;
   }, [name]);
 
   const [shareCount, setShareCount] = useState(0);
@@ -57,7 +58,23 @@ export default function EventAlbumByEyes() {
   const [isEventOwner, setIsEventOwner] = useState<boolean>(false);
   
   // Extract person name from URL or use fallback
-  const personName = name || "الضيف";
+  const getPersonName = () => {
+    if (!name) return "الضيف";
+    
+    const decodedName = decodeURIComponent(name);
+    
+    // استخراج الاسم الحقيقي من النص المركب
+    if (decodedName.includes("البوم بعيون")) {
+      const parts = decodedName.split("البوم بعيون ");
+      if (parts.length > 1) {
+        return parts[1].trim();
+      }
+    }
+    
+    return decodedName;
+  };
+  
+  const personName = getPersonName();
 
   // Debug info display
   if (!token || !name) {
@@ -275,7 +292,7 @@ export default function EventAlbumByEyes() {
 
   const sharePage = async () => {
     const url = window.location.href;
-    const title = `بعيون ${name} — من عيونكم`;
+    const title = `بعيون ${personName} — من عيونكم`;
     if ((navigator as any).share) {
       try { await (navigator as any).share({ title, url }); setShareCount((c)=>c+1); } catch(_){}
     } else {
@@ -284,7 +301,7 @@ export default function EventAlbumByEyes() {
   };
 
   const deleteParticipantMedia = async () => {
-    if (!confirm(`هل أنت متأكد من حذف جميع صور ${name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    if (!confirm(`هل أنت متأكد من حذف جميع صور ${personName}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
     try {
       console.log("🗑️ Starting deletion for participant:", name);
       
@@ -388,7 +405,7 @@ export default function EventAlbumByEyes() {
           <figure className="h-44 sm:h-56 md:h-64 w-full overflow-hidden">
             <img
               src={eventData?.album_cover_url || eventData?.cover_url || coverImg}
-              alt={`غلاف ألبوم بعيون ${name}`}
+              alt={`غلاف ألبوم بعيون ${personName}`}
               className="h-full w-full object-cover"
               loading="lazy"
             />
@@ -408,7 +425,7 @@ export default function EventAlbumByEyes() {
           </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {personName}</h1>
             </div>
           </div>
         </header>
@@ -430,7 +447,7 @@ export default function EventAlbumByEyes() {
                       className="gap-2"
                     >
                       <Trash2 className="h-4 w-4" />
-                      حذف جميع صور {name}
+                      حذف جميع صور {personName}
                     </Button>
                   </div>
                 )}
@@ -462,7 +479,7 @@ export default function EventAlbumByEyes() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
-                    لا يوجد صور من {name}
+                    لا يوجد صور من {personName}
                   </div>
                 )}
               </>
@@ -516,7 +533,7 @@ export default function EventAlbumByEyes() {
             {/* Index and name like main album (left top) */}
             <div className="absolute top-4 left-4 text-sm">
               <div>{String(lightboxIndex + 1).padStart(2, "0")}/{photos.length}</div>
-              <div className="font-nastaliq text-xs mt-1">بعيون {name}</div>
+              <div className="font-nastaliq text-xs mt-1">بعيون {personName}</div>
             </div>
 
             {/* Prev/Next */}
