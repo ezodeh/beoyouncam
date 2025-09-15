@@ -342,7 +342,7 @@ export default function EventCard({
       <div className="p-3 pt-0 border-t">
         <div className="flex items-center justify-between min-h-10">
           <div className={`flex flex-wrap items-center gap-3 ${isPast ? 'invisible' : ''}`}>
-            <Link to={`/album/${event.token}/intro`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
+            <Link to={`/album/${event.token}/intro?title=${encodeURIComponent(event.title)}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
               <Image className="h-4 w-4" />
               <span>الألبوم</span>
             </Link>
@@ -528,7 +528,7 @@ export default function EventCard({
             <p className="text-sm text-muted-foreground">اختر الإجراء المطلوب:</p>
             <div className="grid gap-2">
               <Button asChild className="w-full">
-                <Link to={`/album/${event.token}`}>
+                <Link to={`/album/${event.token}/intro?title=${encodeURIComponent(event.title)}`}>
                   <Image className="h-4 w-4 mr-2" />
                   زيارة الألبوم
                 </Link>
