@@ -440,14 +440,49 @@ export default function EventAlbumByEyes() {
                         key={photo.id}
                         onClick={() => openAt(idx)}
                         className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
-                        aria-label={`فتح الصورة ${idx + 1} بملء الشاشة`}
+                        aria-label={`فتح ${photo.type === 'video' ? 'الفيديو' : 'الصورة'} ${idx + 1} بملء الشاشة`}
                       >
-                        <img
-                          src={photo.src}
-                          alt={photo.alt}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
+                        {photo.type === "video" ? (
+                          <div className="relative w-full h-full bg-black">
+                            <video 
+                              className="w-full h-full object-cover" 
+                              preload="metadata"
+                              poster=""
+                              muted
+                              playsInline
+                              onLoadedData={(e) => {
+                                const video = e.currentTarget;
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                if (ctx) {
+                                  canvas.width = video.videoWidth || 320;
+                                  canvas.height = video.videoHeight || 240;
+                                  video.currentTime = 1; // Get frame at 1 second
+                                  video.onseeked = () => {
+                                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                    video.poster = canvas.toDataURL('image/jpeg', 0.8);
+                                  };
+                                }
+                              }}
+                            >
+                              <source src={photo.src} type="video/mp4" />
+                            </video>
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
+                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={photo.src}
+                            alt={photo.alt}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        )}
                       </button>
                     ))}
                   </div>

@@ -534,12 +534,13 @@ export default function EventAlbum() {
     })();
   }, [token]);
 
-  // عارض الصور (فول سكرين)
+  // عارض الصور والفيديوهات (فول سكرين)
   const imageItems = media.filter((m)=>m.type === "image");
+  const allMediaItems = media; // جميع الوسائط (صور وفيديوهات)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const closeLightbox = () => setLightboxIndex(null);
-  const nextImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx + 1) % imageItems.length));
-  const prevImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx - 1 + imageItems.length) % imageItems.length));
+  const nextImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx + 1) % allMediaItems.length));
+  const prevImage = () => setLightboxIndex((idx) => (idx === null ? null : (idx - 1 + allMediaItems.length) % allMediaItems.length));
   // سوايب رأسي مثل تيكتوك
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const handleTouchStart = (e: any) => { setTouchStartY(e.touches?.[0]?.clientY ?? null); };
@@ -620,7 +621,7 @@ export default function EventAlbum() {
 
             <TabsContent value="photos" className="mt-6">
               <div className="max-w-5xl mx-auto">
-                {isEventOwner && imageItems.length > 0 && (
+                {isEventOwner && allMediaItems.length > 0 && (
                   <div className="mb-4 flex justify-end">
                     <Button
                       variant="destructive"
@@ -629,24 +630,59 @@ export default function EventAlbum() {
                       className="gap-2"
                     >
                       <Trash2 className="h-4 w-4" />
-                      حذف جميع الصور
+                      حذف جميع الوسائط
                     </Button>
                   </div>
                 )}
                 {loadingMedia ? (
-                  <div className="text-center text-sm text-muted-foreground py-10">جارٍ تحميل الصور…</div>
-                ) : imageItems.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-10">لا توجد صور بعد</div>
+                  <div className="text-center text-sm text-muted-foreground py-10">جارٍ تحميل الوسائط…</div>
+                ) : allMediaItems.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-10">لا توجد وسائط بعد</div>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
-                    {imageItems.map((it, idx) => (
+                    {allMediaItems.map((it, idx) => (
                       <div key={it.name + idx} className="relative group">
                         <button
                           className="aspect-square overflow-hidden rounded-md border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-ring w-full"
                           onClick={() => setLightboxIndex(idx)}
-                          aria-label={`عرض الصورة رقم ${idx + 1}`}
+                          aria-label={`عرض ${it.type === 'video' ? 'الفيديو' : 'الصورة'} رقم ${idx + 1}`}
                         >
-                          <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                          {it.type === "video" ? (
+                            <div className="relative w-full h-full bg-black">
+                              <video 
+                                className="w-full h-full object-cover" 
+                                preload="metadata"
+                                poster=""
+                                muted
+                                playsInline
+                                onLoadedData={(e) => {
+                                  const video = e.currentTarget;
+                                  const canvas = document.createElement('canvas');
+                                  const ctx = canvas.getContext('2d');
+                                  if (ctx) {
+                                    canvas.width = video.videoWidth || 320;
+                                    canvas.height = video.videoHeight || 240;
+                                    video.currentTime = 1; // Get frame at 1 second
+                                    video.onseeked = () => {
+                                      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                      video.poster = canvas.toDataURL('image/jpeg', 0.8);
+                                    };
+                                  }
+                                }}
+                              >
+                                <source src={it.url} type="video/mp4" />
+                              </video>
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
+                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                          )}
                         </button>
                           {isEventOwner && (
                             <button
@@ -656,7 +692,7 @@ export default function EventAlbum() {
                                 deleteMediaItem(it);
                               }}
                               className="absolute top-1 left-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              aria-label="حذف الصورة"
+                              aria-label={`حذف ${it.type === 'video' ? 'الفيديو' : 'الصورة'}`}
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -923,7 +959,7 @@ export default function EventAlbum() {
             <Share2 className="h-6 w-6" />
           </button>
 
-          <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{imageItems.length}</div>
+          <div className="absolute top-4 left-4 text-sm">{String(lightboxIndex + 1).padStart(2, "0")}/{allMediaItems.length}</div>
           
           {/* إضافة زر حذف للمنشئ في وضع ملء الشاشة */}
           {isEventOwner && (
@@ -931,17 +967,27 @@ export default function EventAlbum() {
               className="absolute top-4 right-28 z-20 p-2 rounded-full bg-destructive/90 hover:bg-destructive text-destructive-foreground"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log("🗑️ تم النقر على زر الحذف", { lightboxIndex, imageItem: imageItems[lightboxIndex] });
-                deleteMediaItem(imageItems[lightboxIndex]);
+                console.log("🗑️ تم النقر على زر الحذف", { lightboxIndex, mediaItem: allMediaItems[lightboxIndex] });
+                deleteMediaItem(allMediaItems[lightboxIndex]);
               }}
-              aria-label="حذف الصورة"
+              aria-label={`حذف ${allMediaItems[lightboxIndex]?.type === 'video' ? 'الفيديو' : 'الصورة'}`}
             >
               <Trash2 className="h-5 w-5" />
             </button>
           )}
 
           <div className="h-full w-full flex items-center justify-center p-4">
-            <img src={imageItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
+            {allMediaItems[lightboxIndex!]?.type === "video" ? (
+              <video
+                src={allMediaItems[lightboxIndex!].url}
+                className="max-h-[90vh] max-w-[90vw] rounded-lg"
+                controls
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <img src={allMediaItems[lightboxIndex!].url} alt={`صورة رقم ${lightboxIndex! + 1}`} className="max-h-full max-w-full object-contain" />
+            )}
           </div>
           
            {/* اسم المصور */}
@@ -950,10 +996,10 @@ export default function EventAlbum() {
                className="font-nastaliq text-lg hover:underline" 
                onClick={() => {
                  closeLightbox();
-                 navigate(`/album/${token}/by/${encodeURIComponent(imageItems[lightboxIndex].participantName)}`);
+                 navigate(`/album/${token}/by/${encodeURIComponent(allMediaItems[lightboxIndex].participantName)}`);
                }}
              >
-               بعيون: {imageItems[lightboxIndex].participantName}
+               بعيون: {allMediaItems[lightboxIndex].participantName}
              </button>
            </div>
 
