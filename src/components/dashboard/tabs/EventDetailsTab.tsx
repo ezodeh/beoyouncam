@@ -277,6 +277,9 @@ export function EventDetailsTab({
               </SelectTrigger>
               <SelectContent className="z-50">
                 <SelectItem value="undefined">غير محدد</SelectItem>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="7">7</SelectItem>
+                <SelectItem value="10">10</SelectItem>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="75">75</SelectItem>
