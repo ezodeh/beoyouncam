@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { VideoThumbnail } from "@/components/ui/video-thumbnail";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -443,25 +444,11 @@ export default function EventAlbumByEyes() {
                         aria-label={`فتح ${photo.type === 'video' ? 'الفيديو' : 'الصورة'} ${idx + 1} بملء الشاشة`}
                       >
                         {photo.type === "video" ? (
-                          <div className="relative w-full h-full bg-gray-900">
-                            <img 
-                              src={`https://img.youtube.com/vi/default/0.jpg`}
-                              alt={`غلاف ${photo.alt}`} 
-                              className="w-full h-full object-cover opacity-20" 
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm border border-white/30">
-                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z"/>
-                                </svg>
-                              </div>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                          </div>
+                          <VideoThumbnail 
+                            src={photo.src}
+                            className="w-full h-full"
+                            alt={`غلاف ${photo.alt}`}
+                          />
                         ) : (
                           <img
                             src={photo.src}
