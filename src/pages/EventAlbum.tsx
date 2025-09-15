@@ -834,7 +834,7 @@ export default function EventAlbum() {
                 {personalAlbums.map((album) => (
                   <div key={album.id} className="relative group">
                     <Link
-                      to={`/album/${token}/by/${encodeURIComponent(album.person_name)}`}
+                      to={`/album/${token}/by/${encodeURIComponent("البوم بعيون " + album.person_name)}`}
                       className="group block"
                       aria-label={`عرض ألبوم ${album.person_name}`}
                     >
