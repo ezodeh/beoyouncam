@@ -14,7 +14,7 @@ import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, S
 import { supabase } from "@/integrations/supabase/client";
 import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
-interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; }
+interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; userId?: string; }
 
 
 export default function EventAlbum() {
@@ -131,6 +131,7 @@ export default function EventAlbum() {
       try {
         console.log("🔍 Fetching personal albums for token:", token, "currentUserId:", currentUserId);
         
+        // جلب جميع المشاركين مع صورهم
         const { data: participantsData, error } = await supabase
           .from('participants')
           .select(`
@@ -138,24 +139,29 @@ export default function EventAlbum() {
             name, 
             user_id,
             created_at,
-            media_submissions!inner (
+            media_submissions (
               id,
               file_path,
+              file_name,
               media_type,
               created_at
             )
           `)
-          .eq('event_token', token)
-          .eq('media_submissions.media_type', 'image')
-          .order('name', { ascending: true });
+          .eq('event_token', token);
         
-        console.log("📊 Participants data:", { participantsData, error });
+        console.log("📊 All participants data:", { participantsData, error });
         
         if (error) throw error;
         
+        // تصفية المشاركين الذين لديهم صور فقط
+        const participantsWithImages = participantsData?.filter(p => 
+          p.media_submissions && p.media_submissions.some((s: any) => s.media_type === 'image')
+        ) || [];
+        
         // تجميع المشاركين مع عدد صورهم وآخر صورة
         const albumsMap = new Map();
-        participantsData?.forEach(participant => {
+        
+        participantsWithImages.forEach(participant => {
           // استثناء المستخدم الحالي من "بعيون الأحباب"
           if (participant.user_id === currentUserId) {
             return;
@@ -173,7 +179,9 @@ export default function EventAlbum() {
           }
           
           const album = albumsMap.get(participantName);
-          participant.media_submissions.forEach((submission: any) => {
+          const imageSubmissions = participant.media_submissions.filter((s: any) => s.media_type === 'image');
+          
+          imageSubmissions.forEach((submission: any) => {
             album.photo_count++;
             
             // تحديث آخر صورة
@@ -190,7 +198,7 @@ export default function EventAlbum() {
         // إضافة ألبوم المستخدم الحالي في المقدمة مع عنوان خاص
         if (currentUserId) {
           // البحث عن جميع مشاركات المستخدم الحالي
-          const currentUserParticipants = participantsData?.filter(p => p.user_id === currentUserId) || [];
+          const currentUserParticipants = participantsWithImages.filter(p => p.user_id === currentUserId);
           console.log("🔍 Current user participants:", currentUserParticipants);
           
           // تجميع جميع الصور للمستخدم الحالي
@@ -199,7 +207,8 @@ export default function EventAlbum() {
           
           currentUserParticipants.forEach(participant => {
             if (!userName) userName = participant.name;
-            allUserSubmissions = [...allUserSubmissions, ...participant.media_submissions];
+            const imageSubmissions = participant.media_submissions.filter((s: any) => s.media_type === 'image');
+            allUserSubmissions = [...allUserSubmissions, ...imageSubmissions];
           });
           
           console.log("📸 All user submissions:", allUserSubmissions);
@@ -459,26 +468,35 @@ export default function EventAlbum() {
           .list(prefix, { limit: 1000, sortBy: { column: "created_at", order: "asc" } as any });
         if (error) throw error;
 
-        // جلب معلومات المشاركين مع الملفات
+        // جلب معلومات المشاركين مع الملفات بطريقة أكثر شمولية
         const { data: mediaSubmissions, error: submissionsError } = await supabase
           .from("media_submissions")
           .select(`
             file_name,
+            file_path,
+            participant_id,
             participants!inner (
-              name
+              name,
+              user_id
             )
           `)
           .eq("event_token", token);
 
         console.log("📊 Media submissions data:", { mediaSubmissions, submissionsError });
 
-        // إنشاء خريطة لربط أسماء الملفات بأسماء المشاركين
+        // إنشاء خريطة لربط أسماء الملفات بأسماء المشاركين ومعرفات المستخدمين
         const participantMap = new Map();
+        const userIdMap = new Map(); // خريطة لربط الملفات بمعرفات المستخدمين
+        
         mediaSubmissions?.forEach(submission => {
           participantMap.set(submission.file_name, submission.participants.name);
+          if (submission.participants.user_id) {
+            userIdMap.set(submission.file_name, submission.participants.user_id);
+          }
         });
 
         console.log("🗺️ Participant map:", Array.from(participantMap.entries()));
+        console.log("👤 User ID map:", Array.from(userIdMap.entries()));
 
         const items: MediaItem[] = (files || [])
           .filter((f: any) => !String(f.name || "").startsWith("."))
@@ -487,15 +505,24 @@ export default function EventAlbum() {
             const ext = String(f.name || "").split(".").pop()?.toLowerCase() || "";
             const type: "image" | "video" = ["jpg","jpeg","png","webp","gif","heic","heif","avif"].includes(ext) ? "image" : "video";
             const participantName = participantMap.get(f.name) || "مشارك";
+            const fileUserId = userIdMap.get(f.name);
             
             return { 
               url: pub.publicUrl, 
               type, 
               createdAt: (f as any).created_at ?? null, 
               name: f.name,
-              participantName
+              participantName,
+              userId: fileUserId // إضافة معرف المستخدم للصورة
             };
           });
+          
+        console.log("🖼️ Processed media items:", items.map(item => ({
+          name: item.name,
+          participantName: item.participantName,
+          userId: item.userId,
+          isCurrentUser: item.userId === currentUserId
+        })));
           
         items.sort((a,b)=> (a.createdAt && b.createdAt) ? (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) : a.name.localeCompare(b.name));
         setMedia(items);
