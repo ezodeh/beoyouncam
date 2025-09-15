@@ -4,7 +4,6 @@ import { useParams, Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { VideoThumbnail } from "@/components/ui/video-thumbnail";
 import { Loader2, Heart } from "lucide-react";
 
 const Gallery = () => {
@@ -66,11 +65,7 @@ const Gallery = () => {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={m.thumbUrl || m.originalUrl} alt="pic" className="w-full h-28 object-cover" />
                     ) : (
-                      <VideoThumbnail 
-                        src={m.processedUrl || m.originalUrl} 
-                        className="w-full h-28"
-                        alt="فيديو"
-                      />
+                      <video src={m.processedUrl || m.originalUrl} className="w-full h-28 object-cover" muted playsInline />
                     )}
                     <button onClick={() => like(m.id)} className="absolute bottom-1 right-1 bg-background/70 border border-border/60 rounded-full px-2 py-1 text-xs inline-flex items-center gap-1">
                       <Heart className="h-3 w-3"/> {m.likesCount || 0}

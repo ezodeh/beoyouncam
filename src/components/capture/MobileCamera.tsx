@@ -7,7 +7,6 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import { Textarea } from "@/components/ui/textarea";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
-import { VideoThumbnail } from "@/components/ui/video-thumbnail";
 import { supabase } from "@/integrations/supabase/client";
 interface Props {
   eventName: string;
@@ -958,11 +957,7 @@ const MobileCamera: React.FC<Props> = ({
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {recent.length === 0 && <div className="col-span-3 sm:col-span-4 text-center text-sm text-muted-foreground">لا توجد لقطات بعد</div>}
             {recent.map((item, idx) => <div key={idx} className="relative group border border-border rounded-lg overflow-hidden cursor-pointer" onClick={() => setViewerIndex(idx)}>
-                {item.type === "image" ? (
-                  <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" />
-                ) : (
-                  <VideoThumbnail src={item.url} className="w-full h-24" />
-                )}
+                {item.type === "image" ? <img src={item.url} alt="لقطة" className="w-full h-24 object-cover" /> : <video src={item.url} className="w-full h-24 object-cover" controls />}
                   <button className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-1" aria-label="حذف" onClick={async (e) => {
                     e.stopPropagation();
                     

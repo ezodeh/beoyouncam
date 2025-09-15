@@ -56,7 +56,7 @@ export default function EventAlbum() {
         .maybeSingle();
       
       if (data) {
-        setTitle((data.album_title && data.album_title !== "الألبوم") ? data.album_title : data.title || "مناسبة");
+        setTitle(data.album_title || data.title || "مناسبة");
         setCoverUrl(data.album_cover_url || data.cover_url || null);
         setShowHeader(data.show_header !== false);
         
@@ -216,7 +216,7 @@ export default function EventAlbum() {
           if (allUserSubmissions.length > 0) {
             const myAlbum = {
               id: currentUserParticipants[0]?.id || 'current-user',
-              person_name: userName || "مشارك",
+              person_name: `البومي- البوم بعيون ${userName || 'مشارك'}`,
               photo_count: allUserSubmissions.length,
               latest_photo: null,
               latest_created_at: null
@@ -596,7 +596,7 @@ export default function EventAlbum() {
           </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">ألبوم {title}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold text-right">{title}</h1>
               
             </div>
           </div>
@@ -761,7 +761,7 @@ export default function EventAlbum() {
 
                 {/* زر عائم لإضافة مباركة - يسار الشاشة */}
                 <button
-                  className="fixed bottom-28 left-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
+                  className="fixed bottom-20 left-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
                   onClick={() => setShowCongratsDialog(true)}
                   aria-label="إضافة مباركة"
                 >
@@ -848,7 +848,7 @@ export default function EventAlbum() {
                               loading="lazy"
                             />
                           </div>
-                          <h3 className="font-semibold text-center">بعيون {album.person_name}</h3>
+                          <h3 className="font-semibold text-center">{album.person_name}</h3>
                           <p className="text-xs text-muted-foreground text-center">{album.photo_count} صورة</p>
                         </CardContent>
                       </Card>

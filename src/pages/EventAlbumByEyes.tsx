@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import coverImg from "@/assets/hero-mnaoyonkom.jpg";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { VideoThumbnail } from "@/components/ui/video-thumbnail";
 import { Share2, ArrowRight, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,8 +48,7 @@ export default function EventAlbumByEyes() {
   }, [token, name]);
 
   useEffect(() => {
-    const personName = getPersonName();
-    document.title = `بعيون ${personName} — من عيونكم`;
+    document.title = `بعيون ${name} — من عيونكم`;
   }, [name]);
 
   const [shareCount, setShareCount] = useState(0);
@@ -58,23 +56,7 @@ export default function EventAlbumByEyes() {
   const [isEventOwner, setIsEventOwner] = useState<boolean>(false);
   
   // Extract person name from URL or use fallback
-  const getPersonName = () => {
-    if (!name) return "الضيف";
-    
-    const decodedName = decodeURIComponent(name);
-    
-    // استخراج الاسم الحقيقي من النص المركب
-    if (decodedName.includes("البوم بعيون")) {
-      const parts = decodedName.split("البوم بعيون ");
-      if (parts.length > 1) {
-        return parts[1].trim();
-      }
-    }
-    
-    return decodedName;
-  };
-  
-  const personName = getPersonName();
+  const personName = name || "الضيف";
 
   // Debug info display
   if (!token || !name) {
@@ -292,7 +274,7 @@ export default function EventAlbumByEyes() {
 
   const sharePage = async () => {
     const url = window.location.href;
-    const title = `بعيون ${personName} — من عيونكم`;
+    const title = `بعيون ${name} — من عيونكم`;
     if ((navigator as any).share) {
       try { await (navigator as any).share({ title, url }); setShareCount((c)=>c+1); } catch(_){}
     } else {
@@ -301,7 +283,7 @@ export default function EventAlbumByEyes() {
   };
 
   const deleteParticipantMedia = async () => {
-    if (!confirm(`هل أنت متأكد من حذف جميع صور ${personName}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    if (!confirm(`هل أنت متأكد من حذف جميع صور ${name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
     try {
       console.log("🗑️ Starting deletion for participant:", name);
       
@@ -405,7 +387,7 @@ export default function EventAlbumByEyes() {
           <figure className="h-44 sm:h-56 md:h-64 w-full overflow-hidden">
             <img
               src={eventData?.album_cover_url || eventData?.cover_url || coverImg}
-              alt={`غلاف ألبوم بعيون ${personName}`}
+              alt={`غلاف ألبوم بعيون ${name}`}
               className="h-full w-full object-cover"
               loading="lazy"
             />
@@ -425,7 +407,7 @@ export default function EventAlbumByEyes() {
           </div>
           <div className="absolute inset-x-0 bottom-0">
             <div className="container mx-auto px-4 py-4">
-              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {personName}</h1>
+              <h1 className="font-nastaliq text-3xl sm:text-4xl font-extrabold">بعيون {name}</h1>
             </div>
           </div>
         </header>
@@ -447,7 +429,7 @@ export default function EventAlbumByEyes() {
                       className="gap-2"
                     >
                       <Trash2 className="h-4 w-4" />
-                      حذف جميع صور {personName}
+                      حذف جميع صور {name}
                     </Button>
                   </div>
                 )}
@@ -461,11 +443,25 @@ export default function EventAlbumByEyes() {
                         aria-label={`فتح ${photo.type === 'video' ? 'الفيديو' : 'الصورة'} ${idx + 1} بملء الشاشة`}
                       >
                         {photo.type === "video" ? (
-                          <VideoThumbnail 
-                            src={photo.src}
-                            className="w-full h-full"
-                            alt={`غلاف ${photo.alt}`}
-                          />
+                          <div className="relative w-full h-full bg-gray-900">
+                            <img 
+                              src={`https://img.youtube.com/vi/default/0.jpg`}
+                              alt={`غلاف ${photo.alt}`} 
+                              className="w-full h-full object-cover opacity-20" 
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm border border-white/30">
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                          </div>
                         ) : (
                           <img
                             src={photo.src}
@@ -479,7 +475,7 @@ export default function EventAlbumByEyes() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
-                    لا يوجد صور من {personName}
+                    لا يوجد صور من {name}
                   </div>
                 )}
               </>
@@ -533,7 +529,7 @@ export default function EventAlbumByEyes() {
             {/* Index and name like main album (left top) */}
             <div className="absolute top-4 left-4 text-sm">
               <div>{String(lightboxIndex + 1).padStart(2, "0")}/{photos.length}</div>
-              <div className="font-nastaliq text-xs mt-1">بعيون {personName}</div>
+              <div className="font-nastaliq text-xs mt-1">بعيون {name}</div>
             </div>
 
             {/* Prev/Next */}
