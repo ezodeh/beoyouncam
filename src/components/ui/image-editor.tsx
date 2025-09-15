@@ -106,13 +106,44 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
     ctx.restore();
 
     // Convert canvas to blob and create URL
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        onImageChange(url);
-        setOpen(false);
+    try {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          onImageChange(url);
+          setOpen(false);
+        }
+      }, 'image/jpeg', 0.9);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      // Fallback: try with different format or handle error
+      try {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            onImageChange(url);
+            setOpen(false);
+          }
+        }, 'image/png');
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        // Create a new canvas with the image data
+        const newCanvas = document.createElement('canvas');
+        const newCtx = newCanvas.getContext('2d');
+        if (newCtx) {
+          newCanvas.width = canvas.width;
+          newCanvas.height = canvas.height;
+          newCtx.drawImage(canvas, 0, 0);
+          newCanvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              onImageChange(url);
+              setOpen(false);
+            }
+          }, 'image/png');
+        }
       }
-    }, 'image/jpeg', 0.9);
+    }
   }, [completedCrop, scale, rotation, onImageChange]);
 
   const resetCrop = () => {
@@ -263,6 +294,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
                     ref={imgRef}
                     alt="اقتصاص"
                     src={src}
+                    crossOrigin="anonymous"
                     style={{ 
                       transform: `scale(${scale}) rotate(${rotation}deg)`,
                       maxWidth: '100%',
