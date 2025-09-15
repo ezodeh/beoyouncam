@@ -848,7 +848,7 @@ export default function EventAlbum() {
                               loading="lazy"
                             />
                           </div>
-                          <h3 className="font-semibold text-center">{album.person_name}</h3>
+                          <h3 className="font-semibold text-center">بعيون {album.person_name}</h3>
                           <p className="text-xs text-muted-foreground text-center">{album.photo_count} صورة</p>
                         </CardContent>
                       </Card>
