@@ -216,7 +216,7 @@ export default function EventAlbum() {
           if (allUserSubmissions.length > 0) {
             const myAlbum = {
               id: currentUserParticipants[0]?.id || 'current-user',
-              person_name: `البومي- البوم بعيون ${userName || 'مشارك'}`,
+              person_name: userName || "مشارك",
               photo_count: allUserSubmissions.length,
               latest_photo: null,
               latest_created_at: null
@@ -834,7 +834,7 @@ export default function EventAlbum() {
                 {personalAlbums.map((album) => (
                   <div key={album.id} className="relative group">
                     <Link
-                      to={`/album/${token}/by/${encodeURIComponent("البوم بعيون " + album.person_name)}`}
+                      to={`/album/${token}/by/${encodeURIComponent(album.person_name)}`}
                       className="group block"
                       aria-label={`عرض ألبوم ${album.person_name}`}
                     >
