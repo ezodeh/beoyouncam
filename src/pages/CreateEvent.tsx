@@ -522,6 +522,7 @@ export default function CreateEvent() {
         title: title.trim(),
         description: description.trim() || null,
         sign_in_method: "email",
+        share_method: shareChannel || "email", // Use shareChannel for share_method
         start_at: startAt ? startAt.toISOString() : null,
         end_at: endAt ? endAt.toISOString() : null,
         cover_url: coverUrl || welcomePageHeroImage,
