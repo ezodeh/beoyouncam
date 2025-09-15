@@ -28,39 +28,42 @@ export default function EventCamera() {
     (async () => {
       if (!token) return;
       const { data } = await supabase
-        .rpc("get_public_event_info", { event_token: token as string });
-      if (data && data.length > 0) {
-        const eventData = data[0];
-        setEventTitle(eventData.title || initialName);
+        .from("events")
+        .select("max_shots, start_at, end_at, title, enable_video")
+        .eq("token", token as string)
+        .maybeSingle();
+      if (data) {
+        const row = data as any;
+        setEventTitle(row.title || initialName);
         const now = new Date();
-        if (eventData.start_at && now < new Date(eventData.start_at)) {
+        if (row.start_at && now < new Date(row.start_at)) {
           const qs = new URLSearchParams(location.search);
-          qs.set("start_at", eventData.start_at);
+          qs.set("start_at", row.start_at);
           navigate(`/event/${token}/soon?${qs.toString()}`);
           return;
         }
-        if (eventData.end_at && now > new Date(eventData.end_at)) {
+        if (row.end_at && now > new Date(row.end_at)) {
           const qs = new URLSearchParams(location.search);
-          qs.set("end_at", eventData.end_at);
+          qs.set("end_at", row.end_at);
           navigate(`/event/${token}/ended?${qs.toString()}`);
           return;
         }
-        console.log("🔢 EventCamera: Database data - max_shots:", eventData.max_shots, "queryShots:", queryShots);
+        console.log("🔢 EventCamera: Database data - max_shots:", row.max_shots, "queryShots:", queryShots);
         if (!isNaN(queryShots) && queryShots > 0) {
           console.log("🔢 EventCamera: Using query shots:", queryShots);
           setMaxShots(Math.max(1, queryShots));
-        } else if (typeof eventData.max_shots === "number" && eventData.max_shots > 0) {
-          console.log("🔢 EventCamera: Using database max_shots:", eventData.max_shots);
-          setMaxShots(Math.max(1, eventData.max_shots));
+        } else if (typeof row.max_shots === "number" && row.max_shots > 0) {
+          console.log("🔢 EventCamera: Using database max_shots:", row.max_shots);
+          setMaxShots(Math.max(1, row.max_shots));
         }
         
         // Set video enable/disable from database
-        if (typeof eventData.enable_video === "boolean") {
-          setEnableVideo(eventData.enable_video);
-          console.log("🎥 EventCamera: Video setting from DB:", eventData.enable_video);
+        if (typeof row.enable_video === "boolean") {
+          setEnableVideo(row.enable_video);
+          console.log("🎥 EventCamera: Video setting from DB:", row.enable_video);
         }
         
-        console.log("🔢 EventCamera: Final maxShots will be:", typeof eventData.max_shots === "number" ? eventData.max_shots : queryShots);
+        console.log("🔢 EventCamera: Final maxShots will be:", typeof row.max_shots === "number" ? row.max_shots : queryShots);
       }
     })();
   }, [location.search, navigate, token]);

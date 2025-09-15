@@ -326,7 +326,7 @@ export default function EventCard({
           </div>
           <div className="p-3">
             <div className="font-nastaliq text-xl">{event.title}</div>
-            <div className="text-sm text-muted-foreground">{subtitle}</div>
+            
           </div>
         </div> : <Link to={linkTo}>
           <div className="aspect-video bg-muted overflow-hidden">
@@ -334,7 +334,7 @@ export default function EventCard({
           </div>
           <div className="p-3">
             <div className="font-nastaliq text-xl">{event.title}</div>
-            <div className="text-sm text-muted-foreground">{subtitle}</div>
+            
           </div>
         </Link>}
 
@@ -342,11 +342,11 @@ export default function EventCard({
       <div className="p-3 pt-0 border-t">
         <div className="flex items-center justify-between min-h-10">
           <div className={`flex flex-wrap items-center gap-3 ${isPast ? 'invisible' : ''}`}>
-            <Link to={`/album/${event.token}/intro?title=${encodeURIComponent(event.title)}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
+            <Link to={`/album/${event.token}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
               <Image className="h-4 w-4" />
               <span>الألبوم</span>
             </Link>
-            <Link to={`/event/${event.token}/camera?title=${encodeURIComponent(event.title)}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="فتح الكاميرا">
+            <Link to={`/event/${event.token}/camera`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="فتح الكاميرا">
               <Camera className="h-4 w-4" />
               <span>الكاميرا</span>
             </Link>
@@ -528,7 +528,7 @@ export default function EventCard({
             <p className="text-sm text-muted-foreground">اختر الإجراء المطلوب:</p>
             <div className="grid gap-2">
               <Button asChild className="w-full">
-                <Link to={`/album/${event.token}/intro?title=${encodeURIComponent(event.title)}`}>
+                <Link to={`/album/${event.token}`}>
                   <Image className="h-4 w-4 mr-2" />
                   زيارة الألبوم
                 </Link>

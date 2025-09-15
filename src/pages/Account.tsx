@@ -250,7 +250,7 @@ export default function Account() {
                         <EventCard
                           key={e.token}
                           event={e as any}
-                          linkTo={`/album/${e.token}/intro?title=${encodeURIComponent(e.title)}`}
+                          linkTo={`/album/${e.token}/intro`}
                           subtitle="اذهب إلى المقدمة"
                           isOwner
                           isPast
@@ -284,7 +284,7 @@ export default function Account() {
                            <EventCard
                              key={e.token}
                              event={e as any}
-                              linkTo={isPublished ? `/album/${e.token}/intro?title=${encodeURIComponent(e.title)}` : `/album-eyes/${e.token}?title=${encodeURIComponent(e.title)}`}
+                             linkTo={isPublished ? `/album/${e.token}/intro` : `/album-eyes/${e.token}`}
                              subtitle={isPublished ? "اذهب إلى الألبوم" : "ألبومي - سيتم نشر كامل الألبوم قريباً"}
                            />
                          );
@@ -304,7 +304,7 @@ export default function Account() {
                            <EventCard
                              key={e.token}
                              event={e as any}
-                             linkTo={isPublished ? `/album/${e.token}/intro?title=${encodeURIComponent(e.title)}` : `/album-eyes/${e.token}?title=${encodeURIComponent(e.title)}`}
+                             linkTo={isPublished ? `/album/${e.token}/intro` : `/album-eyes/${e.token}`}
                              subtitle={isPublished ? "مناسبة منتهية" : "ألبومي - مناسبة منتهية"}
                              isPast
                            />

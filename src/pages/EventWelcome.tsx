@@ -40,40 +40,36 @@ export default function EventWelcome() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data, error } = await supabase
-        .rpc("get_public_event_info", { event_token: token as string });
-      
-      if (!error && data && data.length > 0) {
-        const eventData = data[0]; // Get first item from array
-        console.log("Event data retrieved:", eventData);
+      const { data: row, error } = await supabase
+        .from("events")
+        .select("title, description, sign_in_method, share_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
+        .eq("token", token as string)
+        .maybeSingle();
+      const data: any = row;
+      if (!error && data) {
+        const row = data as any;
         // redirect based on timing if configured
         const now = new Date();
-        if (eventData.start_at && now < new Date(eventData.start_at)) {
+        if (row.start_at && now < new Date(row.start_at)) {
           const qs = new URLSearchParams(location.search);
-          qs.set("start_at", eventData.start_at);
+          qs.set("start_at", row.start_at);
           navigate(`/event/${token}/soon?${qs.toString()}`);
           return;
         }
-        if (eventData.end_at && now > new Date(eventData.end_at)) {
+        if (row.end_at && now > new Date(row.end_at)) {
           const qs = new URLSearchParams(location.search);
-          qs.set("end_at", eventData.end_at);
+          qs.set("end_at", row.end_at);
           navigate(`/event/${token}/ended?${qs.toString()}`);
           return;
         }
         setEventDetails({
-          title: eventData.title,
-          description: eventData.description,
-          sign_in_method: (eventData.sign_in_method as "phone" | "email") || "phone",
-          share_method: (eventData.share_method as "whatsapp" | "email") || "whatsapp",
-          cover_url: eventData.cover_url,
-          start_at: eventData.start_at,
-          end_at: eventData.end_at,
-          show_header: eventData.show_header,
-          welcome_title: eventData.welcome_title,
-          welcome_text: eventData.welcome_text
+          ...(row as any),
+          sign_in_method: (row.sign_in_method as "phone" | "email" | null),
+          share_method: (row.share_method as "whatsapp" | "email" | null),
         });
-        // Use sign_in_method to determine the form type
-        setTab((eventData.sign_in_method as "phone" | "email") || "phone");
+        // Use share_method to determine the form type
+        const formMethod = row.share_method === "whatsapp" ? "phone" : "email";
+        setTab(formMethod as any);
       }
     })();
   }, [token]);

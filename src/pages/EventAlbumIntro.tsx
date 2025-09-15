@@ -30,53 +30,24 @@ export default function EventAlbumIntro() {
       if (!token) return;
       
       const { data: { session } } = await supabase.auth.getSession();
-      
-      // First try to get public event info
-      const { data, error } = await supabase
-        .rpc("get_public_event_info", { event_token: token });
-      
-      console.log("Album intro event data:", data);
+      const { data } = await supabase
+        .from("events")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password, album_cover_url, album_title, album_description")
+        .eq("token", token)
+        .maybeSingle();
         
-      if (!data || data.length === 0) return;
+      if (!data) return;
       
-      const eventData = data[0]; // Get first item from array
-      setEventDetails(eventData);
-      setTitle(eventData.album_title || eventData.title || eventName);
-      setCoverUrl(eventData.album_cover_url || eventData.cover_url || null);
-      setShowHeader(eventData.show_header !== false);
+      setEventDetails(data);
+      setTitle(data.album_title || data.title || eventName);
+      setCoverUrl(data.album_cover_url || data.cover_url || null);
+      setShowHeader(data.show_header !== false);
       
-      console.log("Event details loaded:", {
-        title: eventData.title,
-        welcome_title: eventData.welcome_title,
-        welcome_text: eventData.welcome_text,
-        description: eventData.description
-      });
+      // Determine if current user is the event owner
+      const currentIsEventOwner = session?.user?.id === data.owner_id;
       
-      // For private events or detailed checks, we need additional data
-      let isEventOwner = false;
-      let eventPassword = null;
-      let publishedAt = null;
-      
-      if (session?.user?.id) {
-        // Check if user is event owner and get additional private info
-        const { data: privateData } = await supabase
-          .from("events")
-          .select("owner_id, password, published_at")
-          .eq("token", token)
-          .maybeSingle();
-          
-        if (privateData) {
-          isEventOwner = session.user.id === privateData.owner_id;
-          eventPassword = privateData.password;
-          publishedAt = privateData.published_at;
-          // Store password in session for validation
-          if (eventPassword) {
-            sessionStorage.setItem(`event_password_${token}`, eventPassword);
-          }
-        }
-      }
       // Check if private album needs password verification
-      if (eventData.is_private && eventPassword && !isEventOwner) {
+      if (data.is_private && data.password && !currentIsEventOwner) {
         const hasAccess = sessionStorage.getItem(`album_access_${token}`);
         if (!hasAccess) {
           setShowPasswordInput(true);
@@ -85,21 +56,22 @@ export default function EventAlbumIntro() {
       }
       
       console.log("🔍 Album Intro access check:", {
-        isAlbumPublished: eventData.is_album_published,
-        isEventOwner: isEventOwner,
-        userId: session?.user?.id
+        isAlbumPublished: data.is_album_published,
+        isEventOwner: currentIsEventOwner,
+        userId: session?.user?.id,
+        ownerId: data.owner_id
       });
       
       // Check if album is published OR user is the owner
-      if (!eventData.is_album_published && !isEventOwner) {
+      if (!data.is_album_published && !currentIsEventOwner) {
         console.log("🚫 Album not published and user is not owner, redirecting to soon page");
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventData.title || eventName)}`);
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
         return;
       }
       
       // Check for private events (existing logic)
-      if (eventData.is_private && publishedAt && new Date(publishedAt) > new Date()) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventData.title || eventName)}`);
+      if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
       }
     })();
   }, [token]);
@@ -114,14 +86,7 @@ export default function EventAlbumIntro() {
       return;
     }
 
-    // Check password against stored value in state  
-    const { data: eventData } = await supabase
-      .rpc("validate_event_password", { 
-        event_token: token, 
-        provided_password: password.trim() 
-      });
-    
-    if (eventData) {
+    if (eventDetails?.password === password.trim()) {
       sessionStorage.setItem(`album_access_${token}`, "granted");
       setShowPasswordInput(false);
       toast({
