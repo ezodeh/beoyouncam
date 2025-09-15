@@ -246,7 +246,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   onClick={() => setEnlargedQR({ url: `${window.location.origin}/album/${token}/intro`, title: "باركود الألبوم" })}
                 >
                   <div id="overview-qr-wrap">
-                    <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}/intro`} size={72} level="H" />
+                    <QRCode id="overview-qr" value={`${window.location.origin}/album/${token}/intro${eventData?.title ? `?title=${encodeURIComponent(eventData.title)}` : ''}`} size={72} level="H" />
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
@@ -300,7 +300,7 @@ export function OverviewTab({ token, eventData }: OverviewTabProps) {
                   onClick={() => setEnlargedQR({ url: eventUrl, title: "باركود المناسبة" })}
                 >
                   <div id="overview-qr-wrap">
-                    <QRCode id="overview-qr" value={eventUrl} size={72} level="H" />
+                    <QRCode id="overview-qr" value={`${eventUrl}${eventData?.title ? `?title=${encodeURIComponent(eventData.title)}` : ''}`} size={72} level="H" />
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
