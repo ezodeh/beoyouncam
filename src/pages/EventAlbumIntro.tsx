@@ -32,16 +32,18 @@ export default function EventAlbumIntro() {
       const { data: { session } } = await supabase.auth.getSession();
       
       // First try to get public event info
-      const { data } = await supabase
-        .rpc("get_public_event_info", { event_token: token })
-        .maybeSingle();
-        
-      if (!data) return;
+      const { data, error } = await supabase
+        .rpc("get_public_event_info", { event_token: token });
       
-      setEventDetails(data);
-      setTitle(data.album_title || data.title || eventName);
-      setCoverUrl(data.album_cover_url || data.cover_url || null);
-      setShowHeader(data.show_header !== false);
+      console.log("Album intro event data:", data);
+        
+      if (!data || data.length === 0) return;
+      
+      const eventData = data[0]; // Get first item from array
+      setEventDetails(eventData);
+      setTitle(eventData.album_title || eventData.title || eventName);
+      setCoverUrl(eventData.album_cover_url || eventData.cover_url || null);
+      setShowHeader(eventData.show_header !== false);
       
       // For private events or detailed checks, we need additional data
       let isEventOwner = false;
@@ -67,7 +69,7 @@ export default function EventAlbumIntro() {
         }
       }
       // Check if private album needs password verification
-      if (data.is_private && eventPassword && !isEventOwner) {
+      if (eventData.is_private && eventPassword && !isEventOwner) {
         const hasAccess = sessionStorage.getItem(`album_access_${token}`);
         if (!hasAccess) {
           setShowPasswordInput(true);
@@ -76,21 +78,21 @@ export default function EventAlbumIntro() {
       }
       
       console.log("🔍 Album Intro access check:", {
-        isAlbumPublished: data.is_album_published,
+        isAlbumPublished: eventData.is_album_published,
         isEventOwner: isEventOwner,
         userId: session?.user?.id
       });
       
       // Check if album is published OR user is the owner
-      if (!data.is_album_published && !isEventOwner) {
+      if (!eventData.is_album_published && !isEventOwner) {
         console.log("🚫 Album not published and user is not owner, redirecting to soon page");
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventData.title || eventName)}`);
         return;
       }
       
       // Check for private events (existing logic)
-      if (data.is_private && publishedAt && new Date(publishedAt) > new Date()) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
+      if (eventData.is_private && publishedAt && new Date(publishedAt) > new Date()) {
+        navigate(`/event/${token}/soon?title=${encodeURIComponent(eventData.title || eventName)}`);
       }
     })();
   }, [token]);
