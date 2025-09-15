@@ -30,7 +30,7 @@ export default function EventAlbum() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = `الألبوم — ${title} — من عيونكم`;
+    document.title = `الألبوم - ${title} — من عيونكم`;
   }, [title]);
 
 
