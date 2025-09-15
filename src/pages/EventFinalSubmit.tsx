@@ -105,7 +105,7 @@ export default function EventFinalSubmit() {
     }
   });
 
-  // Auto-fill user data if logged in and greeting from URL
+  // Auto-fill user data - prioritize participant data over other sources
   useEffect(() => {
     if (isUserDataLoaded) return;
     
@@ -117,62 +117,92 @@ export default function EventFinalSubmit() {
         
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          const userData = session.user;
-          console.log("📱 User data:", userData);
-          console.log("📱 User metadata:", userData.user_metadata);
-          
-          const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
-          const userEmail = userData.email || "";
-          
-          // Try multiple ways to get phone number
-          const userPhone = userData.user_metadata?.phone || 
-                           userData.phone || 
-                           userData.user_metadata?.phone_number ||
-                           userData.user_metadata?.phoneNumber ||
-                           "";
-          
-          console.log("📱 Extracted phone:", userPhone);
-          
-          if (fullName) setValue("name", fullName);
-          if (userEmail) setValue("email", userEmail);
-          if (userPhone) setValue("phone", userPhone);
-        }
+        let participantData = null;
         
-        // Check if participant exists for this event to get stored data
-        try {
+        // First priority: Get participant data from database (most accurate)
+        if (session?.user) {
+          // Check if user is already a participant
           const { data: participant } = await supabase
             .from("participants")
             .select("name, phone, email, country_code")
             .eq("event_token", token)
-            .eq("user_id", session?.user?.id || "")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
           
-          if (participant) {
-            console.log("📱 Participant data:", participant);
-            if (participant.name && !session?.user?.user_metadata?.full_name) {
-              setValue("name", participant.name);
-            }
-            if (participant.phone) {
-              // Format phone number with country code if available
-              const fullPhone = participant.country_code ? 
-                `${participant.country_code}${participant.phone}` : 
-                participant.phone;
-              setValue("phone", fullPhone);
-              console.log("📱 Using participant phone:", fullPhone);
-            }
-            if (participant.email && !session?.user?.email) {
-              setValue("email", participant.email);
-            }
+          participantData = participant;
+        } else {
+          // For anonymous users, try to get participant by stored participant ID
+          const storedParticipantId = localStorage.getItem(`participantId:${token}`);
+          if (storedParticipantId) {
+            const { data: participant } = await supabase
+              .from("participants")
+              .select("name, phone, email, country_code")
+              .eq("id", storedParticipantId)
+              .maybeSingle();
+            
+            participantData = participant;
           }
-        } catch (error) {
-          console.error("Error loading participant data:", error);
         }
         
-        // Fallback to localStorage data
-        const storedName = localStorage.getItem(`participantName:${token}`);
-        if (storedName && !session?.user?.user_metadata?.full_name) {
-          setValue("name", storedName);
+        // Auto-fill with participant data (highest priority)
+        if (participantData) {
+          console.log("📱 Using participant data:", participantData);
+          
+          if (participantData.name) {
+            setValue("name", participantData.name);
+          }
+          
+          if (participantData.phone) {
+            // Format phone number with country code if available
+            const fullPhone = participantData.country_code ? 
+              `${participantData.country_code}${participantData.phone}` : 
+              participantData.phone;
+            setValue("phone", fullPhone);
+            console.log("📱 Auto-filled phone:", fullPhone);
+          }
+          
+          if (participantData.email) {
+            setValue("email", participantData.email);
+          }
+        } 
+        // Fallback: Use authenticated user data if no participant data
+        else if (session?.user) {
+          const userData = session.user;
+          console.log("📱 Fallback to user data:", userData);
+          
+          const fullName = userData.user_metadata?.full_name || userData.user_metadata?.name || "";
+          const userEmail = userData.email || "";
+          
+          if (fullName) setValue("name", fullName);
+          if (userEmail) setValue("email", userEmail);
+          
+          // Check profile table for phone number if not in participant data
+          try {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("phone, display_name")
+              .eq("id", session.user.id)
+              .maybeSingle();
+            
+            if (profile?.phone) {
+              setValue("phone", profile.phone);
+              console.log("📱 Using profile phone:", profile.phone);
+            }
+            if (profile?.display_name && !fullName) {
+              setValue("name", profile.display_name);
+            }
+          } catch (error) {
+            console.log("Error fetching profile:", error);
+          }
+        }
+        // Last fallback: localStorage data for anonymous users
+        else {
+          const storedName = localStorage.getItem(`participantName:${token}`);
+          if (storedName) {
+            setValue("name", storedName);
+          }
         }
         
         // Set greeting from URL if provided, otherwise use default

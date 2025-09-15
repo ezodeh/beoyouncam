@@ -227,15 +227,66 @@ export default function EventWelcome() {
           return;
         }
         
-        // If user is not already registered, try to add them as participant
+        // If user is not already registered, check if they need to provide phone number
+        const needsPhoneNumber = eventDetails?.share_method === "whatsapp";
+        
+        // Check if user has phone number in profile
+        let userHasPhone = false;
         try {
-          const { data: newParticipant, error: insertError } = await supabase.from("participants").insert({
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("phone")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          
+          userHasPhone = !!profile?.phone;
+        } catch (error) {
+          console.log("Error checking profile phone:", error);
+        }
+        
+        // If WhatsApp sharing is required and user doesn't have phone, don't auto-register
+        if (needsPhoneNumber && !userHasPhone) {
+          console.log("📱 User needs to provide phone number for WhatsApp sharing");
+          // Set the form to phone tab and let user provide phone number manually
+          setTab("phone");
+          return;
+        }
+        
+        // Auto-register user if they have all required info
+        try {
+          const participantData: any = {
             event_token: token,
             method: "google",
             user_id: session.user.id,
             name: fullName || userData.user_metadata?.email?.split('@')[0] || "مستخدم",
             email: userEmail
-          }).select().single();
+          };
+          
+          // Add phone if available and required
+          if (needsPhoneNumber && userHasPhone) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("phone")
+              .eq("id", session.user.id)
+              .maybeSingle();
+            
+            if (profile?.phone) {
+              // Extract country code and phone from profile
+              const phoneMatch = profile.phone.match(/^(\+\d{1,4})(.+)$/);
+              if (phoneMatch) {
+                participantData.country_code = phoneMatch[1];
+                participantData.phone = phoneMatch[2].replace(/^0+/, '');
+              } else {
+                participantData.phone = profile.phone;
+              }
+            }
+          }
+          
+          const { data: newParticipant, error: insertError } = await supabase
+            .from("participants")
+            .insert(participantData)
+            .select()
+            .single();
           
           if (!insertError && newParticipant) {
             localStorage.setItem(`participant:${token}`, "1");
