@@ -164,7 +164,7 @@ export default function EventAlbumByEyes() {
         }
       }
       
-      // البحث بالاسم الحقيقي أولاً
+      // البحث عن جميع المشاركين بنفس الاسم
       let { data: participants } = await supabase
         .from("participants")
         .select("id, name")
@@ -215,15 +215,16 @@ export default function EventAlbumByEyes() {
         return;
       }
 
-      // إذا وُجد أكثر من مشارك، نأخذ الأول
-      const participant = participants[0];
-      console.log("✅ Using participant:", participant);
+      // جلب الصور من جميع المشاركين بنفس الاسم (في حالة وجود نسخ متعددة)
+      const participantIds = participants.map(p => p.id);
+      console.log("🔍 Searching for photos with participant IDs:", participantIds);
 
-      // Get media submissions for this participant
+      // Get media submissions for all participants with this name
       const { data: submissions, error: submissionsError } = await supabase
         .from("media_submissions")
         .select("*")
-        .eq("participant_id", participant.id)
+        .eq("event_token", token)
+        .in("participant_id", participantIds)
         .order("created_at", { ascending: false });
 
       console.log("📸 Media submissions:", { submissions, error: submissionsError });
