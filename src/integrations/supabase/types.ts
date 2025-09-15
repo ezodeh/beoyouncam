@@ -278,10 +278,12 @@ export type Database = {
           album_title: string
           cover_url: string
           description: string
+          enable_video: boolean
           end_at: string
           invite_button_text: string
           is_album_published: boolean
           is_private: boolean
+          max_shots: number
           share_method: string
           show_header: boolean
           sign_in_method: string
