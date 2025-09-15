@@ -14,7 +14,7 @@ import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, S
 import { supabase } from "@/integrations/supabase/client";
 import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
-interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; userId?: string; }
+interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; userId?: string; thumbnailUrl?: string | null; }
 
 
 export default function EventAlbum() {
@@ -499,7 +499,7 @@ export default function EventAlbum() {
         console.log("👤 User ID map:", Array.from(userIdMap.entries()));
 
         const items: MediaItem[] = (files || [])
-          .filter((f: any) => !String(f.name || "").startsWith("."))
+          .filter((f: any) => !String(f.name || "").startsWith(".") && !String(f.name || "").startsWith("thumb-"))
           .map((f: any) => {
             const { data: pub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${f.name}`);
             const ext = String(f.name || "").split(".").pop()?.toLowerCase() || "";
@@ -507,13 +507,27 @@ export default function EventAlbum() {
             const participantName = participantMap.get(f.name) || "مشارك";
             const fileUserId = userIdMap.get(f.name);
             
+            // للفيديوهات، ابحث عن الصورة المصغرة
+            let thumbnailUrl = null;
+            if (type === "video") {
+              const baseFileName = f.name.split('.')[0]; // إزالة الامتداد
+              const thumbnailFile = files?.find((tf: any) => 
+                tf.name && tf.name.startsWith('thumb-') && tf.name.includes(baseFileName)
+              );
+              if (thumbnailFile) {
+                const { data: thumbPub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${thumbnailFile.name}`);
+                thumbnailUrl = thumbPub.publicUrl;
+              }
+            }
+            
             return { 
               url: pub.publicUrl, 
               type, 
               createdAt: (f as any).created_at ?? null, 
               name: f.name,
               participantName,
-              userId: fileUserId // إضافة معرف المستخدم للصورة
+              userId: fileUserId, // إضافة معرف المستخدم للصورة
+              thumbnailUrl // إضافة رابط الصورة المصغرة للفيديوهات
             };
           });
           
@@ -649,29 +663,38 @@ export default function EventAlbum() {
                         >
                           {it.type === "video" ? (
                             <div className="relative w-full h-full bg-black">
-                              <video 
-                                className="w-full h-full object-cover" 
-                                preload="metadata"
-                                poster=""
-                                muted
-                                playsInline
-                                onLoadedData={(e) => {
-                                  const video = e.currentTarget;
-                                  const canvas = document.createElement('canvas');
-                                  const ctx = canvas.getContext('2d');
-                                  if (ctx) {
-                                    canvas.width = video.videoWidth || 320;
-                                    canvas.height = video.videoHeight || 240;
-                                    video.currentTime = 1; // Get frame at 1 second
-                                    video.onseeked = () => {
-                                      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                      video.poster = canvas.toDataURL('image/jpeg', 0.8);
-                                    };
-                                  }
-                                }}
-                              >
-                                <source src={it.url} type="video/mp4" />
-                              </video>
+                              {it.thumbnailUrl ? (
+                                <img 
+                                  src={it.thumbnailUrl} 
+                                  alt={`غلاف فيديو ${idx + 1}`} 
+                                  className="w-full h-full object-cover" 
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <video 
+                                  className="w-full h-full object-cover" 
+                                  preload="metadata"
+                                  poster=""
+                                  muted
+                                  playsInline
+                                  onLoadedData={(e) => {
+                                    const video = e.currentTarget;
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    if (ctx) {
+                                      canvas.width = video.videoWidth || 320;
+                                      canvas.height = video.videoHeight || 240;
+                                      video.currentTime = 1; // Get frame at 1 second
+                                      video.onseeked = () => {
+                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                        video.poster = canvas.toDataURL('image/jpeg', 0.8);
+                                      };
+                                    }
+                                  }}
+                                >
+                                  <source src={it.url} type="video/mp4" />
+                                </video>
+                              )}
                               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                 <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
                                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
