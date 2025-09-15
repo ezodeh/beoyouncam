@@ -14,7 +14,7 @@ import { Plus, X, ChevronLeft, ChevronRight, PartyPopper, Images, SquareStack, S
 import { supabase } from "@/integrations/supabase/client";
 import { formatShortDate } from "@/lib/dateUtils";
 // سنجلب الوسائط من التخزين بدل البيانات التجريبية
-interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; userId?: string; thumbnailUrl?: string | null; }
+interface MediaItem { url: string; type: "image" | "video"; createdAt?: string | null; name: string; participantName?: string; userId?: string; }
 
 
 export default function EventAlbum() {
@@ -507,27 +507,13 @@ export default function EventAlbum() {
             const participantName = participantMap.get(f.name) || "مشارك";
             const fileUserId = userIdMap.get(f.name);
             
-            // للفيديوهات، ابحث عن الصورة المصغرة
-            let thumbnailUrl = null;
-            if (type === "video") {
-              const baseFileName = f.name.split('.')[0]; // إزالة الامتداد
-              const thumbnailFile = files?.find((tf: any) => 
-                tf.name && tf.name.startsWith('thumb-') && tf.name.includes(baseFileName)
-              );
-              if (thumbnailFile) {
-                const { data: thumbPub } = supabase.storage.from("event-media").getPublicUrl(`${prefix}/${thumbnailFile.name}`);
-                thumbnailUrl = thumbPub.publicUrl;
-              }
-            }
-            
             return { 
               url: pub.publicUrl, 
               type, 
               createdAt: (f as any).created_at ?? null, 
               name: f.name,
               participantName,
-              userId: fileUserId, // إضافة معرف المستخدم للصورة
-              thumbnailUrl // إضافة رابط الصورة المصغرة للفيديوهات
+              userId: fileUserId
             };
           });
           
@@ -662,46 +648,25 @@ export default function EventAlbum() {
                           aria-label={`عرض ${it.type === 'video' ? 'الفيديو' : 'الصورة'} رقم ${idx + 1}`}
                         >
                           {it.type === "video" ? (
-                            <div className="relative w-full h-full bg-black">
-                              {it.thumbnailUrl ? (
-                                <img 
-                                  src={it.thumbnailUrl} 
-                                  alt={`غلاف فيديو ${idx + 1}`} 
-                                  className="w-full h-full object-cover" 
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <video 
-                                  className="w-full h-full object-cover" 
-                                  preload="metadata"
-                                  poster=""
-                                  muted
-                                  playsInline
-                                  onLoadedData={(e) => {
-                                    const video = e.currentTarget;
-                                    const canvas = document.createElement('canvas');
-                                    const ctx = canvas.getContext('2d');
-                                    if (ctx) {
-                                      canvas.width = video.videoWidth || 320;
-                                      canvas.height = video.videoHeight || 240;
-                                      video.currentTime = 1; // Get frame at 1 second
-                                      video.onseeked = () => {
-                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                        video.poster = canvas.toDataURL('image/jpeg', 0.8);
-                                      };
-                                    }
-                                  }}
-                                >
-                                  <source src={it.url} type="video/mp4" />
-                                </video>
-                              )}
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
-                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="relative w-full h-full bg-gray-900">
+                              <img 
+                                src={`https://img.youtube.com/vi/default/0.jpg`}
+                                alt={`غلاف فيديو ${idx + 1}`} 
+                                className="w-full h-full object-cover opacity-20" 
+                                loading="lazy"
+                                onError={(e) => {
+                                  // في حالة فشل التحميل، أخفي الصورة واعرض خلفية فقط
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm border border-white/30">
+                                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z"/>
                                   </svg>
                                 </div>
                               </div>
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                             </div>
                           ) : (
                             <img src={it.url} alt={`صورة ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />

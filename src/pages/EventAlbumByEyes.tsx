@@ -236,31 +236,10 @@ export default function EventAlbumByEyes() {
       }
 
       if (submissions && submissions.length > 0) {
-        // جلب الملفات من التخزين للحصول على الصور المصغرة للفيديوهات
-        const prefix = `events/${token}`;
-        const { data: allFiles } = await supabase.storage
-          .from("event-media")
-          .list(prefix, { limit: 1000 });
-
         const photosWithUrls = submissions.map(submission => {
           const { data: { publicUrl } } = supabase.storage
             .from("event-media")
             .getPublicUrl(submission.file_path);
-          
-          // للفيديوهات، ابحث عن الصورة المصغرة
-          let thumbnailUrl = null;
-          if (submission.media_type === "video" && allFiles) {
-            const fileName = submission.file_name.split('.')[0]; // إزالة الامتداد
-            const thumbnailFile = allFiles.find((f: any) => 
-              f.name && f.name.startsWith('thumb-') && f.name.includes(fileName)
-            );
-            if (thumbnailFile) {
-              const { data: thumbPub } = supabase.storage
-                .from("event-media")
-                .getPublicUrl(`${prefix}/${thumbnailFile.name}`);
-              thumbnailUrl = thumbPub.publicUrl;
-            }
-          }
           
           console.log("🖼️ Generated URL for:", submission.file_path, "->", publicUrl);
           
@@ -269,8 +248,7 @@ export default function EventAlbumByEyes() {
             src: publicUrl,
             alt: `صورة من ${decodedName}`,
             type: submission.media_type === "video" ? "video" : "image",
-            name: submission.file_name,
-            thumbnailUrl
+            name: submission.file_name
           };
         });
         
@@ -465,46 +443,24 @@ export default function EventAlbumByEyes() {
                         aria-label={`فتح ${photo.type === 'video' ? 'الفيديو' : 'الصورة'} ${idx + 1} بملء الشاشة`}
                       >
                         {photo.type === "video" ? (
-                          <div className="relative w-full h-full bg-black">
-                            {photo.thumbnailUrl ? (
-                              <img 
-                                src={photo.thumbnailUrl} 
-                                alt={`غلاف ${photo.alt}`} 
-                                className="w-full h-full object-cover" 
-                                loading="lazy"
-                              />
-                            ) : (
-                              <video 
-                                className="w-full h-full object-cover" 
-                                preload="metadata"
-                                poster=""
-                                muted
-                                playsInline
-                                onLoadedData={(e) => {
-                                  const video = e.currentTarget;
-                                  const canvas = document.createElement('canvas');
-                                  const ctx = canvas.getContext('2d');
-                                  if (ctx) {
-                                    canvas.width = video.videoWidth || 320;
-                                    canvas.height = video.videoHeight || 240;
-                                    video.currentTime = 1; // Get frame at 1 second
-                                    video.onseeked = () => {
-                                      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                      video.poster = canvas.toDataURL('image/jpeg', 0.8);
-                                    };
-                                  }
-                                }}
-                              >
-                                <source src={photo.src} type="video/mp4" />
-                              </video>
-                            )}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <div className="relative w-full h-full bg-gray-900">
+                            <img 
+                              src={`https://img.youtube.com/vi/default/0.jpg`}
+                              alt={`غلاف ${photo.alt}`} 
+                              className="w-full h-full object-cover opacity-20" 
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm border border-white/30">
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M8 5v14l11-7z"/>
                                 </svg>
                               </div>
                             </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                           </div>
                         ) : (
                           <img
