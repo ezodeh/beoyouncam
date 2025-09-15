@@ -25,7 +25,7 @@ export default function EventWelcome() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean; welcome_title?: string | null; welcome_text?: string | null } | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title?: string | null; description?: string | null; sign_in_method?: "phone" | "email" | null; share_method?: "whatsapp" | "email" | null; cover_url?: string | null; start_at?: string | null; end_at?: string | null; show_header?: boolean; welcome_title?: string | null; welcome_text?: string | null } | null>(null);
 
   useEffect(() => {
     const title = eventDetails?.title || eventName;
@@ -42,7 +42,7 @@ export default function EventWelcome() {
       if (!token) return;
       const { data: row, error } = await supabase
         .from("events")
-        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
+        .select("title, description, sign_in_method, share_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
         .eq("token", token as string)
         .maybeSingle();
       const data: any = row;
@@ -65,8 +65,11 @@ export default function EventWelcome() {
         setEventDetails({
           ...(row as any),
           sign_in_method: (row.sign_in_method as "phone" | "email" | null),
+          share_method: (row.share_method as "whatsapp" | "email" | null),
         });
-        if (row.sign_in_method) setTab(row.sign_in_method as any);
+        // Use share_method to determine the form type
+        const formMethod = row.share_method === "whatsapp" ? "phone" : "email";
+        setTab(formMethod as any);
       }
     })();
   }, [token]);
@@ -281,7 +284,7 @@ export default function EventWelcome() {
             <p className="mt-6 md:mt-7 text-muted-foreground">{eventDetails?.welcome_text || eventDetails?.description?.trim() || "يا هلا بكم"}</p>
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
-            {(eventDetails?.sign_in_method ?? tab) === "phone" && (
+            {tab === "phone" && (
               <TabsContent value="phone" className="space-y-3" forceMount>
                 <div>
                   <Label htmlFor="name" className="block mb-2.5 text-right">الاسم</Label>
@@ -305,7 +308,7 @@ export default function EventWelcome() {
                 <Button className="w-full rounded-full" disabled={loading || name.trim().length === 0 || phone.trim().length < 6} onClick={submit}>ابدأ</Button>
               </TabsContent>
             )}
-            {(eventDetails?.sign_in_method ?? tab) === "email" && (
+            {tab === "email" && (
               <TabsContent value="email" className="space-y-3" forceMount>
                 <div>
                   <Label htmlFor="name2" className="block mb-2.5 text-right">الاسم</Label>
