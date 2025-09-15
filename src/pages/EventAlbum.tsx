@@ -649,15 +649,12 @@ export default function EventAlbum() {
                         >
                           {it.type === "video" ? (
                             <div className="relative w-full h-full bg-gray-900">
-                              <img 
-                                src={`https://img.youtube.com/vi/default/0.jpg`}
-                                alt={`غلاف فيديو ${idx + 1}`} 
-                                className="w-full h-full object-cover opacity-20" 
-                                loading="lazy"
-                                onError={(e) => {
-                                  // في حالة فشل التحميل، أخفي الصورة واعرض خلفية فقط
-                                  e.currentTarget.style.display = 'none';
-                                }}
+                              <video 
+                                src={it.url}
+                                className="w-full h-full object-cover"
+                                muted
+                                preload="metadata"
+                                poster=""
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm border border-white/30">
