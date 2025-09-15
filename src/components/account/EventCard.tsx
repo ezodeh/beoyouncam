@@ -342,11 +342,11 @@ export default function EventCard({
       <div className="p-3 pt-0 border-t">
         <div className="flex items-center justify-between min-h-10">
           <div className={`flex flex-wrap items-center gap-3 ${isPast ? 'invisible' : ''}`}>
-            <Link to={`/album/${event.token}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
+            <Link to={`/album/${event.token}/intro`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="زيارة الألبوم">
               <Image className="h-4 w-4" />
               <span>الألبوم</span>
             </Link>
-            <Link to={`/event/${event.token}/camera`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="فتح الكاميرا">
+            <Link to={`/event/${event.token}/camera?title=${encodeURIComponent(event.title)}`} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors" title="فتح الكاميرا">
               <Camera className="h-4 w-4" />
               <span>الكاميرا</span>
             </Link>
