@@ -41,9 +41,7 @@ export default function EventWelcome() {
     (async () => {
       if (!token) return;
       const { data: row, error } = await supabase
-        .from("events")
-        .select("title, description, sign_in_method, share_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
-        .eq("token", token as string)
+        .rpc("get_public_event_info", { event_token: token as string })
         .maybeSingle();
       const data: any = row;
       if (!error && data) {
