@@ -326,7 +326,7 @@ export default function EventCard({
           </div>
           <div className="p-3">
             <div className="font-nastaliq text-xl">{event.title}</div>
-            
+            <div className="text-sm text-muted-foreground">{subtitle}</div>
           </div>
         </div> : <Link to={linkTo}>
           <div className="aspect-video bg-muted overflow-hidden">
@@ -334,7 +334,7 @@ export default function EventCard({
           </div>
           <div className="p-3">
             <div className="font-nastaliq text-xl">{event.title}</div>
-            
+            <div className="text-sm text-muted-foreground">{subtitle}</div>
           </div>
         </Link>}
 
