@@ -761,7 +761,7 @@ export default function EventAlbum() {
 
                 {/* زر عائم لإضافة مباركة - يسار الشاشة */}
                 <button
-                  className="fixed bottom-20 left-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
+                  className="fixed bottom-28 left-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-elevated flex items-center justify-center"
                   onClick={() => setShowCongratsDialog(true)}
                   aria-label="إضافة مباركة"
                 >
