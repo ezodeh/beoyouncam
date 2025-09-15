@@ -11,15 +11,43 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getEventSettings } from "@/lib/eventSettings";
 
-const schema = z.object({
-  name: z.string().min(2, "الاسم مطلوب"),
-  phone: z.string().regex(/^\+?\d{8,15}$/u, "رقم هاتف غير صالح"),
-  email: z.string().email("بريد إلكتروني غير صالح"),
-  blessing: z.string().min(4, "اكتب مباركتك").max(500, "كلام كثير شوي")
-});
+// Dynamic schema creator based on event settings
+const createSchema = (shareMethod?: "email" | "whatsapp", hasAutoPublish?: boolean) => {
+  const baseSchema = {
+    name: z.string().min(2, "الاسم مطلوب"),
+    blessing: z.string().min(4, "اكتب مباركتك").max(500, "كلام كثير شوي")
+  };
 
-type FormData = z.infer<typeof schema>;
+  // If auto publish is not enabled, default to email
+  if (!hasAutoPublish) {
+    return z.object({
+      ...baseSchema,
+      email: z.string().email("بريد إلكتروني غير صالح")
+    });
+  }
+
+  // If auto publish is enabled, collect based on share method
+  if (shareMethod === "email") {
+    return z.object({
+      ...baseSchema,
+      email: z.string().email("بريد إلكتروني غير صالح")
+    });
+  } else {
+    return z.object({
+      ...baseSchema,
+      phone: z.string().regex(/^\+?\d{8,15}$/u, "رقم هاتف غير صالح")
+    });
+  }
+};
+
+type FormData = {
+  name: string;
+  blessing: string;
+  phone?: string;
+  email?: string;
+};
 
 // Default congratulations messages
 const defaultBlessings = [
@@ -37,18 +65,41 @@ export default function EventFinalSubmit() {
   const location = useLocation();
   const { toast } = useToast();
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
+  const [eventSettings, setEventSettings] = useState<{
+    share_method?: "email" | "whatsapp";
+    album_publish_time?: string;
+  } | null>(null);
 
   useEffect(() => {
     document.title = "تسليم الألبوم — عيون cam";
-  }, []);
+    
+    // Load event settings to determine form requirements
+    (async () => {
+      if (!token) return;
+      try {
+        const settings = await getEventSettings(token);
+        if (settings) {
+          setEventSettings({
+            share_method: settings.share_method,
+            album_publish_time: settings.album_publish_time
+          });
+        }
+      } catch (error) {
+        console.error("Error loading event settings:", error);
+      }
+    })();
+  }, [token]);
 
+  // Determine if auto publish is enabled
+  const hasAutoPublish = eventSettings?.album_publish_time !== undefined && eventSettings.album_publish_time !== "manual";
+  
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ 
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createSchema(eventSettings?.share_method, hasAutoPublish)),
     defaultValues: {
       blessing: defaultBlessings[Math.floor(Math.random() * defaultBlessings.length)]
     }
@@ -203,21 +254,26 @@ export default function EventFinalSubmit() {
                   )}
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input id="phone" inputMode="tel" {...register("phone")} placeholder="مثال: +9627xxxxxxxx" />
-                  {errors.phone && (
-                    <span className="text-sm text-destructive">{errors.phone.message}</span>
-                  )}
-                </div>
+                {/* Conditional form fields based on auto publish settings */}
+                {(!hasAutoPublish || eventSettings?.share_method === "email") && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Input id="email" type="email" inputMode="email" {...register("email")} placeholder="name@example.com" />
+                    {errors.email && (
+                      <span className="text-sm text-destructive">{errors.email.message}</span>
+                    )}
+                  </div>
+                )}
 
-                <div className="grid gap-2">
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input id="email" type="email" inputMode="email" {...register("email")} placeholder="name@example.com" />
-                  {errors.email && (
-                    <span className="text-sm text-destructive">{errors.email.message}</span>
-                  )}
-                </div>
+                {(hasAutoPublish && eventSettings?.share_method === "whatsapp") && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">رقم الهاتف</Label>
+                    <Input id="phone" inputMode="tel" {...register("phone")} placeholder="مثال: +9627xxxxxxxx" />
+                    {errors.phone && (
+                      <span className="text-sm text-destructive">{errors.phone.message}</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid gap-2">
                   <Label htmlFor="blessing">مباركتك للحفل</Label>
