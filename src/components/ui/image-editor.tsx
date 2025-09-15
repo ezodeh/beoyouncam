@@ -12,7 +12,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageEditorProps {
   src: string;
-  onImageChange: (newImageSrc: string) => void;
+  onImageChange: (newImageSrc: string, blob?: Blob) => void;
   children: React.ReactNode;
 }
 
@@ -110,7 +110,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
-          onImageChange(url);
+          onImageChange(url, blob);
           setOpen(false);
         }
       }, 'image/jpeg', 0.9);
@@ -121,7 +121,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
-            onImageChange(url);
+            onImageChange(url, blob);
             setOpen(false);
           }
         }, 'image/png');
@@ -137,7 +137,7 @@ export function ImageEditor({ src, onImageChange, children }: ImageEditorProps) 
           newCanvas.toBlob((blob) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
-              onImageChange(url);
+              onImageChange(url, blob);
               setOpen(false);
             }
           }, 'image/png');

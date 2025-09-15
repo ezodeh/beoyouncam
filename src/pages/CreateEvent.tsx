@@ -776,13 +776,15 @@ export default function CreateEvent() {
                                   <div className="flex gap-2 flex-wrap">
                                     {/* Show image editor only after uploading or for local preview */}
                                     {(welcomePageHeroImage || welcomePageHeroPreview) && (
-                                      <ImageEditor 
-                                        src={welcomePageHeroImage || welcomePageHeroPreview || ""}
-                                        onImageChange={(imageData) => {
-                                          // Convert blob to file and upload
-                                          const file = new File([imageData], 'edited-cover.jpg', { type: 'image/jpeg' });
-                                          handleImageUpload(file, 'welcome_page_hero_image');
-                                        }}
+                                       <ImageEditor 
+                                         src={welcomePageHeroImage || welcomePageHeroPreview || ""}
+                                         onImageChange={(imageData, blob) => {
+                                           if (blob) {
+                                             // Convert blob to file and upload
+                                             const file = new File([blob], 'edited-cover.jpg', { type: 'image/jpeg' });
+                                             handleImageUpload(file, 'welcome_page_hero_image');
+                                           }
+                                         }}
                                       >
                                         <Button variant="outline" size="sm">
                                           <Eye className="w-4 h-4 mr-2" />
