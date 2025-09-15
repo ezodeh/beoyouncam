@@ -56,7 +56,7 @@ export default function EventAlbum() {
         .maybeSingle();
       
       if (data) {
-        setTitle(data.album_title || data.title || "مناسبة");
+        setTitle((data.album_title && data.album_title !== "الألبوم") ? data.album_title : data.title || "مناسبة");
         setCoverUrl(data.album_cover_url || data.cover_url || null);
         setShowHeader(data.show_header !== false);
         
