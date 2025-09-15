@@ -784,12 +784,54 @@ export default function EventAlbum() {
                     </Link>
                     {isEventOwner && (
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.preventDefault();
-                          if (confirm(`هل أنت متأكد من حذف جميع صور ${album.person_name}؟`)) {
-                            // حذف الألبوم الشخصي
-                            setPersonalAlbums(prev => prev.filter(a => a.id !== album.id));
-                            toast({ title: `تم حذف ألبوم ${album.person_name}` });
+                          if (confirm(`هل أنت متأكد من حذف جميع صور ${album.person_name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
+                            try {
+                              console.log("🗑️ حذف ألبوم:", album.person_name);
+                              
+                              // البحث عن المشارك
+                              const { data: participants } = await supabase
+                                .from("participants")
+                                .select("id, name")
+                                .eq("event_token", token)
+                                .eq("name", album.person_name);
+
+                              if (participants && participants.length > 0) {
+                                const participantIds = participants.map(p => p.id);
+                                
+                                // جلب الملفات للحذف
+                                const { data: submissions } = await supabase
+                                  .from("media_submissions")
+                                  .select("file_path")
+                                  .eq("event_token", token)
+                                  .in("participant_id", participantIds);
+
+                                if (submissions && submissions.length > 0) {
+                                  // حذف من التخزين
+                                  const filePaths = submissions.map(s => s.file_path);
+                                  await supabase.storage
+                                    .from("event-media")
+                                    .remove(filePaths);
+
+                                  // حذف من قاعدة البيانات
+                                  await supabase
+                                    .from("media_submissions")
+                                    .delete()
+                                    .eq("event_token", token)
+                                    .in("participant_id", participantIds);
+                                }
+                              }
+                              
+                              // تحديث الواجهة
+                              setPersonalAlbums(prev => prev.filter(a => a.id !== album.id));
+                              setMedia(prev => prev.filter(m => !m.name?.includes(album.person_name)));
+                              toast({ title: `تم حذف ألبوم ${album.person_name}` });
+                              
+                            } catch (error) {
+                              console.error("❌ خطأ في حذف الألبوم:", error);
+                              toast({ title: "خطأ", description: "تعذّر حذف الألبوم", variant: "destructive" });
+                            }
                           }
                         }}
                         className="absolute top-2 left-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"

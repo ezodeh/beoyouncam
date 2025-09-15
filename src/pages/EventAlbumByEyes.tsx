@@ -287,30 +287,59 @@ export default function EventAlbumByEyes() {
     try {
       console.log("🗑️ Starting deletion for participant:", name);
       
-      // الحصول على معرف المشارك بنفس المنطق المحسن
-      const { data: participants } = await supabase
+      // فك تشفير اسم المشارك من URL مثل التنفيذ في fetchPhotos
+      const decodedName = decodeURIComponent(name);
+      
+      // استخراج الاسم الحقيقي من النص المركب
+      let actualName = decodedName;
+      if (decodedName.includes("البوم بعيون")) {
+        const parts = decodedName.split("البوم بعيون ");
+        if (parts.length > 1) {
+          actualName = parts[1].trim();
+        }
+      }
+      
+      console.log("📝 Searching for participant with name:", actualName);
+      
+      // البحث عن جميع المشاركين بنفس الاسم
+      let { data: participants } = await supabase
         .from("participants")
         .select("id, name")
         .eq("event_token", token)
-        .ilike("name", `%${name}%`);
+        .eq("name", actualName);
+
+      // إذا لم نجد شيئاً، جرب البحث بالتشابه
+      if (!participants || participants.length === 0) {
+        console.log("🔄 Trying similar match with actual name:", actualName);
+        const { data: participants2 } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token)
+          .ilike("name", `%${actualName}%`);
+        participants = participants2;
+      }
+
+      console.log("👥 Found participants for deletion:", participants);
 
       if (!participants || participants.length === 0) {
         console.log("❌ No participant found for deletion");
+        toast({ title: "خطأ", description: "لم يتم العثور على مشارك بهذا الاسم", variant: "destructive" });
         return;
       }
 
-      const participant = participants[0];
-      console.log("✅ Found participant for deletion:", participant);
+      // جلب جميع الصور من جميع المشاركين بنفس الاسم
+      const participantIds = participants.map(p => p.id);
+      console.log("🔍 Getting media for participant IDs:", participantIds);
 
-      // حذف الملفات من media_submissions
       const { data: submissions } = await supabase
         .from("media_submissions")
-        .select("file_path, file_name")
-        .eq("participant_id", participant.id);
+        .select("file_path, file_name, id")
+        .eq("event_token", token)
+        .in("participant_id", participantIds);
+
+      console.log("📁 Files to delete:", submissions?.length || 0);
 
       if (submissions && submissions.length > 0) {
-        console.log("📁 Files to delete:", submissions.length);
-        
         // حذف الملفات من التخزين
         const filePaths = submissions.map(s => s.file_path);
         const { error: storageError } = await supabase.storage
@@ -319,23 +348,29 @@ export default function EventAlbumByEyes() {
 
         if (storageError) {
           console.error("❌ Storage deletion error:", storageError);
+        } else {
+          console.log("✅ Files deleted from storage");
         }
 
         // حذف السجلات من قاعدة البيانات
         const { error: dbError } = await supabase
           .from("media_submissions")
           .delete()
-          .eq("participant_id", participant.id);
+          .eq("event_token", token)
+          .in("participant_id", participantIds);
 
         if (dbError) {
           console.error("❌ Database deletion error:", dbError);
+          throw dbError;
+        } else {
+          console.log("✅ Records deleted from database");
         }
 
         // تحديث الواجهة
         setPhotos([]);
       }
 
-      toast({ title: `تم حذف جميع صور ${name}` });
+      toast({ title: `تم حذف جميع صور ${actualName}` });
       console.log("✅ Deletion completed successfully");
       
     } catch (error) {
