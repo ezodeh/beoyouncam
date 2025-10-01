@@ -17,6 +17,7 @@ interface Props {
 type LocalItem = {
   url: string;
   type: "image" | "video";
+  filePath?: string; // المسار الفعلي للملف في التخزين
 };
 const MobileCamera: React.FC<Props> = ({
   eventName,
@@ -281,19 +282,34 @@ const MobileCamera: React.FC<Props> = ({
         type: "image/jpeg"
       });
       const newLeft = Math.max(0, left - 1);
+      
+      // حفظ الملف مؤقتاً في الحالة المحلية بدون filePath
+      const tempUrl = URL.createObjectURL(file);
       setRecent(r => [{
-        url: URL.createObjectURL(file),
+        url: tempUrl,
         type: "image" as const
       }, ...r].slice(0, 20));
+      
       // Don't auto-open fullscreen
       setLeft(newLeft);
       toast({
         title: `تم الالتقاط ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
       });
       try {
-        await uploadFile(file, "image");
+        const uploadedPath = await uploadFile(file, "image");
+        
+        // تحديث الحالة المحلية بالمسار الحقيقي
+        if (uploadedPath) {
+          setRecent(r => r.map(item => 
+            item.url === tempUrl 
+              ? { ...item, filePath: uploadedPath }
+              : item
+          ));
+        }
       } catch (e) {
         setLeft(n => Math.min(maxShots, n + 1));
+        // إزالة الصورة من الحالة المحلية إذا فشل الرفع
+        setRecent(r => r.filter(item => item.url !== tempUrl));
         setShowRetry({});
       }
     } catch (e) {
@@ -356,6 +372,8 @@ const MobileCamera: React.FC<Props> = ({
           
           canvas.toBlob(async (thumbnailBlob) => {
             const newLeft = Math.max(0, left - 1);
+            
+            // حفظ الفيديو مؤقتاً في الحالة المحلية
             setRecent(r => [{
               url: videoUrl,
               type: "video" as const
@@ -367,9 +385,20 @@ const MobileCamera: React.FC<Props> = ({
             });
             
             try {
-              await uploadFile(file, "video", thumbnailBlob || undefined);
+              const uploadedPath = await uploadFile(file, "video", thumbnailBlob || undefined);
+              
+              // تحديث الحالة المحلية بالمسار الحقيقي
+              if (uploadedPath) {
+                setRecent(r => r.map(item => 
+                  item.url === videoUrl 
+                    ? { ...item, filePath: uploadedPath }
+                    : item
+                ));
+              }
             } catch (e) {
               setLeft(n => Math.min(maxShots, n + 1));
+              // إزالة الفيديو من الحالة المحلية إذا فشل الرفع
+              setRecent(r => r.filter(item => item.url !== videoUrl));
               setShowRetry({
                 file,
                 kind: "video"
@@ -401,7 +430,7 @@ const MobileCamera: React.FC<Props> = ({
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [recording, countdown]);
-  async function uploadFile(file: File, kind: "image" | "video", thumbnailBlob?: Blob) {
+  async function uploadFile(file: File, kind: "image" | "video", thumbnailBlob?: Blob): Promise<string | null> {
     const ext = file.name.split(".").pop() || (kind === "image" ? "jpg" : "webm");
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const path = `events/${token}/${filename}`;
@@ -569,6 +598,9 @@ const MobileCamera: React.FC<Props> = ({
         title: "تم الرفع ✅",
         duration: 300, // أسرع - ثلث ثانية فقط
       });
+      
+      // إرجاع المسار للاستخدام في تحديث الحالة المحلية
+      return path;
     } catch (e) {
       toast({
         title: "فشل — حاول مجددًا"
@@ -883,7 +915,17 @@ const MobileCamera: React.FC<Props> = ({
             setLeft(newLeft);
             
             try {
-              await uploadFile(f, fileType);
+              const uploadedPath = await uploadFile(f, fileType);
+              
+              // تحديث الحالة المحلية بالمسار الحقيقي
+              if (uploadedPath) {
+                setRecent(r => r.map(item => 
+                  item.url === fileUrl 
+                    ? { ...item, filePath: uploadedPath }
+                    : item
+                ));
+              }
+              
               toast({
                 title: `تم الرفع ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
               });
@@ -970,31 +1012,52 @@ const MobileCamera: React.FC<Props> = ({
                       const urlToDelete = item.url;
                       setRecent(r => r.filter(i => i.url !== urlToDelete));
                       
-                      // محاولة العثور على الملف في التخزين للحذف
-                      const fileName = urlToDelete.split('/').pop() || '';
-                      if (fileName) {
-                        const filePath = `events/${token}/${fileName}`;
+                      // استخدام المسار المحفوظ للحذف
+                      if (item.filePath) {
+                        console.log("🗑️ حذف الملف من المسار:", item.filePath);
+                        
+                        // البحث عن معلومات الملف في قاعدة البيانات
+                        const { data: mediaData } = await supabase
+                          .from("media_submissions")
+                          .select("thumbnail_path")
+                          .eq("file_path", item.filePath)
+                          .maybeSingle();
                         
                         // حذف من التخزين
-                        const { error } = await supabase.storage
-                          .from("event-media")
-                          .remove([filePath]);
+                        const filesToDelete = [item.filePath];
+                        if (mediaData?.thumbnail_path) {
+                          filesToDelete.push(mediaData.thumbnail_path);
+                        }
                         
-                        if (error) {
-                          console.warn("⚠️ خطأ في حذف من التخزين:", error);
+                        const { error: storageError } = await supabase.storage
+                          .from("event-media")
+                          .remove(filesToDelete);
+                        
+                        if (storageError) {
+                          console.warn("⚠️ خطأ في حذف من التخزين:", storageError);
+                        } else {
+                          console.log("✅ تم حذف الملف من التخزين");
                         }
                         
                         // حذف من قاعدة البيانات
-                        await supabase
+                        const { error: dbError } = await supabase
                           .from("media_submissions")
                           .delete()
-                          .eq("file_path", filePath);
+                          .eq("file_path", item.filePath);
+                        
+                        if (dbError) {
+                          console.warn("⚠️ خطأ في حذف من قاعدة البيانات:", dbError);
+                        } else {
+                          console.log("✅ تم حذف السجل من قاعدة البيانات");
+                        }
+                      } else {
+                        console.warn("⚠️ لا يوجد مسار محفوظ للملف - قد يكون الرفع لم يكتمل بعد");
                       }
                       
                       // تحديث العداد
                       setLeft(n => Math.min(maxShots, n + 1));
                       
-                      toast({ title: "تم حذف اللقطة" });
+                      toast({ title: "تم حذف اللقطة من كل الأماكن" });
                       
                     } catch (error) {
                       console.error("❌ خطأ في حذف اللقطة:", error);
@@ -1021,10 +1084,52 @@ const MobileCamera: React.FC<Props> = ({
           {viewerIndex !== null && recent[viewerIndex] && <div className="relative w-full h-full bg-black">
               <div className="absolute top-3 left-3 z-20 flex gap-2">
                 <Button variant="secondary" onClick={() => setViewerIndex(null)}>إغلاق</Button>
-                <Button variant="destructive" onClick={() => {
-              setRecent(r => r.filter((_, i) => i !== viewerIndex));
-              setLeft(n => Math.min(maxShots, n + 1));
-              setViewerIndex(null);
+                <Button variant="destructive" onClick={async () => {
+              if (viewerIndex === null) return;
+              
+              const itemToDelete = recent[viewerIndex];
+              
+              // تأكيد الحذف
+              const confirmed = confirm("⚠️ هل أنت متأكد من حذف هذه اللقطة نهائياً؟");
+              if (!confirmed) return;
+              
+              try {
+                // حذف من الحالة المحلية أولاً
+                setRecent(r => r.filter((_, i) => i !== viewerIndex));
+                setLeft(n => Math.min(maxShots, n + 1));
+                setViewerIndex(null);
+                
+                // حذف من التخزين وقاعدة البيانات
+                if (itemToDelete.filePath) {
+                  console.log("🗑️ حذف الملف من المسار:", itemToDelete.filePath);
+                  
+                  // حذف من التخزين
+                  const { error: storageError } = await supabase.storage
+                    .from("event-media")
+                    .remove([itemToDelete.filePath]);
+                  
+                  if (storageError) {
+                    console.warn("⚠️ خطأ في حذف من التخزين:", storageError);
+                  }
+                  
+                  // حذف من قاعدة البيانات
+                  const { error: dbError } = await supabase
+                    .from("media_submissions")
+                    .delete()
+                    .eq("file_path", itemToDelete.filePath);
+                  
+                  if (dbError) {
+                    console.warn("⚠️ خطأ في حذف من قاعدة البيانات:", dbError);
+                  }
+                  
+                  toast({ title: "تم حذف اللقطة من كل الأماكن" });
+                } else {
+                  toast({ title: "تم حذف اللقطة محلياً" });
+                }
+              } catch (error) {
+                console.error("❌ خطأ في حذف اللقطة:", error);
+                toast({ title: "خطأ في الحذف", variant: "destructive" });
+              }
             }}>حذف</Button>
                 <Button onClick={() => {
               const a = document.createElement('a');
