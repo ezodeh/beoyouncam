@@ -216,7 +216,7 @@ export default function EventAlbum() {
           if (allUserSubmissions.length > 0) {
             const myAlbum = {
               id: currentUserParticipants[0]?.id || 'current-user',
-              person_name: `البومي- البوم بعيون ${userName || 'مشارك'}`,
+              person_name: `ألبوم بعيون - ${userName || 'مشارك'}`,
               photo_count: allUserSubmissions.length,
               latest_photo: null,
               latest_created_at: null
