@@ -161,28 +161,45 @@ export default function EventAlbumByEyes() {
       if (decodedName.includes("البوم بعيون")) {
         // Pattern: "البومي- البوم بعيون Ez Odeh" or "البوم بعيون Ez Odeh"
         const match = decodedName.match(/(?:البومي-?\s*)?البوم بعيون\s+(.+)/);
+        console.log("🔍 Regex match result:", match);
         if (match && match[1]) {
           actualName = match[1].trim();
           console.log("📝 Extracted actual name from pattern:", actualName);
+        } else {
+          console.log("⚠️ Regex did not match, will use decoded name");
         }
       }
       
-      console.log("📝 Final name to search:", actualName);
+      console.log("📝 Names to try:", { actualName, decodedName, original: name });
       
-      // Use secure function to get participant data by name
+      // Try with the actual extracted name first
+      console.log("🔍 Attempt 1: Searching with actualName:", actualName);
       let participants = await getParticipantByName(token, actualName);
+      console.log("👥 Attempt 1 result:", participants);
 
-      // If no exact match, try with the decoded name
+      // If no match, try with just the English name part
       if (!participants || participants.length === 0) {
-        console.log("🔄 Trying with decoded name:", decodedName);
-        participants = await getParticipantByName(token, decodedName);
+        // Extract just English name (e.g., "Ez Odeh" from any format)
+        const englishMatch = decodedName.match(/[A-Za-z][A-Za-z\s]+$/);
+        if (englishMatch) {
+          const englishName = englishMatch[0].trim();
+          console.log("🔍 Attempt 2: Trying English name only:", englishName);
+          participants = await getParticipantByName(token, englishName);
+          console.log("👥 Attempt 2 result:", participants);
+        }
       }
 
-      // Final fallback: try partial matches for common name variations
+      // If still no match, try with the full decoded name
       if (!participants || participants.length === 0) {
-        // For debugging, we'll just log but not try to get all participants
-        // as this would violate our security model
-        console.log("❌ No participant found with any name variation");
+        console.log("🔍 Attempt 3: Trying with full decoded name:", decodedName);
+        participants = await getParticipantByName(token, decodedName);
+        console.log("👥 Attempt 3 result:", participants);
+      }
+
+      // Final log
+      if (!participants || participants.length === 0) {
+        console.log("❌ No participant found after all attempts");
+        console.log("💡 Suggestion: Check database for exact participant name");
       }
 
       console.log("👥 Found participants:", participants);
