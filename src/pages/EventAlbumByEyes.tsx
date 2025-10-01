@@ -166,11 +166,24 @@ export default function EventAlbumByEyes() {
       
       console.log("📝 Final name to search:", actualName);
       
-      // Check if current user is event owner
+      // Check if current user is event owner (check directly, don't rely on state)
       const { data: { session } } = await supabase.auth.getSession();
       let participants: any[] = [];
+      let isOwner = false;
       
-      if (session?.user?.id && isEventOwner) {
+      if (session?.user?.id) {
+        // Check ownership directly
+        const { data: eventData } = await supabase
+          .from("events")
+          .select("owner_id")
+          .eq("token", token)
+          .maybeSingle();
+        
+        isOwner = eventData?.owner_id === session.user.id;
+        console.log("🔐 Ownership check:", { isOwner, userId: session.user.id, ownerId: eventData?.owner_id });
+      }
+      
+      if (isOwner) {
         // Owner can see all participants directly from DB
         console.log("🔑 Owner access: querying participants directly");
         const { data, error } = await supabase
