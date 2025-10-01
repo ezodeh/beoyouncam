@@ -154,58 +154,46 @@ export default function EventAlbumByEyes() {
       console.log("🔍 Fetching photos for:", { token, name, decodedName });
       
       // استخراج الاسم الحقيقي من النص المركب
-      // إذا كان النص يحتوي على "البوم بعيون" أو "البومي" نستخرج الاسم الحقيقي
       let actualName = decodedName;
       
-      // Try different patterns to extract the real name
       if (decodedName.includes("البوم بعيون")) {
-        // Pattern: "البومي- البوم بعيون Ez Odeh" or "البوم بعيون Ez Odeh"
         const match = decodedName.match(/(?:البومي-?\s*)?البوم بعيون\s+(.+)/);
-        console.log("🔍 Regex match result:", match);
         if (match && match[1]) {
           actualName = match[1].trim();
-          console.log("📝 Extracted actual name from pattern:", actualName);
+          console.log("📝 Extracted actual name:", actualName);
+        }
+      }
+      
+      console.log("📝 Final name to search:", actualName);
+      
+      // Check if current user is event owner
+      const { data: { session } } = await supabase.auth.getSession();
+      let participants: any[] = [];
+      
+      if (session?.user?.id && isEventOwner) {
+        // Owner can see all participants directly from DB
+        console.log("🔑 Owner access: querying participants directly");
+        const { data, error } = await supabase
+          .from("participants")
+          .select("id, name")
+          .eq("event_token", token)
+          .ilike("name", `%${actualName}%`);
+        
+        if (error) {
+          console.error("❌ Error fetching participants:", error);
         } else {
-          console.log("⚠️ Regex did not match, will use decoded name");
+          participants = data || [];
+          console.log("👥 Owner query result:", participants);
         }
-      }
-      
-      console.log("📝 Names to try:", { actualName, decodedName, original: name });
-      
-      // Try with the actual extracted name first
-      console.log("🔍 Attempt 1: Searching with actualName:", actualName);
-      let participants = await getParticipantByName(token, actualName);
-      console.log("👥 Attempt 1 result:", participants);
-
-      // If no match, try with just the English name part
-      if (!participants || participants.length === 0) {
-        // Extract just English name (e.g., "Ez Odeh" from any format)
-        const englishMatch = decodedName.match(/[A-Za-z][A-Za-z\s]+$/);
-        if (englishMatch) {
-          const englishName = englishMatch[0].trim();
-          console.log("🔍 Attempt 2: Trying English name only:", englishName);
-          participants = await getParticipantByName(token, englishName);
-          console.log("👥 Attempt 2 result:", participants);
-        }
+      } else {
+        // Non-owners use secure function (requires published album)
+        console.log("🔓 Public access: using secure function");
+        participants = await getParticipantByName(token, actualName);
+        console.log("👥 Secure function result:", participants);
       }
 
-      // If still no match, try with the full decoded name
       if (!participants || participants.length === 0) {
-        console.log("🔍 Attempt 3: Trying with full decoded name:", decodedName);
-        participants = await getParticipantByName(token, decodedName);
-        console.log("👥 Attempt 3 result:", participants);
-      }
-
-      // Final log
-      if (!participants || participants.length === 0) {
-        console.log("❌ No participant found after all attempts");
-        console.log("💡 Suggestion: Check database for exact participant name");
-      }
-
-      console.log("👥 Found participants:", participants);
-
-      if (!participants || participants.length === 0) {
-        console.log("❌ No participant found with name:", { name, decodedName });
+        console.log("❌ No participant found with name:", actualName);
         setPhotos([]);
         return;
       }
@@ -297,13 +285,19 @@ export default function EventAlbumByEyes() {
       
       console.log("📝 Searching for participant with name:", actualName);
       
-      // Use secure function to get participant data by name
-      let participants = await getParticipantByName(token, actualName);
-
-      // If no exact match, try with similar name
-      if (!participants || participants.length === 0) {
-        console.log("🔄 Trying similar match with actual name:", actualName);
-        participants = await getParticipantByName(token, decodedName);
+      // Owner can query directly from participants table
+      let participants: any[] = [];
+      
+      const { data, error } = await supabase
+        .from("participants")
+        .select("id, name")
+        .eq("event_token", token)
+        .ilike("name", `%${actualName}%`);
+      
+      if (error) {
+        console.error("❌ Error fetching participants:", error);
+      } else {
+        participants = data || [];
       }
 
       console.log("👥 Found participants for deletion:", participants);
