@@ -917,7 +917,7 @@ export function AlbumTab({ token, eventData, onEventUpdate }: AlbumTabProps) {
                   {eyeAlbums.map((album) => (
                     <div key={album.id} className="flex-shrink-0 group">
                       <a 
-                        href={`/album/${token}/eyes/${encodeURIComponent(album.participant_name)}`}
+                        href={`/album/${token}/by/${encodeURIComponent(album.participant_name)}`}
                         className="block w-32 h-32 rounded-lg border bg-gradient-to-br from-secondary/20 to-secondary/40 flex flex-col items-center justify-center hover:bg-secondary/30 transition-colors"
                       >
                         <Eye className="h-8 w-8 text-secondary-foreground/60 mb-2" />
