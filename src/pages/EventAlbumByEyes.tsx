@@ -154,16 +154,20 @@ export default function EventAlbumByEyes() {
       console.log("🔍 Fetching photos for:", { token, name, decodedName });
       
       // استخراج الاسم الحقيقي من النص المركب
-      // إذا كان النص يحتوي على "البوم بعيون" نستخرج الاسم الحقيقي
+      // إذا كان النص يحتوي على "البوم بعيون" أو "البومي" نستخرج الاسم الحقيقي
       let actualName = decodedName;
+      
+      // Try different patterns to extract the real name
       if (decodedName.includes("البوم بعيون")) {
-        // استخراج الاسم بعد "البوم بعيون "
-        const parts = decodedName.split("البوم بعيون ");
-        if (parts.length > 1) {
-          actualName = parts[1].trim();
-          console.log("📝 Extracted actual name:", actualName);
+        // Pattern: "البومي- البوم بعيون Ez Odeh" or "البوم بعيون Ez Odeh"
+        const match = decodedName.match(/(?:البومي-?\s*)?البوم بعيون\s+(.+)/);
+        if (match && match[1]) {
+          actualName = match[1].trim();
+          console.log("📝 Extracted actual name from pattern:", actualName);
         }
       }
+      
+      console.log("📝 Final name to search:", actualName);
       
       // Use secure function to get participant data by name
       let participants = await getParticipantByName(token, actualName);
@@ -264,12 +268,13 @@ export default function EventAlbumByEyes() {
       // فك تشفير اسم المشارك من URL مثل التنفيذ في fetchPhotos
       const decodedName = decodeURIComponent(name);
       
-      // استخراج الاسم الحقيقي من النص المركب
+      // استخراج الاسم الحقيقي من النص المركب (نفس المنطق المستخدم في fetchPhotos)
       let actualName = decodedName;
+      
       if (decodedName.includes("البوم بعيون")) {
-        const parts = decodedName.split("البوم بعيون ");
-        if (parts.length > 1) {
-          actualName = parts[1].trim();
+        const match = decodedName.match(/(?:البومي-?\s*)?البوم بعيون\s+(.+)/);
+        if (match && match[1]) {
+          actualName = match[1].trim();
         }
       }
       
