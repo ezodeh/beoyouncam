@@ -79,7 +79,7 @@ export default function EventAlbum() {
         }
         
         // Check if private and requires password
-        if (data.is_private && data.password_hash && !isEventOwner) {
+        if (data.is_private && data.password_hash && !currentIsEventOwner) {
           // Check server-side access first
           const { data: canAccess, error: accessError } = await supabase.rpc('can_access_album', {
             event_token_param: token,
@@ -90,27 +90,29 @@ export default function EventAlbum() {
             console.error('Error checking album access:', accessError);
           }
 
-          // If server denies access, check for valid session token
+          // If server denies access, check for valid session token with expiration
           if (!canAccess) {
-            const accessData = sessionStorage.getItem(`album_access_${token}`);
+            const accessDataStr = sessionStorage.getItem(`album_access_${token}`);
             
-            if (!accessData) {
+            if (!accessDataStr) {
               navigate(`/album/${token}/private${location.search}`);
               return;
             }
-
+            
             try {
-              const parsed = JSON.parse(accessData);
-              const expiresAt = new Date(parsed.expiresAt);
+              const accessData = JSON.parse(accessDataStr);
+              const now = new Date();
+              const expiresAt = new Date(accessData.expiresAt);
               
-              // Check if token is expired
-              if (!parsed.granted || expiresAt < new Date()) {
+              // Validate access token is not expired
+              if (!accessData.granted || expiresAt <= now) {
+                console.log('🚫 Access token expired, clearing and redirecting to login');
                 sessionStorage.removeItem(`album_access_${token}`);
                 navigate(`/album/${token}/private${location.search}`);
                 return;
               }
-            } catch (e) {
-              // Invalid token format
+            } catch (err) {
+              console.error('Invalid access token format:', err);
               sessionStorage.removeItem(`album_access_${token}`);
               navigate(`/album/${token}/private${location.search}`);
               return;
