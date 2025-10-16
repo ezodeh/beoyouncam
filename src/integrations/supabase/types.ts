@@ -301,6 +301,19 @@ export type Database = {
         Args: { event_token_param: string; user_id_param?: string }
         Returns: boolean
       }
+      get_my_participant_record: {
+        Args: { event_token_param: string }
+        Returns: {
+          consent: boolean
+          country_code: string
+          created_at: string
+          email: string
+          id: string
+          method: string
+          name: string
+          phone: string
+        }[]
+      }
       get_owner_participant_data: {
         Args: { event_token_param: string; owner_user_id: string }
         Returns: {
