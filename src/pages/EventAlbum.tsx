@@ -51,7 +51,7 @@ export default function EventAlbum() {
       
       const { data } = await supabase
         .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, is_album_published, album_cover_url, album_title")
+        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, password_hash, is_album_published, album_cover_url, album_title")
         .eq("token", token)
         .maybeSingle();
       
@@ -79,11 +79,42 @@ export default function EventAlbum() {
         }
         
         // Check if private and requires password
-        if (data.is_private && data.password && !isEventOwner) {
-          const hasAccess = sessionStorage.getItem(`album_access_${token}`);
-          if (!hasAccess) {
-            navigate(`/album/${token}/private${location.search}`);
-            return;
+        if (data.is_private && data.password_hash && !isEventOwner) {
+          // Check server-side access first
+          const { data: canAccess, error: accessError } = await supabase.rpc('can_access_album', {
+            event_token_param: token,
+            user_id_param: session?.user?.id || null
+          });
+
+          if (accessError) {
+            console.error('Error checking album access:', accessError);
+          }
+
+          // If server denies access, check for valid session token
+          if (!canAccess) {
+            const accessData = sessionStorage.getItem(`album_access_${token}`);
+            
+            if (!accessData) {
+              navigate(`/album/${token}/private${location.search}`);
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(accessData);
+              const expiresAt = new Date(parsed.expiresAt);
+              
+              // Check if token is expired
+              if (!parsed.granted || expiresAt < new Date()) {
+                sessionStorage.removeItem(`album_access_${token}`);
+                navigate(`/album/${token}/private${location.search}`);
+                return;
+              }
+            } catch (e) {
+              // Invalid token format
+              sessionStorage.removeItem(`album_access_${token}`);
+              navigate(`/album/${token}/private${location.search}`);
+              return;
+            }
           }
         }
       }

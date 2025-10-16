@@ -63,10 +63,10 @@ export default function EventAlbumPrivate() {
 
     setLoading(true);
     try {
-      // Use secure password verification function
-      const { data, error } = await supabase.rpc('verify_event_password', {
+      // Use secure server-side password verification with expiration
+      const { data, error } = await supabase.rpc('grant_album_access', {
         event_token_param: token,
-        password_param: password.trim()
+        provided_password: password.trim()
       });
       
       if (error) {
@@ -79,9 +79,12 @@ export default function EventAlbumPrivate() {
         return;
       }
       
-      if (data === true) {
-        // Store access permission
-        sessionStorage.setItem(`album_access_${token}`, "granted");
+      if (data && data.length > 0 && data[0].access_granted === true) {
+        // Store access token with server-provided expiration
+        sessionStorage.setItem(`album_access_${token}`, JSON.stringify({
+          granted: true,
+          expiresAt: data[0].expires_at
+        }));
         navigate(`/album/${token}${location.search}`);
       } else {
         toast({

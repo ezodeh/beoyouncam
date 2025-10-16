@@ -273,6 +273,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_album: {
+        Args: { event_token_param: string; user_id_param?: string }
+        Returns: boolean
+      }
       get_owner_participant_data: {
         Args: { event_token_param: string; owner_user_id: string }
         Returns: {
@@ -324,6 +328,13 @@ export type Database = {
           created_at: string
           id: string
           name: string
+        }[]
+      }
+      grant_album_access: {
+        Args: { event_token_param: string; provided_password: string }
+        Returns: {
+          access_granted: boolean
+          expires_at: string
         }[]
       }
       is_event_owner: {
