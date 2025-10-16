@@ -298,14 +298,13 @@ export default function EventAlbumByEyes() {
       
       console.log("📝 Searching for participant with name:", actualName);
       
-      // Owner can query directly from participants table
+      // Use secure RPC function for participant lookup
       let participants: any[] = [];
       
-      const { data, error } = await supabase
-        .from("participants")
-        .select("id, name")
-        .eq("event_token", token)
-        .ilike("name", `%${actualName}%`);
+      const { data, error } = await supabase.rpc('get_participant_by_name', {
+        event_token_param: token,
+        participant_name: actualName
+      });
       
       if (error) {
         console.error("❌ Error fetching participants:", error);

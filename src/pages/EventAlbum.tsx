@@ -199,25 +199,31 @@ export default function EventAlbum() {
           participantsData = result.data || [];
           error = result.error;
         } else {
-          // Non-owners should only see names via RLS
-          const result = await supabase
-            .from('participants')
-            .select(`
-              id, 
-              name,
-              user_id,
-              created_at,
-              media_submissions (
-                id,
-                file_path,
-                file_name,
-                media_type,
-                created_at
-              )
-            `)
-            .eq('event_token', token);
-          participantsData = result.data || [];
-          error = result.error;
+          // Non-owners use secure RPC to get only non-sensitive participant data
+          const { data: publicParticipants, error: rpcError } = await supabase.rpc('get_public_participant_data', {
+            event_token_param: token
+          });
+          
+          if (rpcError) {
+            error = rpcError;
+            participantsData = [];
+          } else {
+            // Get media submissions for each participant
+            const participantsWithMedia = await Promise.all(
+              (publicParticipants || []).map(async (participant: any) => {
+                const { data: media } = await supabase
+                  .from('media_submissions')
+                  .select('id, file_path, file_name, media_type, created_at')
+                  .eq('participant_id', participant.id);
+                
+                return {
+                  ...participant,
+                  media_submissions: media || []
+                };
+              })
+            );
+            participantsData = participantsWithMedia;
+          }
         }
         
         console.log("📊 All participants data:", { participantsData, error });
