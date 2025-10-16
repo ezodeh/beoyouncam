@@ -63,13 +63,23 @@ export default function EventAlbumPrivate() {
 
     setLoading(true);
     try {
-      const { data } = await supabase
-        .from("events")
-        .select("password")
-        .eq("token", token)
-        .maybeSingle();
+      // Use secure password verification function
+      const { data, error } = await supabase.rpc('verify_event_password', {
+        event_token_param: token,
+        password_param: password.trim()
+      });
       
-      if (data && data.password === password.trim()) {
+      if (error) {
+        console.error("Password verification error:", error);
+        toast({
+          title: "خطأ في التحقق",
+          description: "حدث خطأ أثناء التحقق من كلمة المرور",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (data === true) {
         // Store access permission
         sessionStorage.setItem(`album_access_${token}`, "granted");
         navigate(`/album/${token}${location.search}`);
@@ -81,6 +91,7 @@ export default function EventAlbumPrivate() {
         });
       }
     } catch (error) {
+      console.error("Password verification exception:", error);
       toast({
         title: "خطأ في الاتصال",
         description: "حدث خطأ أثناء التحقق من كلمة المرور",

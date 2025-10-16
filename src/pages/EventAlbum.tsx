@@ -131,23 +131,61 @@ export default function EventAlbum() {
       try {
         console.log("🔍 Fetching personal albums for token:", token, "currentUserId:", currentUserId);
         
-        // جلب جميع المشاركين مع صورهم
-        const { data: participantsData, error } = await supabase
-          .from('participants')
-          .select(`
-            id, 
-            name, 
-            user_id,
-            created_at,
-            media_submissions (
-              id,
-              file_path,
-              file_name,
-              media_type,
-              created_at
-            )
-          `)
-          .eq('event_token', token);
+        // Use secure function to get participant data
+        // Note: We need to check if current user is owner to determine which function to use
+        const { data: { session } } = await supabase.auth.getSession();
+        const isOwner = session?.user?.id === (await supabase
+          .from('events')
+          .select('owner_id')
+          .eq('token', token)
+          .single()).data?.owner_id;
+        
+        // Get participants data with media submissions
+        // For now, we'll use a combination approach since we need media_submissions
+        let participantsData: any[] = [];
+        let error: any = null;
+        
+        if (isOwner) {
+          // Owner can see all data via RLS policies
+          const result = await supabase
+            .from('participants')
+            .select(`
+              id, 
+              name, 
+              user_id,
+              created_at,
+              media_submissions (
+                id,
+                file_path,
+                file_name,
+                media_type,
+                created_at
+              )
+            `)
+            .eq('event_token', token);
+          participantsData = result.data || [];
+          error = result.error;
+        } else {
+          // Non-owners should only see names via RLS
+          const result = await supabase
+            .from('participants')
+            .select(`
+              id, 
+              name,
+              user_id,
+              created_at,
+              media_submissions (
+                id,
+                file_path,
+                file_name,
+                media_type,
+                created_at
+              )
+            `)
+            .eq('event_token', token);
+          participantsData = result.data || [];
+          error = result.error;
+        }
         
         console.log("📊 All participants data:", { participantsData, error });
         

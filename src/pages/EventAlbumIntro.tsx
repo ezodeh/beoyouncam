@@ -86,16 +86,41 @@ export default function EventAlbumIntro() {
       return;
     }
 
-    if (eventDetails?.password === password.trim()) {
-      sessionStorage.setItem(`album_access_${token}`, "granted");
-      setShowPasswordInput(false);
-      toast({
-        title: "تم التحقق بنجاح"
+    try {
+      // Use secure password verification function
+      const { data, error } = await supabase.rpc('verify_event_password', {
+        event_token_param: token,
+        password_param: password.trim()
       });
-    } else {
+      
+      if (error) {
+        console.error("Password verification error:", error);
+        toast({
+          title: "خطأ في التحقق",
+          description: "حدث خطأ أثناء التحقق من كلمة المرور",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (data === true) {
+        sessionStorage.setItem(`album_access_${token}`, "granted");
+        setShowPasswordInput(false);
+        toast({
+          title: "تم التحقق بنجاح"
+        });
+      } else {
+        toast({
+          title: "كلمة مرور خاطئة",
+          description: "يرجى التحقق من كلمة المرور والمحاولة مرة أخرى",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Password verification exception:", error);
       toast({
-        title: "كلمة مرور خاطئة",
-        description: "يرجى التحقق من كلمة المرور والمحاولة مرة أخرى",
+        title: "خطأ في الاتصال",
+        description: "حدث خطأ أثناء التحقق من كلمة المرور",
         variant: "destructive"
       });
     }

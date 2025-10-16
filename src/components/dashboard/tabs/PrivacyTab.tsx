@@ -33,13 +33,39 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
 
   const handleSave = async () => {
     try {
-      const settings = {
+      let passwordHash = null;
+      
+      // If password is provided and changed, hash it using pgcrypto
+      if (isPrivate && eventPassword && eventPassword !== eventData?.password) {
+        // Hash password using pgcrypto's gen_salt and crypt
+        const { data: hashedData, error: hashError } = await supabase.rpc(
+          'crypt' as any,
+          { password: eventPassword, salt: await supabase.rpc('gen_salt' as any, { type: 'bf' }) }
+        );
+        
+        if (hashError) {
+          throw new Error("فشل في تشفير كلمة المرور");
+        }
+        
+        passwordHash = hashedData;
+      }
+      
+      const settings: any = {
         is_private: isPrivate,
-        password: eventPassword || null,
         welcome_title: welcomeTitle,
         welcome_text: welcomeText,
         invite_button_text: inviteButtonText,
       };
+      
+      // Only update password_hash if we have a new password
+      if (passwordHash) {
+        settings.password_hash = passwordHash;
+        settings.password = null; // Clear plaintext password
+      } else if (!isPrivate) {
+        // If event is not private, clear both password fields
+        settings.password = null;
+        settings.password_hash = null;
+      }
 
       const success = await updateEventSettings(token, settings);
       
@@ -48,6 +74,7 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
       toast({ title: "تم حفظ إعدادات الخصوصية بنجاح" });
       onEventUpdate();
     } catch (error) {
+      console.error("Privacy settings save error:", error);
       toast({ 
         title: "فشل في الحفظ", 
         description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",

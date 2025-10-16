@@ -65,6 +65,7 @@ export type Database = {
           max_shots: number
           owner_id: string | null
           password: string | null
+          password_hash: string | null
           published_at: string | null
           share_method: string | null
           show_header: boolean | null
@@ -98,6 +99,7 @@ export type Database = {
           max_shots?: number
           owner_id?: string | null
           password?: string | null
+          password_hash?: string | null
           published_at?: string | null
           share_method?: string | null
           show_header?: boolean | null
@@ -131,6 +133,7 @@ export type Database = {
           max_shots?: number
           owner_id?: string | null
           password?: string | null
+          password_hash?: string | null
           published_at?: string | null
           share_method?: string | null
           show_header?: boolean | null
@@ -337,6 +340,10 @@ export type Database = {
       }
       validate_event_password: {
         Args: { event_token: string; provided_password: string }
+        Returns: boolean
+      }
+      verify_event_password: {
+        Args: { event_token_param: string; password_param: string }
         Returns: boolean
       }
     }
