@@ -385,12 +385,24 @@ export type Database = {
         Args: { event_token: string; user_id: string }
         Returns: boolean
       }
+      is_event_public_album: {
+        Args: { event_token_param: string }
+        Returns: boolean
+      }
       is_event_visible: {
         Args: { event_token: string }
         Returns: boolean
       }
       is_user_event_owner: {
         Args: { event_token: string; user_id: string }
+        Returns: boolean
+      }
+      is_user_participant: {
+        Args: { event_token_param: string; user_id_param: string }
+        Returns: boolean
+      }
+      user_owns_event: {
+        Args: { event_token_param: string; user_id_param: string }
         Returns: boolean
       }
       validate_event_password: {
