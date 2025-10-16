@@ -29,9 +29,32 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const eventToken = url.searchParams.get('token');
     
-    if (!eventToken) {
+    // Input validation - defense in depth
+    if (!eventToken || typeof eventToken !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Event token is required' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    // Validate token length (tokens are typically short alphanumeric strings)
+    if (eventToken.length > 100) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid event token format' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    // Validate token characters (alphanumeric, hyphens, underscores only)
+    if (!/^[a-zA-Z0-9_-]+$/.test(eventToken)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid event token characters' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
