@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -103,7 +103,7 @@ export type Database = {
           published_at?: string | null
           share_method?: string | null
           show_header?: boolean | null
-          sign_in_method: string
+          sign_in_method?: string
           start_at?: string | null
           title: string
           token: string
@@ -389,10 +389,7 @@ export type Database = {
         Args: { event_token_param: string }
         Returns: boolean
       }
-      is_event_visible: {
-        Args: { event_token: string }
-        Returns: boolean
-      }
+      is_event_visible: { Args: { event_token: string }; Returns: boolean }
       is_user_event_owner: {
         Args: { event_token: string; user_id: string }
         Returns: boolean
@@ -407,10 +404,6 @@ export type Database = {
       }
       validate_event_password: {
         Args: { event_token: string; provided_password: string }
-        Returns: boolean
-      }
-      verify_event_password: {
-        Args: { event_token_param: string; password_param: string }
         Returns: boolean
       }
     }
