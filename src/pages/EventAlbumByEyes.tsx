@@ -84,19 +84,11 @@ export default function EventAlbumByEyes() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) return;
 
-      const { data, error } = await supabase
-        .from("events")
-        .select("owner_id")
-        .eq("token", token)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("❌ Error checking ownership:", error);
-        return;
-      }
-      
-      console.log("✅ Event data:", data);
-      setIsEventOwner(session.user.id === data?.owner_id);
+      const { data: ownerCheck } = await supabase.rpc("is_user_event_owner", {
+        user_id: session.user.id,
+        event_token: token as string,
+      });
+      setIsEventOwner(!!ownerCheck);
     };
     
     const fetchEventData = async () => {
@@ -105,9 +97,7 @@ export default function EventAlbumByEyes() {
       
       try {
         const { data, error } = await supabase
-          .from("events")
-          .select("title, cover_url, album_cover_url")
-          .eq("token", token)
+          .rpc("get_public_event_info", { event_token: token as string })
           .maybeSingle();
         
         if (error) {
@@ -172,15 +162,12 @@ export default function EventAlbumByEyes() {
       let isOwner = false;
       
       if (session?.user?.id) {
-        // Check ownership directly
-        const { data: eventData } = await supabase
-          .from("events")
-          .select("owner_id")
-          .eq("token", token)
-          .maybeSingle();
-        
-        isOwner = eventData?.owner_id === session.user.id;
-        console.log("🔐 Ownership check:", { isOwner, userId: session.user.id, ownerId: eventData?.owner_id });
+        const { data: ownerCheck } = await supabase.rpc("is_user_event_owner", {
+          user_id: session.user.id,
+          event_token: token as string,
+        });
+        isOwner = !!ownerCheck;
+        console.log("🔐 Ownership check:", { isOwner, userId: session.user.id });
       }
       
       if (isOwner) {
