@@ -25,6 +25,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setLoading(false);
+      if (s?.user) {
+        // Apply any pending profile data captured during signup
+        try {
+          const raw = localStorage.getItem("pendingProfile");
+          if (raw) {
+            const p = JSON.parse(raw);
+            // Run async without blocking the listener (avoid Supabase deadlocks)
+            setTimeout(() => {
+              supabase
+                .from("profiles")
+                .upsert({ id: s.user.id, ...p })
+                .then(({ error }) => {
+                  if (!error) localStorage.removeItem("pendingProfile");
+                });
+            }, 0);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
     });
     // 2) then current session
     supabase.auth.getSession().then(({ data }) => {
