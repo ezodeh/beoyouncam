@@ -50,9 +50,7 @@ export default function EventAlbum() {
       setCurrentUserId(session?.user?.id || null);
       
       const { data } = await supabase
-        .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, password, password_hash, is_album_published, album_cover_url, album_title")
-        .eq("token", token)
+        .rpc("get_public_event_info", { event_token: token as string })
         .maybeSingle();
       
       if (data) {
@@ -60,15 +58,21 @@ export default function EventAlbum() {
         setCoverUrl(data.album_cover_url || data.cover_url || null);
         setShowHeader(data.show_header !== false);
         
-        // Determine if current user is the event owner
-        const currentIsEventOwner = session?.user?.id === data.owner_id;
+        // Determine if current user is the event owner (via secure RPC)
+        let currentIsEventOwner = false;
+        if (session?.user) {
+          const { data: ownerCheck } = await supabase.rpc("is_user_event_owner", {
+            user_id: session.user.id,
+            event_token: token as string,
+          });
+          currentIsEventOwner = !!ownerCheck;
+        }
         setIsEventOwner(currentIsEventOwner);
         
         console.log("🔍 Album access check:", {
           isAlbumPublished: data.is_album_published,
           isEventOwner: currentIsEventOwner,
-          userId: session?.user?.id,
-          ownerId: data.owner_id
+          userId: session?.user?.id
         });
         
         // Check if album is published OR user is the owner
@@ -79,7 +83,7 @@ export default function EventAlbum() {
         }
         
         // Check if private and requires password
-        if (data.is_private && data.password_hash && !currentIsEventOwner) {
+        if (data.is_private && !currentIsEventOwner) {
           // Check server-side access first
           const { data: canAccess, error: accessError } = await supabase.rpc('can_access_album', {
             event_token_param: token,
