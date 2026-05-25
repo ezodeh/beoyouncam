@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import EventCard from "@/components/account/EventCard";
+import WelcomeTour from "@/components/onboarding/WelcomeTour";
 interface EventItem { token: string; title: string; cover_url: string | null; start_at: string | null; end_at: string | null; published_at: string | null; }
 
 export default function Account() {
   const [userId, setUserId] = useState<string | null>(null);
   const [ownEvents, setOwnEvents] = useState<EventItem[]>([]);
   const [joinedEvents, setJoinedEvents] = useState<EventItem[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     console.log("🚀 Account: Component mounted");
@@ -27,6 +29,18 @@ export default function Account() {
           const pending = JSON.parse(pendingStr);
           await supabase.from("profiles").upsert({ id: uid, ...pending });
           localStorage.removeItem("pendingProfile");
+        }
+      } catch {}
+
+      // One-time welcome tour for brand-new accounts (per-user, cross-device)
+      try {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("onboarded_at")
+          .eq("id", uid)
+          .maybeSingle();
+        if (prof && !(prof as any).onboarded_at) {
+          setShowOnboarding(true);
         }
       } catch {}
 
@@ -57,6 +71,18 @@ export default function Account() {
       }
     })();
   }, []);
+
+  const closeOnboarding = async () => {
+    setShowOnboarding(false);
+    if (userId) {
+      try {
+        await supabase
+          .from("profiles")
+          .update({ onboarded_at: new Date().toISOString() } as any)
+          .eq("id", userId);
+      } catch {}
+    }
+  };
 
   const refreshEvents = async () => {
     if (!userId) return;
@@ -121,6 +147,7 @@ export default function Account() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
+      {showOnboarding && <WelcomeTour onClose={closeOnboarding} />}
       <main className="flex-1 container mx-auto px-4 py-8 grid gap-10">
         {!userId ? (
           <section className="text-center max-w-md mx-auto">

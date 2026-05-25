@@ -33,38 +33,21 @@ export function PrivacyTab({ token, eventData, onEventUpdate }: PrivacyTabProps)
 
   const handleSave = async () => {
     try {
-      let passwordHash = null;
-      
-      // If password is provided and changed, hash it using pgcrypto
-      if (isPrivate && eventPassword && eventPassword !== eventData?.password) {
-        // Hash password using pgcrypto's gen_salt and crypt
-        const { data: hashedData, error: hashError } = await supabase.rpc(
-          'crypt' as any,
-          { password: eventPassword, salt: await supabase.rpc('gen_salt' as any, { type: 'bf' }) }
-        );
-        
-        if (hashError) {
-          throw new Error("فشل في تشفير كلمة المرور");
-        }
-        
-        passwordHash = hashedData;
-      }
-      
       const settings: any = {
         is_private: isPrivate,
         welcome_title: welcomeTitle,
         welcome_text: welcomeText,
         invite_button_text: inviteButtonText,
       };
-      
-      // Only update password_hash if we have a new password
-      if (passwordHash) {
-        settings.password_hash = passwordHash;
-        settings.password = null; // Clear plaintext password
-      } else if (!isPrivate) {
-        // If event is not private, clear both password fields
+
+      if (!isPrivate) {
+        // Clear both password fields when event is not private
         settings.password = null;
         settings.password_hash = null;
+      } else if (eventPassword && eventPassword.trim().length > 0) {
+        // Send plaintext — the DB trigger hashes it automatically into password_hash
+        // and clears the plaintext column. Nothing is stored in clear text.
+        settings.password = eventPassword.trim();
       }
 
       const success = await updateEventSettings(token, settings);
