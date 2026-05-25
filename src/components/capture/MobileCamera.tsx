@@ -6,6 +6,23 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Link, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+
+// Small helper for side-rail buttons
+const RailBtn: React.FC<{ children: React.ReactNode; onClick?: () => void; label: string; active?: boolean; disabled?: boolean }> = ({ children, onClick, label, active, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    className={`w-11 h-11 rounded-full grid place-items-center backdrop-blur-md border transition-all active:scale-90 disabled:opacity-40 ${
+      active
+        ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+        : "bg-black/40 text-white border-white/15 hover:bg-black/60"
+    }`}
+  >
+    {children}
+  </button>
+);
+
 interface Props {
   eventName: string;
   token: string;
