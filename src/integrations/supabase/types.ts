@@ -239,6 +239,7 @@ export type Database = {
           display_name: string | null
           gender: string | null
           id: string
+          onboarded_at: string | null
           phone: string | null
           updated_at: string
         }
@@ -251,6 +252,7 @@ export type Database = {
           display_name?: string | null
           gender?: string | null
           id: string
+          onboarded_at?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -263,6 +265,7 @@ export type Database = {
           display_name?: string | null
           gender?: string | null
           id?: string
+          onboarded_at?: string | null
           phone?: string | null
           updated_at?: string
         }
