@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-mnaoyonkom.jpg";
 import Footer from "@/components/layout/Footer";
@@ -41,9 +42,7 @@ export default function EventWelcome() {
     (async () => {
       if (!token) return;
       const { data: row, error } = await supabase
-        .from("events")
-        .select("title, description, sign_in_method, cover_url, start_at, end_at, show_header, welcome_title, welcome_text")
-        .eq("token", token as string)
+        .rpc("get_public_event_info", { event_token: token as string })
         .maybeSingle();
       const data: any = row;
       if (!error && data) {
@@ -128,16 +127,8 @@ export default function EventWelcome() {
 
   const signInWithGoogle = async () => {
     try {
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.href,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-          scopes: 'openid email profile'
-        }
+      await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.href,
       });
     } catch (_) {}
   };
