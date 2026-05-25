@@ -93,29 +93,82 @@ const MobileCamera: React.FC<Props> = ({
     }, 100);
   }, [maxShots]);
 
-  // Save and restore recent photos from localStorage
+  // Restore recent shots on mount from DB (source of truth) + localStorage cache.
+  // We never persist blob: URLs because they're invalidated on reload.
   useEffect(() => {
     const storageKey = `recentPhotos:${token}`;
-    
-    // Load saved photos on mount
-    const savedPhotos = localStorage.getItem(storageKey);
-    if (savedPhotos) {
+    let cancelled = false;
+
+    const rebuildUrl = (filePath?: string) => {
+      if (!filePath) return "";
       try {
-        const parsed = JSON.parse(savedPhotos);
-        console.log("📷 MobileCamera: Restored recent photos:", parsed.length);
-        setRecent(parsed);
-      } catch (e) {
-        console.error("📷 MobileCamera: Error loading saved photos:", e);
+        const { data } = supabase.storage.from("event-media").getPublicUrl(filePath);
+        return data?.publicUrl || "";
+      } catch {
+        return "";
       }
-    }
+    };
+
+    (async () => {
+      // 1) Try participant-bound submissions from DB
+      let serverItems: LocalItem[] = [];
+      try {
+        const participantId = localStorage.getItem(`participantId:${token}`);
+        if (participantId) {
+          const { data } = await supabase
+            .from("media_submissions")
+            .select("file_path, media_type, thumbnail_path, created_at")
+            .eq("event_token", token)
+            .eq("participant_id", participantId)
+            .order("created_at", { ascending: false })
+            .limit(20);
+          if (data && data.length) {
+            serverItems = data.map((m: any) => ({
+              type: (m.media_type === "video" ? "video" : "image") as "image" | "video",
+              filePath: m.file_path,
+              url: rebuildUrl(m.media_type === "video" ? (m.thumbnail_path || m.file_path) : m.file_path),
+            }));
+          }
+        }
+      } catch (e) {
+        console.error("📷 MobileCamera: failed to load submissions from DB", e);
+      }
+
+      // 2) Fallback: localStorage cache (filePath-only entries)
+      if (serverItems.length === 0) {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) {
+            const parsed = JSON.parse(raw) as LocalItem[];
+            serverItems = (parsed || [])
+              .filter((it) => it && it.filePath) // drop stale blob-only entries
+              .map((it) => ({ ...it, url: rebuildUrl(it.filePath) }));
+          }
+        } catch (e) {
+          console.error("📷 MobileCamera: cache parse error", e);
+        }
+      }
+
+      if (!cancelled && serverItems.length) {
+        console.log("📷 MobileCamera: Restored recent shots:", serverItems.length);
+        setRecent(serverItems);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
-  // Save recent photos to localStorage whenever they change
+  // Persist only items that already have a server filePath. Never store blob: URLs.
   useEffect(() => {
-    if (recent.length > 0) {
-      const storageKey = `recentPhotos:${token}`;
-      localStorage.setItem(storageKey, JSON.stringify(recent));
-      console.log("📷 MobileCamera: Saved recent photos to localStorage:", recent.length);
+    if (!token) return;
+    const storageKey = `recentPhotos:${token}`;
+    const persistable = recent
+      .filter((it) => it.filePath)
+      .map((it) => ({ type: it.type, filePath: it.filePath, url: "" }));
+    if (persistable.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(persistable));
     }
   }, [recent, token]);
 
