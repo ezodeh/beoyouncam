@@ -17,12 +17,16 @@ export function getGuestRoute(e: EventInfo, hasParticipant: boolean): string {
 }
 
 export function participantKey(token: string) {
-  return `participant:${token}`;
+  return `participantId:${token}`;
 }
 
 export function getStoredParticipantId(token: string): string | null {
   try {
-    return localStorage.getItem(participantKey(token));
+    return (
+      localStorage.getItem(`participantId:${token}`) ||
+      // legacy boolean flag
+      (localStorage.getItem(`participant:${token}`) ? "legacy" : null)
+    );
   } catch {
     return null;
   }
@@ -30,7 +34,8 @@ export function getStoredParticipantId(token: string): string | null {
 
 export function setStoredParticipantId(token: string, id: string) {
   try {
-    localStorage.setItem(participantKey(token), id);
+    localStorage.setItem(`participantId:${token}`, id);
+    localStorage.setItem(`participant:${token}`, "1");
   } catch {
     /* ignore */
   }
