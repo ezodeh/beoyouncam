@@ -29,9 +29,7 @@ export default function EventAlbumPrivate() {
       if (!token) return;
       try {
         const { data } = await supabase
-          .from("events")
-          .select("title, is_private, password, cover_url")
-          .eq("token", token)
+          .rpc("get_public_event_info", { event_token: token as string })
           .maybeSingle();
         
         if (data) {
