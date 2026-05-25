@@ -48,8 +48,16 @@ const MobileCamera: React.FC<Props> = ({
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
-  const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
+  // New UI state
+  const [mode, setMode] = useState<"photo" | "video">("photo");
+  const [flashAnim, setFlashAnim] = useState(false);
+  const [focusPoint, setFocusPoint] = useState<{ x: number; y: number; key: number } | null>(null);
+  const [timerSec, setTimerSec] = useState<0 | 3 | 10>(0);
+  const [timerRunning, setTimerRunning] = useState<number | null>(null);
+  const [showZoomBadge, setShowZoomBadge] = useState(false);
+  const zoomBadgeTimer = useRef<number | null>(null);
+  const [showEffectsPanel, setShowEffectsPanel] = useState(false);
   useEffect(() => {
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
     const newLeft = Math.max(0, maxShots - recent.length);
