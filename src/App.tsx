@@ -33,6 +33,9 @@ import Settings from "./pages/Settings";
 import Scanner from "./pages/Scanner";
 import BillingHistory from "./pages/BillingHistory";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import { AuthProvider } from "@/hooks/useAuth";
+import RequireAuth from "@/components/auth/RequireAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,11 +59,12 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AuthProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/choose-plan" element={<ChoosePlan />} />
-                <Route path="/payment" element={<Payment />} />
-                <Route path="/create-event" element={<CreateEvent />} />
+                <Route path="/choose-plan" element={<RequireAuth><ChoosePlan /></RequireAuth>} />
+                <Route path="/payment" element={<RequireAuth><Payment /></RequireAuth>} />
+                <Route path="/create-event" element={<RequireAuth><CreateEvent /></RequireAuth>} />
                 <Route path="/event/:token" element={<EventCapture />} />
                 <Route path="/event/:token/welcome" element={<EventWelcome />} />
                 <Route path="/event/:token/soon" element={<EventSoon />} />
@@ -73,17 +77,19 @@ const App = () => {
                 <Route path="/album/:token" element={<EventAlbum />} />
                 <Route path="/album/:token/private" element={<EventAlbumPrivate />} />
                 <Route path="/album/:token/by/:name" element={<EventAlbumByEyes />} />
-                <Route path="/event/:token/invites" element={<Invites />} />
-                <Route path="/manage/:token" element={<ManageDashboard />} />
-                <Route path="/account" element={<Account />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/event/:token/invites" element={<RequireAuth><Invites /></RequireAuth>} />
+                <Route path="/manage/:token" element={<RequireAuth><ManageDashboard /></RequireAuth>} />
+                <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
+                <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/billing" element={<BillingHistory />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/billing" element={<RequireAuth><BillingHistory /></RequireAuth>} />
+                <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </AuthProvider>
             </BrowserRouter>
           </TooltipProvider>
         </QueryClientProvider>
