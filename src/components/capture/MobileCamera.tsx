@@ -274,6 +274,9 @@ const MobileCamera: React.FC<Props> = ({
       return;
     }
     try {
+      // Capture flash animation
+      setFlashAnim(true);
+      setTimeout(() => setFlashAnim(false), 160);
       const video = videoRef.current!;
       const canvas = document.createElement("canvas");
       const w = video.videoWidth || 1080;
@@ -322,6 +325,54 @@ const MobileCamera: React.FC<Props> = ({
       setShowRetry({});
     }
   }
+
+  // Tap-to-focus visual reticle (cosmetic; native browser focus control limited)
+  function handleVideoTap(e: React.MouseEvent<HTMLVideoElement>) {
+    if (pointersRef.current.size > 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setFocusPoint({ x, y, key: Date.now() });
+    setTimeout(() => setFocusPoint(p => (p && p.x === x && p.y === y ? null : p)), 900);
+  }
+
+  // Run shutter with optional self-timer
+  function triggerShutter() {
+    if (timerSec === 0) {
+      if (mode === "video" && supportsVideo && enableVideo) {
+        if (recording) stopVideoRecording(); else startVideoRecording();
+      } else {
+        capturePhoto();
+      }
+      return;
+    }
+    if (timerRunning !== null) return;
+    setTimerRunning(timerSec);
+    let n = timerSec;
+    const tick = () => {
+      n -= 1;
+      if (n <= 0) {
+        setTimerRunning(null);
+        if (mode === "video" && supportsVideo && enableVideo) startVideoRecording();
+        else capturePhoto();
+      } else {
+        setTimerRunning(n);
+        window.setTimeout(tick, 1000);
+      }
+    };
+    window.setTimeout(tick, 1000);
+  }
+
+  function bumpZoomBadge() {
+    setShowZoomBadge(true);
+    if (zoomBadgeTimer.current) window.clearTimeout(zoomBadgeTimer.current);
+    zoomBadgeTimer.current = window.setTimeout(() => setShowZoomBadge(false), 1200);
+  }
+
+  useEffect(() => {
+    bumpZoomBadge();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
   async function startVideoRecording() {
     if (!supportsVideo || !enableVideo) return;
     if (left <= 0) {
