@@ -981,7 +981,7 @@ const MobileCamera: React.FC<Props> = ({
       <div className="absolute inset-x-0 bottom-0 z-30 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
         {/* Effects strip */}
         <div className="px-3 mb-3">
-          <div className="flex gap-2 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1">
+          <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {effects.map((eff, i) => (
               <button
                 key={eff.name}
