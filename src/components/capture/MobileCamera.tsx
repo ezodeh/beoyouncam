@@ -1,13 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, ArrowLeft, Settings } from "lucide-react";
+import { CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, X, RotateCcw, Timer, Check, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "@/components/layout/Navbar";
 import { Textarea } from "@/components/ui/textarea";
-import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { supabase } from "@/integrations/supabase/client";
+
+// Small helper for side-rail buttons
+const RailBtn: React.FC<{ children: React.ReactNode; onClick?: () => void; label: string; active?: boolean; disabled?: boolean }> = ({ children, onClick, label, active, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    className={`w-11 h-11 rounded-full grid place-items-center backdrop-blur-md border transition-all active:scale-90 disabled:opacity-40 ${
+      active
+        ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+        : "bg-black/40 text-white border-white/15 hover:bg-black/60"
+    }`}
+  >
+    {children}
+  </button>
+);
+
 interface Props {
   eventName: string;
   token: string;
@@ -50,8 +65,16 @@ const MobileCamera: React.FC<Props> = ({
   const [recent, setRecent] = useState<LocalItem[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
-  const [showHeader, setShowHeader] = useState(true); // إضافة state للهيدر
   const [zoom, setZoom] = useState<number>(1);
+  // New UI state
+  const [mode, setMode] = useState<"photo" | "video">("photo");
+  const [flashAnim, setFlashAnim] = useState(false);
+  const [focusPoint, setFocusPoint] = useState<{ x: number; y: number; key: number } | null>(null);
+  const [timerSec, setTimerSec] = useState<0 | 3 | 10>(0);
+  const [timerRunning, setTimerRunning] = useState<number | null>(null);
+  const [showZoomBadge, setShowZoomBadge] = useState(false);
+  const zoomBadgeTimer = useRef<number | null>(null);
+  const [showEffectsPanel, setShowEffectsPanel] = useState(false);
   useEffect(() => {
     console.log("📊 MobileCamera: Updating left shots - maxShots:", maxShots, "recent.length:", recent.length);
     const newLeft = Math.max(0, maxShots - recent.length);
@@ -268,6 +291,9 @@ const MobileCamera: React.FC<Props> = ({
       return;
     }
     try {
+      // Capture flash animation
+      setFlashAnim(true);
+      setTimeout(() => setFlashAnim(false), 160);
       const video = videoRef.current!;
       const canvas = document.createElement("canvas");
       const w = video.videoWidth || 1080;
@@ -316,6 +342,54 @@ const MobileCamera: React.FC<Props> = ({
       setShowRetry({});
     }
   }
+
+  // Tap-to-focus visual reticle (cosmetic; native browser focus control limited)
+  function handleVideoTap(e: React.MouseEvent<HTMLVideoElement>) {
+    if (pointersRef.current.size > 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setFocusPoint({ x, y, key: Date.now() });
+    setTimeout(() => setFocusPoint(p => (p && p.x === x && p.y === y ? null : p)), 900);
+  }
+
+  // Run shutter with optional self-timer
+  function triggerShutter() {
+    if (timerSec === 0) {
+      if (mode === "video" && supportsVideo && enableVideo) {
+        if (recording) stopVideoRecording(); else startVideoRecording();
+      } else {
+        capturePhoto();
+      }
+      return;
+    }
+    if (timerRunning !== null) return;
+    setTimerRunning(timerSec);
+    let n = timerSec;
+    const tick = () => {
+      n -= 1;
+      if (n <= 0) {
+        setTimerRunning(null);
+        if (mode === "video" && supportsVideo && enableVideo) startVideoRecording();
+        else capturePhoto();
+      } else {
+        setTimerRunning(n);
+        window.setTimeout(tick, 1000);
+      }
+    };
+    window.setTimeout(tick, 1000);
+  }
+
+  function bumpZoomBadge() {
+    setShowZoomBadge(true);
+    if (zoomBadgeTimer.current) window.clearTimeout(zoomBadgeTimer.current);
+    zoomBadgeTimer.current = window.setTimeout(() => setShowZoomBadge(false), 1200);
+  }
+
+  useEffect(() => {
+    bumpZoomBadge();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
   async function startVideoRecording() {
     if (!supportsVideo || !enableVideo) return;
     if (left <= 0) {
@@ -729,220 +803,293 @@ const MobileCamera: React.FC<Props> = ({
         </div>
       </div>;
   }
-  return <div className="relative w-full h-screen overflow-hidden overscroll-none" dir="rtl">
-      {/* Navbar */}
-      {showHeader && (
-        <div className="absolute top-0 left-0 right-0 z-40">
-          <Navbar compact={true} />
-          <button
-            onClick={() => setShowHeader(false)}
-            className="absolute top-2 left-2 p-2 bg-background/80 hover:bg-background/90 rounded-full border border-border shadow-lg backdrop-blur-sm transition-colors"
-            aria-label="إخفاء الهيدر"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+  // Gallery upload handler (shared between empty-state & bottom bar)
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.type.startsWith("video") && !enableVideo) {
+      toast({ title: "الفيديو غير مفعل", description: "ميزة الفيديو غير مفعلة لهذه المناسبة", variant: "destructive" });
+      return;
+    }
+    if (left <= 0) { toast({ title: "انتهى عدد اللقطات" }); return; }
+    const fileUrl = URL.createObjectURL(f);
+    const fileType: "image" | "video" = f.type.startsWith("video") ? "video" : "image";
+    setRecent(r => [{ url: fileUrl, type: fileType }, ...r].slice(0, 20));
+    const newLeft = Math.max(0, left - 1);
+    setLeft(newLeft);
+    try {
+      const uploadedPath = await uploadFile(f, fileType);
+      if (uploadedPath) {
+        setRecent(r => r.map(item => item.url === fileUrl ? { ...item, filePath: uploadedPath } : item));
+      }
+      toast({ title: `تم الرفع ${pad2(maxShots - newLeft)}/${pad2(maxShots)}` });
+    } catch (_) {
+      setLeft(n => Math.min(maxShots, n + 1));
+      setRecent(r => r.filter(item => item.url !== fileUrl));
+      setShowRetry({ file: f, kind: fileType });
+    }
+    e.currentTarget.value = "";
+  };
 
-      {/* Header toggle button when hidden */}
-      {!showHeader && (
-        <button
-          onClick={() => setShowHeader(true)}
-          className="absolute top-4 right-4 z-40 p-2 bg-background/80 hover:bg-background/90 rounded-full border border-border shadow-lg backdrop-blur-sm transition-colors"
-          aria-label="إظهار الهيدر"
-        >
-          <Settings className="h-4 w-4" />
-        </button>
-      )}
+  const isSelfie = facingMode === "user";
+  const captured = Math.max(0, maxShots - left);
+  const progressPct = Math.min(100, (captured / Math.max(1, maxShots)) * 100);
+  const recordPct = recording ? ((10 - countdown) / 10) * 100 : 0;
 
-      {/* Preview */}
-    <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform" style={{
-      transform: `scale(${zoom})`,
-      filter: effects[effectIndex].css || "none"
-    }} onPointerDown={onVideoPointerDown} onPointerMove={onVideoPointerMove} onPointerUp={onVideoPointerUp} onPointerCancel={onVideoPointerUp} playsInline muted autoPlay />
+  return <div className="relative w-full h-[100dvh] overflow-hidden overscroll-none bg-black text-white select-none" dir="rtl">
+      {/* === Video preview === */}
+      <video
+        ref={videoRef}
+        onClick={handleVideoTap}
+        onPointerDown={onVideoPointerDown}
+        onPointerMove={onVideoPointerMove}
+        onPointerUp={onVideoPointerUp}
+        onPointerCancel={onVideoPointerUp}
+        className="absolute inset-0 w-full h-full object-cover bg-black touch-none will-change-transform"
+        style={{
+          transform: `scale(${zoom})${isSelfie ? " scaleX(-1)" : ""}`,
+          filter: effects[effectIndex].css || "none"
+        }}
+        playsInline muted autoPlay
+      />
 
-      {/* Grid overlay */}
-      {showGrid && <div className="absolute inset-0 pointer-events-none">
+      {/* === Vignette gradients top/bottom for legibility === */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10" />
+
+      {/* === Grid overlay === */}
+      {showGrid && (
+        <div className="absolute inset-0 pointer-events-none z-20">
           <div className="w-full h-full grid grid-cols-3 grid-rows-3">
-            {Array.from({
-          length: 9
-        }).map((_, i) => <div key={i} className="border border-white/30" />)}
+            {Array.from({ length: 9 }).map((_, i) => <div key={i} className="border border-white/25" />)}
           </div>
-        </div>}
-
-      {showEffectName && <div className="absolute inset-0 pointer-events-none grid place-items-center">
-          <div className="rounded-full bg-background/80 border border-border px-3 py-1 text-xs">{showEffectName}</div>
-        </div>}
-
-      {/* Event title - positioned below navbar when visible, at top when hidden */}
-      <div className={`absolute inset-x-0 text-center z-30 ${showHeader ? 'top-24' : 'top-12'}`}>
-        <h1 className="text-xl font-bold font-nastaliq tracking-tight text-white drop-shadow-lg">{eventName}</h1>
-      </div>
-        
-      {/* Left icons column - adjust top position when header is shown */}
-      <div className={`absolute left-3 flex flex-col items-center gap-4 z-30 ${showHeader ? 'top-20' : 'top-8'}`}>
-        <Button size="icon" variant="secondary" className="rounded-full" onClick={async () => {
-        console.log("🔄 Switching camera from", facingMode);
-        setCamAnim(true);
-        
-        try {
-          // Stop current stream first
-          if (streamRef.current) {
-            console.log("🛑 Stopping current stream");
-            streamRef.current.getTracks().forEach(track => {
-              track.stop();
-              console.log("🛑 Stopped track:", track.kind, track.label);
-            });
-            streamRef.current = null;
-          }
-          
-          // Switch camera mode immediately
-          const newMode = facingMode === "user" ? "environment" : "user";
-          console.log("📷 Switching to:", newMode);
-          setFacingMode(newMode);
-          
-          // Wait a bit longer for cleanup, then restart
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          console.log("🚀 Restarting camera with new mode");
-          await openStream();
-          
-        } catch (error) {
-          console.error("❌ Camera switch error:", error);
-          // If switching fails, try to go back to original mode
-          await openStream();
-        } finally {
-          setCamAnim(false);
-        }
-      }} aria-label="تبديل الكاميرا">
-          <Camera className={`h-5 w-5 transition-transform ${camAnim ? "animate-spin" : ""}`} />
-        </Button>
-        {supportsVideo && enableVideo && <Button size="icon" variant="secondary" className="rounded-full" aria-label="إظهار/إخفاء الشبكة" onClick={() => setShowGrid(v => !v)}>
-            <GridIcon className="h-5 w-5" />
-          </Button>}
-        <Button size="icon" variant="secondary" className="rounded-full" aria-label="فلاش" disabled={!supportsTorch} onClick={() => {
-        const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
-        setFlashMode(next);
-        if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
-      }}>
-          <Flashlight className="h-5 w-5" />
-        </Button>
-        <Button size="icon" variant="secondary" className="rounded-full" aria-label="إيفكتس" onClick={() => {
-        const next = (effectIndex + 1) % effects.length;
-        setEffectIndex(next);
-        setShowEffectName(effects[next].name);
-        setTimeout(() => setShowEffectName(null), 1200);
-      }}>
-          <Sparkles className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* Counter above shutter */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(15rem+env(safe-area-inset-bottom))] z-20">
-        <div className="rounded-full bg-background text-foreground text-xs px-2 py-0.5 border border-border">{formatCounter()}</div>
-      </div>
-
-      {/* Shutter */}
-      <div className="absolute inset-x-0 bottom-[calc(8rem+env(safe-area-inset-bottom))] flex flex-col items-center justify-center select-none gap-0">
-        {recording ? <div className="w-24 h-24 rounded-full">
-            <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-brand-gradient text-brand-foreground animate-pulse" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط" />
-          </div> : <div className="w-24 h-24 rounded-full p-0 bg-brand-gradient">
-            <button className="relative w-full h-full rounded-full shadow-lg outline-none bg-white" onPointerDown={onShutterDown} onPointerUp={onShutterUp} disabled={left <= 0} aria-label="التقاط">
-              <span className="pointer-events-none absolute inset-0 rounded-full" style={{
-            boxShadow: "0 0 0 4px hsl(var(--primary)) inset"
-          }} />
-            </button>
-          </div>}
-      </div>
-      
-      {/* Hint text - positioned between shutter and bottom buttons */}
-      <div className="absolute inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] flex justify-center z-40">
-        <div className="rounded-full bg-background/90 border border-border px-4 py-2 text-sm shadow-lg backdrop-blur-sm">
-          {hint}
         </div>
-      </div>
+      )}
 
-      {/* Recent thumb - معطل العرض التلقائي */}
-      {recent.length > 0 && <button className="absolute bottom-[calc(10rem+env(safe-area-inset-bottom))] left-3 w-12 h-12 rounded-lg overflow-hidden border border-border bg-background/60" onClick={() => setShowRecent(true)} aria-label="المعرض">
-          <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
-        </button>}
+      {/* === Capture flash === */}
+      <div
+        className={`absolute inset-0 z-50 bg-white pointer-events-none transition-opacity duration-150 ${flashAnim ? "opacity-80" : "opacity-0"}`}
+      />
 
-      {/* Bottom bar - عرض QR للدعوة بدلاً من خيارات الإيميل */}
-      <div className="fixed inset-x-0 bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))] z-50 pointer-events-none">
-        <div className="mx-3 flex items-center justify-between pointer-events-auto">
-          <Link 
-            to={`/event/${token}/invites`} 
-            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border shadow-2xl backdrop-blur-md hover:bg-background transition-colors"
+      {/* === Tap-to-focus reticle === */}
+      {focusPoint && (
+        <div
+          key={focusPoint.key}
+          className="pointer-events-none absolute z-30"
+          style={{ left: focusPoint.x - 36, top: focusPoint.y - 36 }}
+        >
+          <div className="w-[72px] h-[72px] rounded-md border-2 border-yellow-300/90 animate-[ping_0.6s_ease-out_1]" />
+          <div className="w-[72px] h-[72px] -mt-[72px] rounded-md border-2 border-yellow-300" />
+        </div>
+      )}
+
+      {/* === Self-timer countdown === */}
+      {timerRunning !== null && (
+        <div className="absolute inset-0 z-40 grid place-items-center pointer-events-none">
+          <div className="text-white text-[12rem] font-bold drop-shadow-2xl tabular-nums animate-pulse">
+            {timerRunning}
+          </div>
+        </div>
+      )}
+
+      {/* === Effect name flash === */}
+      {showEffectName && (
+        <div className="absolute inset-0 z-30 pointer-events-none grid place-items-center">
+          <div className="rounded-full bg-black/70 text-white px-4 py-1.5 text-sm backdrop-blur-md border border-white/20">{showEffectName}</div>
+        </div>
+      )}
+
+      {/* === Zoom badge === */}
+      {showZoomBadge && zoom > 1.05 && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-20 z-30 pointer-events-none">
+          <div className="rounded-full bg-black/60 text-white px-3 py-1 text-xs backdrop-blur-md border border-white/20 tabular-nums">
+            {zoom.toFixed(1)}×
+          </div>
+        </div>
+      )}
+
+      {/* === Recording indicator === */}
+      {recording && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/90 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="text-white text-sm font-medium tabular-nums">REC {countdown}s</span>
+        </div>
+      )}
+
+      {/* === Top bar === */}
+      <header className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-3 pt-[max(env(safe-area-inset-top),0.5rem)]">
+        <button
+          onClick={() => navigate(`/event/${token}/welcome${window.location.search}`)}
+          className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md grid place-items-center border border-white/15 active:scale-95 transition-transform"
+          aria-label="إغلاق"
+        >
+          <X className="h-5 w-5 text-white" />
+        </button>
+        <div className="text-center max-w-[55%] truncate">
+          <h1 className="font-nastaliq text-lg leading-tight text-white drop-shadow-lg truncate">{eventName}</h1>
+          <div className="text-[10px] text-white/70 tabular-nums">{captured}/{maxShots}</div>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md grid place-items-center border border-white/15 relative overflow-hidden">
+          <svg className="absolute inset-0" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="17" fill="none" stroke="hsl(var(--primary))" strokeWidth="3"
+              strokeDasharray={`${(progressPct * 1.07).toFixed(2)} 107`}
+              transform="rotate(-90 20 20)" strokeLinecap="round" />
+          </svg>
+          <span className="text-[10px] tabular-nums text-white relative z-10">{captured}</span>
+        </div>
+      </header>
+
+      {/* === Side rail (left) === */}
+      <aside className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2.5">
+        <RailBtn label="تبديل الكاميرا" onClick={async () => {
+          setCamAnim(true);
+          try {
+            if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+            const newMode = facingMode === "user" ? "environment" : "user";
+            setFacingMode(newMode);
+            await new Promise(r => setTimeout(r, 300));
+            await openStream();
+          } catch (_) { await openStream(); }
+          finally { setCamAnim(false); }
+        }}>
+          <RotateCcw className={`h-5 w-5 ${camAnim ? "animate-spin" : ""}`} />
+        </RailBtn>
+        <RailBtn
+          label="فلاش"
+          active={flashMode !== "off"}
+          disabled={!supportsTorch}
+          onClick={() => {
+            const next = flashMode === "off" ? "on" : flashMode === "on" ? "auto" : "off";
+            setFlashMode(next);
+            if (supportsTorch) applyTorch(next === "on" ? "on" : "off");
+          }}
+        >
+          <Flashlight className="h-5 w-5" />
+        </RailBtn>
+        <RailBtn label="شبكة" active={showGrid} onClick={() => setShowGrid(v => !v)}>
+          <GridIcon className="h-5 w-5" />
+        </RailBtn>
+        <RailBtn label="مؤقت" active={timerSec !== 0} onClick={() => setTimerSec(s => (s === 0 ? 3 : s === 3 ? 10 : 0))}>
+          <div className="relative">
+            <Timer className="h-5 w-5" />
+            {timerSec !== 0 && <span className="absolute -bottom-1 -right-1 text-[9px] font-bold bg-primary text-primary-foreground rounded-full w-3.5 h-3.5 grid place-items-center">{timerSec}</span>}
+          </div>
+        </RailBtn>
+      </aside>
+
+      {/* === Bottom area === */}
+      <div className="absolute inset-x-0 bottom-0 z-30 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        {/* Effects strip */}
+        <div className="px-3 mb-3">
+          <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {effects.map((eff, i) => (
+              <button
+                key={eff.name}
+                onClick={() => {
+                  setEffectIndex(i);
+                  setShowEffectName(eff.name);
+                  setTimeout(() => setShowEffectName(null), 900);
+                }}
+                className={`snap-start shrink-0 min-w-[64px] h-10 px-3 rounded-full text-xs font-medium border backdrop-blur-md transition-all ${i === effectIndex ? "bg-primary text-primary-foreground border-primary scale-105" : "bg-black/40 text-white border-white/15"}`}
+              >
+                {eff.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mode toggle */}
+        {supportsVideo && enableVideo && (
+          <div className="flex justify-center mb-3">
+            <div className="inline-flex rounded-full bg-black/50 backdrop-blur-md border border-white/15 p-1 text-xs">
+              <button
+                onClick={() => setMode("photo")}
+                className={`px-4 py-1.5 rounded-full transition-colors ${mode === "photo" ? "bg-white text-black" : "text-white/80"}`}
+              >صورة</button>
+              <button
+                onClick={() => setMode("video")}
+                className={`px-4 py-1.5 rounded-full transition-colors ${mode === "video" ? "bg-red-500 text-white" : "text-white/80"}`}
+              >فيديو</button>
+            </div>
+          </div>
+        )}
+
+        {/* Shutter row */}
+        <div className="grid grid-cols-3 items-center px-6">
+          {/* Recent thumb */}
+          <div className="flex justify-start">
+            {recent.length > 0 ? (
+              <button
+                onClick={() => setShowRecent(true)}
+                className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/40 shadow-lg active:scale-95 transition-transform"
+                aria-label="معرض اللقطات"
+              >
+                {recent[0].type === "image"
+                  ? <img src={recent[0].url} alt="آخر لقطة" className="w-full h-full object-cover" />
+                  : <video src={recent[0].url} className="w-full h-full object-cover" muted />}
+                {recent.length > 1 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full min-w-[18px] h-[18px] grid place-items-center px-1 font-bold">
+                    {recent.length}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <label className="w-14 h-14 rounded-2xl border-2 border-dashed border-white/30 grid place-items-center cursor-pointer active:scale-95 transition-transform">
+                <ImageIcon className="h-5 w-5 text-white/70" />
+                <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={handleGalleryUpload} />
+              </label>
+            )}
+          </div>
+
+          {/* SHUTTER */}
+          <div className="flex justify-center">
+            <button
+              onPointerDown={(e) => { if (mode === "photo" || !enableVideo) { onShutterDown(e); } }}
+              onPointerUp={(e) => { if (mode === "photo" || !enableVideo) { onShutterUp(e); } else { triggerShutter(); } }}
+              disabled={left <= 0 || timerRunning !== null}
+              aria-label="التقاط"
+              className="relative w-[84px] h-[84px] rounded-full grid place-items-center active:scale-90 transition-transform disabled:opacity-50"
+            >
+              {/* Progress ring for recording */}
+              {recording && (
+                <svg className="absolute inset-0 -rotate-90" viewBox="0 0 84 84">
+                  <circle cx="42" cy="42" r="38" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
+                  <circle cx="42" cy="42" r="38" fill="none" stroke="#ef4444" strokeWidth="4"
+                    strokeDasharray={`${(recordPct * 2.388).toFixed(2)} 238.8`} strokeLinecap="round" />
+                </svg>
+              )}
+              {/* Outer ring */}
+              <span className={`absolute inset-0 rounded-full border-4 ${recording ? "border-red-500" : "border-white"} transition-colors`} />
+              {/* Inner button */}
+              <span className={`block transition-all rounded-full ${recording ? "w-7 h-7 rounded-md bg-red-500" : mode === "video" ? "w-[68px] h-[68px] bg-red-500" : "w-[68px] h-[68px] bg-white"}`} />
+            </button>
+          </div>
+
+          {/* Gallery upload */}
+          <div className="flex justify-end">
+            <label className="w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-md border border-white/15 grid place-items-center cursor-pointer active:scale-95 transition-transform">
+              <ImageIcon className="h-5 w-5 text-white" />
+              <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={handleGalleryUpload} />
+            </label>
+          </div>
+        </div>
+
+        {/* Hint */}
+        <div className="flex justify-center mt-3 px-4">
+          <div className="rounded-full bg-black/40 backdrop-blur-md border border-white/15 px-3 py-1 text-xs text-white/90">
+            {hint}
+          </div>
+        </div>
+
+        {/* QR invite link */}
+        <div className="flex justify-center mt-2">
+          <Link
+            to={`/event/${token}/invites`}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs bg-black/40 backdrop-blur-md border border-white/15 text-white/90 active:scale-95 transition-transform"
           >
-            <Users className="h-4 w-4" />
-            <span>QR دعوة</span>
+            <Users className="h-3.5 w-3.5" />
+            <span>QR دعوة الضيوف</span>
           </Link>
-          <label className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm bg-background/95 border border-border cursor-pointer shadow-2xl backdrop-blur-md hover:bg-background transition-colors">
-            <ImageIcon className="h-4 w-4" />
-            <span>المعرض</span>
-            <input type="file" accept={enableVideo ? "image/*,video/*" : "image/*"} className="hidden" onChange={async (e) => {
-            const f = e.target.files?.[0];
-            if (!f) return;
-            
-            // Check if video is being uploaded when video is disabled
-            if (f.type.startsWith("video") && !enableVideo) {
-              toast({
-                title: "الفيديو غير مفعل",
-                description: "ميزة الفيديو غير مفعلة لهذه المناسبة",
-                variant: "destructive"
-              });
-              return;
-            }
-            
-            if (left <= 0) {
-              toast({
-                title: "انتهى عدد اللقطات"
-              });
-              return;
-            }
-            
-            // إضافة الصورة إلى اللقطات المحلية أولاً
-            const fileUrl = URL.createObjectURL(f);
-            const fileType = f.type.startsWith("video") ? "video" : "image";
-            
-            setRecent(r => [{
-              url: fileUrl,
-              type: fileType as "image" | "video"
-            }, ...r].slice(0, 20));
-            
-            // تحديث العداد
-            const newLeft = Math.max(0, left - 1);
-            setLeft(newLeft);
-            
-            try {
-              const uploadedPath = await uploadFile(f, fileType);
-              
-              // تحديث الحالة المحلية بالمسار الحقيقي
-              if (uploadedPath) {
-                setRecent(r => r.map(item => 
-                  item.url === fileUrl 
-                    ? { ...item, filePath: uploadedPath }
-                    : item
-                ));
-              }
-              
-              toast({
-                title: `تم الرفع ${pad2(maxShots - newLeft)}/${pad2(maxShots)}`
-              });
-            } catch (e) {
-              // إرجاع العداد في حالة فشل الرفع
-              setLeft(n => Math.min(maxShots, n + 1));
-              // إزالة الصورة من اللقطات المحلية
-              setRecent(r => r.filter(item => item.url !== fileUrl));
-              setShowRetry({
-                file: f,
-                kind: fileType
-              });
-            }
-            
-            e.currentTarget.value = "";
-          }} />
-          </label>
         </div>
       </div>
 

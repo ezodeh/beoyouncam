@@ -1,151 +1,116 @@
-## الهدف
-ربط كل صفحات التطبيق (الجاهزة من ناحية UI/UX) بالـ Backend (Lovable Cloud) مع تدفّق صحيح من البداية للنهاية، وإصلاح أي روابط ناقصة أو غير متّسقة.
 
-## الحالة الحالية (مما تم فحصه)
-- معظم الصفحات تستخدم الـ backend فعلاً (Auth, CreateEvent, EventAlbum, FinalSubmit، dashboard tabs).
-- قاعدة البيانات + RLS + RPC functions جاهزة وآمنة (تم تأكيدها في المراجعة الأمنية).
-- النواقص أساسها: **توحيد تدفق الجلسة**، **حماية المسارات**، **ربط بعض الصفحات المتبقّية** (Payment, ChoosePlan, Invites, EventWelcome/Soon/Ended, Scanner, BillingHistory, Admin)، و**تنسيق التحويلات (redirects) بين الخطوات**.
+# خطة شاملة: التحقق من الربط + تطوير الكاميرا
+
+سأنفّذها بالتوازي على مرحلتين متداخلتين خلال نفس الجلسة.
 
 ---
 
-## التدفقات (Flows) — الترتيب النهائي المستهدف
+## الجزء الأول — التحقق الشامل من الربط
 
-### 1) تدفّق المصادقة (Auth)
-```
-/  →  /auth (إذا غير مسجّل)
-     ├─ Email + Password (signup/login)  →  إنشاء profile تلقائياً  →  /account
-     └─ Google OAuth (مُدار من Cloud)    →  /account
-/auth?next=/create-event  →  بعد الدخول يحوّل لـ next
-```
-**العمل المطلوب:**
-- إضافة `AuthProvider` (Context) في `src/hooks/useAuth.tsx` يستمع `onAuthStateChange` ثم `getSession` (بالترتيب الصحيح)، ويوفّر `{ user, session, loading, signOut }`.
-- إضافة مكوّن `<RequireAuth />` لحماية المسارات الخاصة.
-- إضافة DB trigger `handle_new_user` ينشئ سجل في `profiles` تلقائياً عند التسجيل (بدل الـ upsert اليدوي في Auth.tsx).
-- دعم `?next=` redirect param في `/auth`.
-- صفحة `/reset-password` (مطلوبة لإعادة تعيين كلمة المرور).
+### 1) فحص يدوي بالمتصفح لكل المسارات
+سأشغّل Browser Automation وأمشي على كل التدفقات الرئيسية وأسجّل أي خلل (UI أو Network أو Console):
 
-### 2) تدفّق إنشاء الفعالية (Owner)
-```
-/account → "New event" → /choose-plan → /payment → /create-event → /manage/:token
-```
-**العمل المطلوب:**
-- حماية `/choose-plan`, `/payment`, `/create-event`, `/manage/:token` بـ `<RequireAuth />`.
-- ربط `ChoosePlan` (تخزين الخطة المختارة محلياً ثم استخدامها في `/payment`).
-- `Payment`: حالياً مجرد UI — اختياري: إمّا تفعيل Stripe لاحقاً، أو وضع "Mark as paid (demo)" يحوّل مباشرة إلى `/create-event`.
-- بعد نجاح إنشاء الفعالية في `CreateEvent` → التحويل إلى `/manage/:token` (بدل أي صفحة وسيطة).
-- `/account` يعرض فعالياتي عبر query على `events` بـ `owner_id = user.id` (موجود جزئياً — التأكد من React Query + invalidation عند إنشاء/حذف).
+| التدفق | المسار | ما سأتأكد منه |
+|---|---|---|
+| الهوم | `/` | تحميل، CTA، روابط |
+| Auth | `/auth` | Email/Password (signup + login) + Forgot Password + Google OAuth + الـ redirect بعد الدخول |
+| Reset Password | `/reset-password` | استلام `type=recovery`، تحديث كلمة المرور |
+| إنشاء مناسبة | `/choose-plan` → `/payment` → `/create-event` | `RequireAuth`، الحماية، الـ flow بين الصفحات، الحفظ في `events` |
+| إدارة | `/manage/:token` | كل التبويبات (Overview, Album, Participants, Statistics, Customization, EventDetails) — استخدام `user_owns_event` + `get_owner_participant_data` + Realtime |
+| الحساب | `/account`, `/settings`, `/billing` | يظهر مناسبات المستخدم، يحدّث `profiles` |
+| الضيف | `/event/:token` → welcome → camera → submit → submit-success | `get_public_event_info`، تسجيل `participant`، رفع الميديا، إدخال `blessings` |
+| التوقيت | `/event/:token/soon` / `ended` | التحويل حسب `start_at` / `end_at` |
+| الألبوم | `/album/:token/intro` → `/album/:token` (أو `private`) → `by/:name` | `is_user_event_owner` + `grant_album_access` + RLS |
+| QR/دعوات | `/event/:token/invites`, `/scanner` | محمي بالـ Auth، توليد/قراءة الـ QR |
+| Admin | `/admin` | `has_role('admin')` |
 
-### 3) تدفّق الضيف (Guest)
-```
-/event/:token  →  (يقرر حسب وقت الفعالية + الحالة)
-   ├─ لم تبدأ:        /event/:token/soon
-   ├─ منتهية:         /event/:token/ended  →  زر للذهاب للألبوم
-   ├─ جارية + جديد:   /event/:token/welcome  →  تسجيل اسم/إيميل/هاتف (participants)
-   ├─ جارية + معروف:  /event/:token/camera
-   ├─ بعد التصوير:    /event/:token/submit  →  /event/:token/submit-success
-```
-**العمل المطلوب:**
-- جعل `/event/:token` صفحة **router** صغيرة تقرأ `get_public_event_info` ثم تحوّل للصفحة الصحيحة.
-- في `EventWelcome`: إنشاء سجل في `participants` (أو ربطه إذا المستخدم مسجّل دخول)، حفظ `participant_id` في localStorage بمفتاح `participant:{token}`.
-- `EventCamera`: يلتقط الصور/الفيديو محلياً (state أو IndexedDB).
-- `EventFinalSubmit`: يرفع كل الملفات لـ bucket `event-media` تحت `{token}/{participant_id}/...` ثم `insert` في `media_submissions`، ثم يحوّل إلى `submit-success`.
-- `EventEnded` و `EventSoon`: عرض معلومات + CTA للألبوم/الإشعار.
+لكل خلل: سأسجّله ثم أصلحه فوراً (إذا الإصلاح UI/منطق بسيط)، أو أضيفه لقائمة المتابعة (إذا كبير).
 
-### 4) تدفّق الألبوم (Public/Private)
-```
-/album/:token/intro
-   ├─ public + published:   /album/:token
-   ├─ private + password:   /album/:token/private  →  RPC grant_album_access  →  /album/:token
-   └─ private بدون كلمة:    يحتاج تسجيل دخول + participant
-/album/:token/by/:name  →  صور مشارك معيّن
-```
-**العمل المطلوب:**
-- `EventAlbumIntro`: يقرأ `get_public_event_info`، يقرر أي حالة، ويعرض CTA مناسب.
-- `EventAlbumPrivate`: نموذج كلمة مرور → `grant_album_access` → حفظ `albumAccess:{token}` في sessionStorage مع `expires_at`.
-- `EventAlbum`: يفحص الوصول (مالك / participant / public / sessionAccess) ثم يحمّل الوسائط من Storage + يستعمل `get_public_participant_data` للأسماء.
-- `EventAlbumByEyes`: استخدام `get_participant_by_name` لجلب الـ id ثم فلترة `media_submissions` بـ `participant_id`.
-- البلاسنغز (Blessings): قراءة/إضافة عبر RLS الموجود.
+### 2) فحص أمني شامل
+- تشغيل `security--run_security_scan` + قراءة النتائج
+- مراجعة RLS على كل جدول (events, participants, media_submissions, blessings, profiles, user_roles)
+- التأكد من عدم تسرّب `owner_id` / `password_hash` للضيوف (الكل صار يستخدم `get_public_event_info` بس راح أتأكد)
+- التأكد من حماية مسارات الـ Edge Functions (لا يوجد حالياً)
+- فحص storage policies على `event-media` و `event-customization`
 
-### 5) لوحة إدارة المالك `/manage/:token`
-**العمل المطلوب:**
-- تأكيد أن كل التابات تستخدم `user_owns_event` للحماية وتستعمل `get_owner_participant_data` للمشاركين.
-- تابات: Overview, EventDetails, Customization, Privacy, Participants, Album, Statistics, Invites — التأكد أن كل update يستعمل `events` update مع RLS، وأن invalidation يحدّث الواجهة.
-- `Invites` (`/event/:token/invites`): توليد روابط دعوة + مشاركة (QR / واتساب / إيميل / SMS) — كله client-side، لا يحتاج backend.
-- `Scanner`: ماسح QR يفتح `/event/:token` — كله client-side.
-- Realtime: تفعيل live updates لـ `media_submissions` و `blessings` و `participants` في لوحة الإدارة وفي الألبوم العام.
-
-### 6) Account / Settings / Billing / Admin
-- `/account`: عرض الفعاليات الخاصة بي + إنشاء جديد.
-- `/settings`: تحديث `profiles` (display_name, phone, country, ...).
-- `/billing`: حالياً UI فقط — تركها كقائمة فارغة حتى تُفعَّل المدفوعات لاحقاً.
-- `/admin`: محمي بـ `has_role(uid, 'admin')` — التحقق client-side **و** عبر RLS.
+### 3) تقرير مكتوب
+سأكتب تقرير نهائي بالعربي يحتوي:
+- ✅ ما يعمل بشكل كامل
+- ⚠️ نواقص بسيطة تم إصلاحها
+- ❌ نواقص كبيرة تحتاج قرار/مرحلة لاحقة
+- 🔒 ملخّص النتائج الأمنية
 
 ---
 
-## التغييرات التقنية بالتفصيل
+## الجزء الثاني — إعادة تصميم الكاميرا (iOS / Snapchat-style)
 
-### A. ملفات جديدة
-- `src/hooks/useAuth.tsx` — AuthContext + Provider + hook.
-- `src/components/auth/RequireAuth.tsx` — wrapper guard للمسارات الخاصة.
-- `src/pages/ResetPassword.tsx` — صفحة `/reset-password`.
-- `src/lib/queries/events.ts` — React Query hooks (useMyEvents, useEvent, useUpdateEvent, ...).
-- `src/lib/queries/participants.ts` — `useJoinEvent`, `useOwnerParticipants`, ...
-- `src/lib/queries/media.ts` — رفع وقراءة الوسائط + Storage helpers.
-- `src/lib/queries/blessings.ts`.
-- `src/lib/eventRouter.ts` — منطق "أين أرسل الضيف؟" حسب الوقت/الحالة.
+ملف العمل الرئيسي: `src/components/capture/MobileCamera.tsx` (1149 سطر حالياً).
 
-### B. تعديلات على App.tsx
-- لفّ `<Routes>` بـ `<AuthProvider>`.
-- لفّ المسارات الخاصة بـ `<RequireAuth>`: `/account`, `/settings`, `/create-event`, `/choose-plan`, `/payment`, `/manage/:token`, `/billing`, `/admin`, `/event/:token/invites`.
-- إضافة `<Route path="/reset-password" />`.
+سأعيد هيكلته وأعطيه واجهة احترافية حديثة مع الحفاظ على كل المنطق الشغّال (الرفع، الـ participant lookup، الـ DB inserts).
 
-### C. قاعدة البيانات (migration واحدة)
-```sql
--- 1) Trigger ينشئ profile تلقائياً عند التسجيل
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.profiles (id, display_name)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email))
-  ON CONFLICT (id) DO NOTHING;
-  RETURN NEW;
-END $$;
+### A) إعادة التصميم البصري
+- **Shutter زر مركزي كبير** بحلقة متدرّجة (gradient ring) مع haptic-style scale animation عند الضغط
+- **شريط جانبي (Side Rail)** للأيقونات بأسلوب iOS: تبديل الكاميرا، فلاش، شبكة، تأثيرات، مؤقّت
+- **Top bar شفّاف** مع زر إغلاق (X) على اليسار، اسم المناسبة بالمنتصف، عدّاد اللقطات على اليمين — مع blur خفيف
+- **Effects Carousel** أفقي قابل للسحب أسفل الفيديو (بدل الأيقونة الحالية)، كل تأثير له معاينة دائرية مصغّرة
+- **Recent Thumbnail** بزاوية يسار-سفلى مع badge عدد، عرض animated عند آخر التقاطة (slide-in)
+- **Capture Flash Animation** ومضة بيضاء كاملة عند الالتقاط
+- **Recording Indicator** نقطة حمراء نابضة + Timer كبير عند تسجيل الفيديو + حلقة تقدّم حول الـ Shutter
+- استخدام `framer-motion` للحركات والـ transitions (مثبت أصلاً)
 
-CREATE TRIGGER on_auth_user_created
-AFTER INSERT ON auth.users
-FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+### B) تجربة استخدام محسّنة
+- **Tap-to-focus**: تحديد نقطة التركيز بالنقر على الفيديو (focus reticle animation)
+- **Pinch-to-zoom**: محسّن مع زر زوم سريع (1x / 2x) أسفل الـ Shutter
+- **Zoom slider عمودي** يظهر مؤقتاً عند بدء الـ pinch
+- **Swipe between modes**: سحب يمين/يسار للتبديل بين Photo / Video (إذا الفيديو مفعّل)
+- **Long-press = video** (محفوظ من الكود الحالي)، tap = صورة
+- **Self-timer**: 3s / 10s مع countdown overlay كبير
+- **Front camera mirror**: عكس تلقائي للسلفي (مع خيار تعطيل في الإعدادات)
+- **Toast بسيط ومضغوط** بدل الـ toasts الحالية المتعدّدة
+- **حفظ آخر التأثير المستخدم** في localStorage
 
--- 2) تفعيل realtime على الجداول الحيّة
-ALTER PUBLICATION supabase_realtime ADD TABLE public.media_submissions;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.blessings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.participants;
-ALTER TABLE public.media_submissions REPLICA IDENTITY FULL;
-ALTER TABLE public.blessings REPLICA IDENTITY FULL;
-ALTER TABLE public.participants REPLICA IDENTITY FULL;
+### C) إعادة الهيكلة (Refactor)
+تقسيم `MobileCamera.tsx` (1149 سطر) إلى مكوّنات أصغر:
 ```
+src/components/capture/
+├── MobileCamera.tsx        (orchestrator فقط)
+├── CameraStream.tsx        (الفيديو + permissions + zoom + tap-to-focus)
+├── CameraTopBar.tsx        (الـ navbar الجديد)
+├── CameraSideRail.tsx      (الأزرار الجانبية)
+├── CameraShutter.tsx       (الزر المركزي + recording state)
+├── CameraEffectsCarousel.tsx (التأثيرات)
+├── CameraRecentThumb.tsx   (آخر صورة + معرض)
+├── CameraTimer.tsx         (self-timer + countdown)
+└── hooks/
+    ├── useCameraStream.ts
+    ├── useCameraUpload.ts  (المنطق الحالي لإيجاد participant ورفع الملف)
+    └── useCameraEffects.ts
+```
+الـ business logic (uploadFile، participant lookup، DB insert) ينتقل كما هو لـ `useCameraUpload` بدون تغيير في التواصل مع Backend.
 
-### D. إعداد المصادقة
-- تفعيل Google OAuth عبر `configure_social_auth(['google'])` (مُدار من Cloud — لا يحتاج credentials).
-- إبقاء Email/Password مفعّل بدون auto-confirm (المستخدم يأكد الإيميل).
-- تفعيل HIBP password protection (`password_hibp_enabled: true`).
-
-### E. ضبط الـ redirects الحالية
-- في `Auth.tsx` + أي مكان يستعمل OAuth: استخدام `redirectTo: ${window.location.origin}/auth/callback` أو إبقاء `/account` كما هو، **مع التأكد** من قراءة `?next=` بعد الرجوع.
-- إزالة الـ upsert اليدوي لـ profiles من Auth.tsx (الـ trigger أصبح يتكفّل).
+### D) خارج نطاق هذه الخطة (لمرحلة لاحقة)
+- AR Face filters (يحتاج مكتبة ثقيلة مثل MediaPipe/TensorFlow)
+- Sticker overlays متقدمة
+- Video trim/pause/resume
+- Manual exposure/ISO/HDR (دعم المتصفح محدود)
+سأذكر هذه كمقترحات في التقرير النهائي.
 
 ---
 
-## ترتيب التنفيذ
-1. Migration (trigger + realtime) + إعداد OAuth + HIBP.
-2. AuthProvider + RequireAuth + ResetPassword + حماية المسارات في App.tsx.
-3. طبقة React Query (events/participants/media/blessings) واستخدامها بدل الـ fetch المباشر في الصفحات.
-4. ربط تدفق الضيف: EventCapture (router) → Welcome → Camera → FinalSubmit → SubmitSuccess.
-5. ربط تدفق الألبوم: Intro → Private → Album → ByEyes + blessings + realtime.
-6. مراجعة لوحة الإدارة (manage tabs) + Invites + Scanner.
-7. مراجعة Account/Settings/Admin + التحقق من has_role للأدمن.
-8. اختبار end-to-end لكل تدفق + إصلاح أي خلل.
+## ترتيب التنفيذ في جلسة واحدة
 
-## خارج النطاق (تتم لاحقاً عند الطلب)
-- تفعيل Stripe/Paddle للدفع الحقيقي.
-- إرسال إيميلات الدعوة فعلياً عبر transactional email.
-- تخصيص قوالب إيميلات المصادقة.
+1. تشغيل الفحص الأمني + قراءة logs (5 دقائق)
+2. فحص يدوي للمسارات بالـ Browser + تسجيل ملاحظات
+3. إصلاح أي خلل صغير اكتشفته (RLS، routing، missing field…)
+4. تقسيم `MobileCamera.tsx` لمكوّنات + hooks (نقل المنطق كما هو)
+5. تطبيق التصميم الجديد على كل مكوّن
+6. إضافة الميزات الجديدة (tap-to-focus، self-timer، swipe modes، capture flash)
+7. اختبار الكاميرا بالـ Browser (نظري — الكاميرا الحقيقية تحتاج جهاز)
+8. كتابة التقرير النهائي
+
+## التفاصيل التقنية
+
+- **لا يوجد تغيير على Backend**: الـ RPCs والـ RLS كلها صحيحة
+- **لا يوجد migration جديد**
+- **لا تغيير في schema**: نفس الجداول، نفس الأعمدة
+- **التوافق**: التصميم mobile-first (الكاميرا تشتغل على الموبايل فقط أصلاً)، مع DesktopGate كما هو
