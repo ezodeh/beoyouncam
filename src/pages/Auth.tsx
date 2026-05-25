@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { lovable } from "@/integrations/lovable";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff } from "lucide-react";
@@ -23,6 +26,13 @@ export default function Auth() {
   const [gender, setGender] = useState<"male"|"female"|"other">("female");
   const [birthdate, setBirthdate] = useState<string>("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next") || "/account";
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) navigate(next, { replace: true });
+  }, [user, authLoading, navigate, next]);
 
   const countries = [
     "فلسطين", "السعودية", "الإمارات العربية المتحدة", "قطر", "الكويت", "البحرين", "عُمان",
@@ -81,29 +91,29 @@ const signIn = async () => {
   setLoading(true);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   setLoading(false);
-  if (!error) navigate("/account"); else alert(error.message);
+  if (!error) navigate(next, { replace: true }); else toast.error(error.message);
 };
 
 const signUp = async () => {
-  if (!name.trim()) { alert("الاسم مطلوب"); return; }
-  if (!email.trim()) { alert("البريد الإلكتروني مطلوب"); return; }
-  if (!password) { alert("كلمة المرور مطلوبة"); return; }
-  if (!phone.trim()) { alert("رقم الهاتف مطلوب"); return; }
-  if (!country) { alert("اختيار البلد مطلوب"); return; }
-  if (!birthdate) { alert("تاريخ الميلاد مطلوب"); return; }
-  if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
+  if (!name.trim()) { toast.error("الاسم مطلوب"); return; }
+  if (!email.trim()) { toast.error("البريد الإلكتروني مطلوب"); return; }
+  if (!password) { toast.error("كلمة المرور مطلوبة"); return; }
+  if (!phone.trim()) { toast.error("رقم الهاتف مطلوب"); return; }
+  if (!country) { toast.error("اختيار البلد مطلوب"); return; }
+  if (!birthdate) { toast.error("تاريخ الميلاد مطلوب"); return; }
+  if (!agree) { toast.error("الرجاء الموافقة على الشروط"); return; }
   setLoading(true);
-  const redirectUrl = `${window.location.origin}/account`;
+  const redirectUrl = `${window.location.origin}${next}`;
   const { data, error } = await supabase.auth.signUp({ 
     email, 
     password, 
     options: { 
       emailRedirectTo: redirectUrl,
-      data: { full_name: name }
+      data: { display_name: name, full_name: name }
     } 
   });
   setLoading(false);
-  if (error) { alert(error.message); return; }
+  if (error) { toast.error(error.message); return; }
   try {
     const pending = { display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
     localStorage.setItem("pendingProfile", JSON.stringify(pending));
@@ -112,20 +122,31 @@ const signUp = async () => {
       await supabase.from("profiles").upsert({ id: uid, display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() });
     }
   } catch {}
-  alert("تم إرسال رسالة تأكيد إلى بريدك.");
+  toast.success("تم إرسال رسالة تأكيد إلى بريدك.");
 };
 
 const signInGoogle = async () => {
-  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
+  const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}${next}` });
+  if (res.error) toast.error(res.error.message);
 };
 
 const signUpGoogle = async () => {
-  if (!agree) { alert("الرجاء الموافقة على الشروط"); return; }
+  if (!agree) { toast.error("الرجاء الموافقة على الشروط"); return; }
   try {
     const pending = { display_name: name, phone, country, gender, birthdate: birthdate || null, agreed_terms_at: new Date().toISOString() };
     localStorage.setItem("pendingProfile", JSON.stringify(pending));
   } catch {}
-  await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/account` } });
+  const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}${next}` });
+  if (res.error) toast.error(res.error.message);
+};
+
+const forgotPassword = async () => {
+  if (!email.trim()) { toast.error("أدخل البريد الإلكتروني أولاً"); return; }
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) toast.error(error.message);
+  else toast.success("تم إرسال رابط إعادة تعيين كلمة المرور");
 };
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
@@ -160,6 +181,9 @@ const signUpGoogle = async () => {
                 </button>
               </div>
 <Button className="w-full rounded-full" disabled={loading} onClick={signIn}>دخول</Button>
+                <button type="button" onClick={forgotPassword} className="text-xs text-muted-foreground hover:text-foreground underline">
+                  نسيت كلمة المرور؟
+                </button>
                 <Button variant="secondary" className="w-full rounded-full flex items-center justify-center gap-2" onClick={signInGoogle}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
