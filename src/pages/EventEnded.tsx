@@ -22,9 +22,7 @@ export default function EventEnded() {
     if (!token) return;
     
     const { data } = await supabase
-      .from("events")
-      .select("is_album_published, is_private")
-      .eq("token", token)
+      .rpc("get_public_event_info", { event_token: token })
       .maybeSingle();
     
     if (data) {

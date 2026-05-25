@@ -31,9 +31,7 @@ export default function EventAlbumIntro() {
       
       const { data: { session } } = await supabase.auth.getSession();
       const { data } = await supabase
-        .from("events")
-        .select("is_private, published_at, title, cover_url, show_header, owner_id, is_album_published, password, album_cover_url, album_title, album_description")
-        .eq("token", token)
+        .rpc("get_public_event_info", { event_token: token as string })
         .maybeSingle();
         
       if (!data) return;
@@ -43,11 +41,18 @@ export default function EventAlbumIntro() {
       setCoverUrl(data.album_cover_url || data.cover_url || null);
       setShowHeader(data.show_header !== false);
       
-      // Determine if current user is the event owner
-      const currentIsEventOwner = session?.user?.id === data.owner_id;
+      // Determine if current user is the event owner (via secure RPC)
+      let currentIsEventOwner = false;
+      if (session?.user) {
+        const { data: ownerCheck } = await supabase.rpc("is_user_event_owner", {
+          user_id: session.user.id,
+          event_token: token as string,
+        });
+        currentIsEventOwner = !!ownerCheck;
+      }
       
       // Check if private album needs password verification
-      if (data.is_private && data.password && !currentIsEventOwner) {
+      if (data.is_private && !currentIsEventOwner) {
         const hasAccess = sessionStorage.getItem(`album_access_${token}`);
         if (!hasAccess) {
           setShowPasswordInput(true);
@@ -58,8 +63,7 @@ export default function EventAlbumIntro() {
       console.log("🔍 Album Intro access check:", {
         isAlbumPublished: data.is_album_published,
         isEventOwner: currentIsEventOwner,
-        userId: session?.user?.id,
-        ownerId: data.owner_id
+        userId: session?.user?.id
       });
       
       // Check if album is published OR user is the owner
@@ -69,10 +73,6 @@ export default function EventAlbumIntro() {
         return;
       }
       
-      // Check for private events (existing logic)
-      if (data.is_private && (!data.published_at || new Date(data.published_at) > new Date())) {
-        navigate(`/event/${token}/soon?title=${encodeURIComponent(data.title || eventName)}`);
-      }
     })();
   }, [token]);
 
