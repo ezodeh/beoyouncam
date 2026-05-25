@@ -147,6 +147,7 @@ export default function Account() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" dir="rtl">
       <Navbar />
+      {showOnboarding && <WelcomeTour onClose={closeOnboarding} />}
       <main className="flex-1 container mx-auto px-4 py-8 grid gap-10">
         {!userId ? (
           <section className="text-center max-w-md mx-auto">
