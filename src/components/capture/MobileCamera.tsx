@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, Sparkles, ArrowLeft, Settings } from "lucide-react";
+import { CameraOff, Flashlight, Grid as GridIcon, Users, Image as ImageIcon, Trash2, X, RotateCcw, Timer, Check, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "@/components/layout/Navbar";
 import { Textarea } from "@/components/ui/textarea";
-import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { supabase } from "@/integrations/supabase/client";
 interface Props {
   eventName: string;
