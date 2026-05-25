@@ -28,9 +28,7 @@ export default function EventCamera() {
     (async () => {
       if (!token) return;
       const { data } = await supabase
-        .from("events")
-        .select("max_shots, start_at, end_at, title, enable_video")
-        .eq("token", token as string)
+        .rpc("get_public_event_info", { event_token: token as string })
         .maybeSingle();
       if (data) {
         const row = data as any;
