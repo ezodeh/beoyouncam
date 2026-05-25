@@ -24,9 +24,7 @@ export default function EventSubmitSuccess() {
     if (!token) return;
     
     const { data } = await supabase
-      .from("events")
-      .select("title, is_album_published")
-      .eq("token", token)
+      .rpc("get_public_event_info", { event_token: token })
       .maybeSingle();
     
     if (data) {
