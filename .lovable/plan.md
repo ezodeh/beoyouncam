@@ -1,58 +1,63 @@
-## خطة الإصلاحات الأربعة
+## Goal
+Do a nano-level audit of the whole app, then fix every connection/sync/UX/UI issue found — with extra focus on **light mode** polish. No new features.
 
-### 1) منع تخزين كلمات السر كنص واضح للمناسبات الخاصة
+## Audit checklist (I'll execute each)
 
-**المشكلة**: عند إنشاء مناسبة خاصة في `CreateEvent.tsx` يتم تخزين كلمة السر في عمود `password` كنص واضح، و دالة `validate_event_password` تقارن بـ `password = provided_password` (نص واضح).
+### A. Routing & navigation
+- [ ] `/terms` and `/privacy` pages exist but are **not registered** in `App.tsx` → footer/auth/CreateEvent links 404 (confirmed in console: `404 Error: /terms`). Add both routes.
+- [ ] Walk every `<Link>` / `navigate(...)` in pages — verify target route exists.
+- [ ] Verify `RequireAuth` redirects preserve `?next=` everywhere.
+- [ ] Verify `/event/:token` → soon/ended/welcome/camera router still works for all event states.
 
-**الحل**:
-- إنشاء migration:
-  - دالة `hash_event_password(text)` تستخدم `crypt(pw, gen_salt('bf'))` (pgcrypto).
-  - تعديل `validate_event_password(event_token, provided_password)` لتقارن بـ `password_hash = crypt(provided_password, password_hash)` بدل النص الواضح، وتكون نتيجتها صحيحة حتى لو كان `password` فارغًا.
-  - Trigger `BEFORE INSERT OR UPDATE ON events`: إذا كان `password` غير فارغ، يحوّله إلى `password_hash` ويصفّر `password` تلقائيًا — هذا يحمي حتى لو نسي أي كود في الواجهة.
-  - Backfill: تحويل أي صفوف حالية فيها `password` نصي إلى `password_hash` ومسح `password`.
-- في `CreateEvent.tsx`: بدل إرسال `password: password.trim()` نرسل `password: null` و نستدعي RPC جديدة `set_event_password(token, plain)` (أو نعتمد على الـ trigger مباشرة بإرسال النص لمرة واحدة ثم يقوم الـ trigger بالتشفير). الأسهل: الإبقاء على إرسال النص للـ INSERT ثم الـ trigger يحوّله — لا يبقى نص واضح في DB.
-- في `PrivacyTab.tsx`: إزالة منطق التشفير اليدوي (يصبح غير صحيح ومكرر) واعتماد الـ trigger.
+### B. Data flow & "saves everywhere" sync
+- [ ] Map every `.update()` / `.insert()` on `events`, `profiles`, `participants`, `media_submissions`, `blessings`.
+- [ ] For every dashboard tab (Overview, EventDetails, Privacy, Customization, Album, Participants, QRCodes, Statistics):
+  - confirm save → DB write → state refetch → reflected on guest-facing pages (Welcome, Camera, Album).
+- [ ] Confirm `get_public_event_info` returns every field consumers read (title, max_shots, enable_video, album fields, welcome fields, sign_in_method, share_method, is_private, is_album_published, cover/album cover).
+- [ ] Confirm Privacy tab password flow uses the DB trigger (no plaintext leak) and `validate_event_password` works end-to-end on the guest album.
+- [ ] Confirm WelcomeTour: `onboarded_at` written + read; tour does not reappear.
+- [ ] Confirm camera thumbnails hydrate from `media_submissions` (not stale blob URLs) on revisit.
 
-### 2) صفحة البداية للمسجّل دخوله = الـ Dashboard
+### C. Realtime
+- [ ] `media_submissions`, `blessings`, `participants` replication enabled. Verify channel subscriptions in EventAlbum/ManageDashboard actually fire and don't leak.
 
-**التعديل في `src/pages/Index.tsx`**:
-- استخدام `useAuth()` بدلاً من قراءة الجلسة يدويًا.
-- إذا `user` موجود → `Navigate` إلى `/account` (Dashboard الحالي للمستخدم).
-- الزائر غير المسجّل يبقى يرى الـ Landing.
+### D. Auth
+- [ ] Email/password + Google sign-in both land logged-in users on `/account` (Index redirects correctly).
+- [ ] Profile auto-created via `handle_new_user` trigger (verify trigger is attached).
+- [ ] `pendingProfile` upsert path in `AuthProvider` works.
 
-### 3) إظهار شرح الترحيب (WelcomeTour) مرة واحدة للمستخدم الجديد فقط
+### E. UI — Light mode polish (explicit user priority)
+Audit every page in light mode for:
+- contrast (text on white surfaces, muted text legibility)
+- hardcoded `text-white` / `bg-black` / `text-gray-*` that don't flip in light mode
+- inputs / borders too faint
+- glass/blur surfaces that turn invisible on white
+- camera UI bottom controls visibility
+- WelcomeTour, dialogs, sheets, dropdowns
 
-**المشكلة**: المنطق الحالي يعتمد فقط على `localStorage.seenOnboarding`، فإذا تغيّر الجهاز/المتصفح يظهر من جديد.
+Pages to verify visually in light mode:
+Index, Account, CreateEvent, ManageDashboard (all 8 tabs), EventWelcome, EventCamera, EventAlbum, EventAlbumIntro, EventAlbumPrivate, EventFinalSubmit, EventSubmitSuccess, Auth, ResetPassword, Settings, BillingHistory, ChoosePlan, Payment, Scanner, Invites, Gallery, NotFound, Terms, Privacy.
 
-**الحل**:
-- إضافة عمود `onboarded_at timestamptz` في جدول `profiles` عبر migration.
-- في `Index.tsx` (أو الـ Dashboard بعد التحويل): إظهار `WelcomeTour` فقط إذا `profiles.onboarded_at IS NULL` ولا توجد مناسبات.
-- عند إغلاق/إكمال الجولة: تحديث `profiles.onboarded_at = now()` + ضبط `localStorage` كنسخة احتياطية.
-- نتيجة: تظهر مرة واحدة فقط لكل حساب على كل الأجهزة.
+Replace any hardcoded color with semantic tokens (`bg-background`, `text-foreground`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, etc).
 
-### 4) ظهور اللقطات الأخيرة كصور مكسورة عند العودة للكاميرا
+### F. Forms & validation
+- [ ] Every form has zod (or equivalent) validation + error messages in Arabic.
+- [ ] No `dangerouslySetInnerHTML` with user input.
 
-**السبب الجذري**: `MobileCamera.tsx` يخزّن `recent` في `localStorage` مع `url` كـ `blob:` URL ينتهي عند إغلاق التبويب → صور مكسورة عند العودة.
+### G. Console / runtime
+- [ ] Resolve all warnings in current console (recharts width/height = -1 in StatisticsTab, React Router v7 flags — optional opt-in).
+- [ ] No unhandled promise rejections in main flows.
 
-**الحل في `MobileCamera.tsx`**:
-- لا نخزّن `blob:` URLs، بل نخزّن فقط `{ filePath, type }` بعد نجاح الرفع.
-- عند التحميل (mount):
-  1. قراءة الـ `recent` من `localStorage` (مسارات فقط).
-  2. لكل مسار: استدعاء `supabase.storage.from("event-media").createSignedUrl(filePath, 3600)` للحصول على رابط صالح.
-  3. عرض الصور بهذه الروابط.
-- يمكن مرحليًا الإبقاء على blob URL مؤقت أثناء الجلسة قبل اكتمال الرفع، لكن لا نحفظه في localStorage.
-- مزامنة احتياطية: عند فتح الكاميرا نجلب أيضًا قائمة `media_submissions` الخاصة بـ `participant_id` الحالي ونعرضها (مصدر الحقيقة من السيرفر).
+## Deliverables (in build mode)
+1. **Routing fixes** — add `/terms`, `/privacy` routes in `App.tsx`.
+2. **Light-mode pass** — replace hardcoded colors with semantic tokens across the page list above; fix any contrast issues found.
+3. **Sync fixes** — for any dashboard save that doesn't propagate, add a refetch or invalidate (`get_public_event_info` is the source of truth on guest screens; ensure ManageDashboard refetches after each save).
+4. **Realtime fixes** — verify subscriptions, add cleanup where missing.
+5. **Camera hydration** — confirm `media_submissions` query on mount and signed/public URL works; fix if not.
+6. **Small bugs** — Statistics chart sizing warning, any 404 link, any missing field in public RPC.
+7. **Final QA** — open every page in light + dark, take screenshots, verify console is clean.
 
----
-
-### تفاصيل تقنية مختصرة
-
-ملفات ستُعدّل:
-- migration جديد: trigger التشفير + تعديل `validate_event_password` + عمود `profiles.onboarded_at` + backfill.
-- `src/pages/CreateEvent.tsx` (إزالة إرسال كلمة سر نصية صريحة في الحفظ النهائي — أو الاعتماد على الـ trigger).
-- `src/components/dashboard/tabs/PrivacyTab.tsx` (تبسيط الحفظ).
-- `src/pages/Index.tsx` (Redirect للمسجّل + شرط onboarded_at).
-- `src/components/onboarding/WelcomeTour.tsx` (استدعاء تحديث `profiles.onboarded_at` عند الإغلاق).
-- `src/components/capture/MobileCamera.tsx` (حفظ مسارات الملفات فقط + Signed URLs + مزامنة من DB).
-
-لن يتم تغيير: تدفّقات الـ Auth، صلاحيات RLS الأخرى، تصميم الكاميرا الحالي.
+## Out of scope
+- No new features
+- No design redesigns beyond fixing broken/low-contrast surfaces
+- No business logic changes beyond bug fixes
