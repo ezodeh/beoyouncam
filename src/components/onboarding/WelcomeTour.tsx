@@ -104,7 +104,7 @@ export default function WelcomeTour({ onClose }: WelcomeTourProps) {
                     ابدأ الآن
                   </Link>
                 </Button>
-                <Button variant="outline" onClick={onClose} className="w-full">
+                <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground hover:bg-transparent hover:text-foreground">
                   تخطي
                 </Button>
               </div>

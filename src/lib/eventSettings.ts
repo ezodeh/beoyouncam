@@ -59,14 +59,14 @@ export async function getPublicEventInfo(token: string): Promise<Partial<EventSe
     end_at: eventData.end_at,
     is_private: eventData.is_private ?? false,
     cover_url: eventData.cover_url,
-    welcome_title: eventData.welcome_title,
-    welcome_text: eventData.welcome_text,
+    welcome_title: eventData.welcome_title || eventData.title || undefined,
+    welcome_text: eventData.welcome_text || eventData.description || undefined,
     invite_button_text: eventData.invite_button_text,
     show_header: eventData.show_header !== false,
     is_album_published: eventData.is_album_published ?? false,
-    album_title: eventData.album_title,
-    album_description: eventData.album_description,
-    album_cover_url: eventData.album_cover_url,
+    album_title: eventData.album_title || eventData.title || undefined,
+    album_description: eventData.album_description || eventData.description || undefined,
+    album_cover_url: eventData.album_cover_url || eventData.cover_url || undefined,
   };
 }
 

@@ -9,7 +9,7 @@ import Navbar from "@/components/layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
-import heroImage from "@/assets/hero-mnaoyonkom.jpg";
+import Logo from "@/components/branding/Logo";
 import Footer from "@/components/layout/Footer";
 import { Share } from "lucide-react";
 import { getEventSettings, getSupportedCountries, detectCountryCode, getUserProfile } from "@/lib/eventSettings";
@@ -255,7 +255,13 @@ export default function EventWelcome() {
       )}
       <figure className="relative w-full mb-3 overflow-hidden bg-secondary rounded-none">
         <div className="relative h-[38vh] md:h-[48vh]">
-          <img src={eventDetails?.cover_url || heroImage} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
+          {eventDetails?.cover_url ? (
+            <img src={eventDetails.cover_url} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+              <Logo variant="stacked" className="max-h-[60%] max-w-[60%]" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
           <Button variant="secondary" size="icon" className="absolute top-4 left-4 rounded-full bg-background/70 supports-[backdrop-filter]:bg-background/40 backdrop-blur shadow-elevated" onClick={handleShare} aria-label="مشاركة">
             <Share className="h-4 w-4" />
