@@ -259,7 +259,7 @@ export default function EventWelcome() {
             <img src={eventDetails.cover_url} alt={`صورة ${(eventDetails?.title || eventName)}`} className="absolute inset-0 h-full w-full object-cover kenburns-slow" loading="eager" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-              <Logo variant="stacked" className="max-h-[60%] max-w-[60%]" />
+              <Logo variant="stacked" size={180} />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/60" />
