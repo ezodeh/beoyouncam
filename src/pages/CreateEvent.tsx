@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2, Eye, Smartphone, Heart, Images, Users } from "lucide-react";
+import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2, Eye, EyeOff, Smartphone, Heart, Images, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { detectCountryCode, getSupportedCountries } from "@/lib/eventSettings";
