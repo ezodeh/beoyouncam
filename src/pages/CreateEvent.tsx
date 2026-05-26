@@ -54,7 +54,8 @@ function DateTimeField({
   };
 
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).filter((_, i) => i % 5 === 0); // Every 5 minutes
+  const [minuteInput, setMinuteInput] = useState(currentMinute);
+  useEffect(() => { setMinuteInput(currentMinute); }, [currentMinute]);
 
   return (
     <div className="grid gap-1.5">
@@ -118,19 +119,32 @@ function DateTimeField({
                     </div>
                     <div>
                       <Label className="text-sm font-medium mb-2 block">الدقيقة</Label>
-                      <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                        {minutes.map((minute) => (
-                          <Button
-                            key={minute}
-                            variant={currentMinute === minute ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleTimeChange(currentHour, minute)}
-                            className="text-sm"
-                          >
-                            {minute}
-                          </Button>
-                        ))}
-                      </div>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        inputMode="numeric"
+                        value={minuteInput}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/\D/g, "").slice(0, 2);
+                          setMinuteInput(raw);
+                          const n = parseInt(raw, 10);
+                          if (!isNaN(n) && n >= 0 && n <= 59) {
+                            handleTimeChange(currentHour, n.toString().padStart(2, "0"));
+                          }
+                        }}
+                        onBlur={() => {
+                          const n = parseInt(minuteInput, 10);
+                          const safe = isNaN(n) ? 0 : Math.min(59, Math.max(0, n));
+                          setMinuteInput(safe.toString().padStart(2, "0"));
+                          handleTimeChange(currentHour, safe.toString().padStart(2, "0"));
+                        }}
+                        className="text-center text-lg"
+                        placeholder="00"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        أدخل أي دقيقة من 0 إلى 59
+                      </p>
                     </div>
                   </div>
                 </div>
