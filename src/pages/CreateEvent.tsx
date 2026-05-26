@@ -223,6 +223,7 @@ export default function CreateEvent() {
   const [customPublishAt, setCustomPublishAt] = useState<Date | null>(null);
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [autoShareToGuests, setAutoShareToGuests] = useState(false);
   const [shareChannel, setShareChannel] = useState<"whatsapp" | "email" | "none">();
 
@@ -715,13 +716,25 @@ export default function CreateEvent() {
                           <span className="text-xs text-destructive">{errors.password}</span>
                         )}
                       </div>
-                      <Input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="أدخل كلمة مرور للألبوم"
-                        className="text-right"
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة مرور للألبوم"
+                          className="text-right pl-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         ستكون مطلوبة للوصول إلى الألبوم
                       </p>
