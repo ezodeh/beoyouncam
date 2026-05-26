@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2, Eye, Smartphone, Heart, Images, Users } from "lucide-react";
+import { Calendar as CalendarIcon, Upload, Crown, ChevronRight, ChevronLeft, Loader2, Eye, EyeOff, Smartphone, Heart, Images, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { detectCountryCode, getSupportedCountries } from "@/lib/eventSettings";
@@ -54,7 +54,8 @@ function DateTimeField({
   };
 
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).filter((_, i) => i % 5 === 0); // Every 5 minutes
+  const [minuteInput, setMinuteInput] = useState(currentMinute);
+  useEffect(() => { setMinuteInput(currentMinute); }, [currentMinute]);
 
   return (
     <div className="grid gap-1.5">
@@ -118,19 +119,32 @@ function DateTimeField({
                     </div>
                     <div>
                       <Label className="text-sm font-medium mb-2 block">الدقيقة</Label>
-                      <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                        {minutes.map((minute) => (
-                          <Button
-                            key={minute}
-                            variant={currentMinute === minute ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleTimeChange(currentHour, minute)}
-                            className="text-sm"
-                          >
-                            {minute}
-                          </Button>
-                        ))}
-                      </div>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        inputMode="numeric"
+                        value={minuteInput}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/\D/g, "").slice(0, 2);
+                          setMinuteInput(raw);
+                          const n = parseInt(raw, 10);
+                          if (!isNaN(n) && n >= 0 && n <= 59) {
+                            handleTimeChange(currentHour, n.toString().padStart(2, "0"));
+                          }
+                        }}
+                        onBlur={() => {
+                          const n = parseInt(minuteInput, 10);
+                          const safe = isNaN(n) ? 0 : Math.min(59, Math.max(0, n));
+                          setMinuteInput(safe.toString().padStart(2, "0"));
+                          handleTimeChange(currentHour, safe.toString().padStart(2, "0"));
+                        }}
+                        className="text-center text-lg"
+                        placeholder="00"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        أدخل أي دقيقة من 0 إلى 59
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -209,6 +223,7 @@ export default function CreateEvent() {
   const [customPublishAt, setCustomPublishAt] = useState<Date | null>(null);
   const [privacy, setPrivacy] = useState<"public" | "private">("private");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [autoShareToGuests, setAutoShareToGuests] = useState(false);
   const [shareChannel, setShareChannel] = useState<"whatsapp" | "email" | "none">();
 
@@ -701,13 +716,25 @@ export default function CreateEvent() {
                           <span className="text-xs text-destructive">{errors.password}</span>
                         )}
                       </div>
-                      <Input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="أدخل كلمة مرور للألبوم"
-                        className="text-right"
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة مرور للألبوم"
+                          className="text-right pl-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         ستكون مطلوبة للوصول إلى الألبوم
                       </p>
